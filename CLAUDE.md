@@ -32,17 +32,11 @@ understand the project.** If it seems out of date, ask the user to re-run analys
 
 ## Main Compositions
 
+The primary composition is **{{MAIN_COMP}}**.
+
 {{MAIN_COMP_DETAILS}}
 
 ## After Effects Scripting Reference
 
 - **Community Scripting Guide**: <https://ae-scripting.docsforadobe.dev/>
 - **Adobe AE User Guide**: <https://helpx.adobe.com/after-effects/user-guide.html>
-
-## File Structure
-
-- `Scripts/` -- All ExtendScript code (`.jsx`, `.jsxinc`)
-- `Scripts/lib/` -- Shared utilities
-- `Scripts/analyze/` -- Analysis system
-- `Scripts/reports/` -- Generated reports
-- `Input/` -- Data files

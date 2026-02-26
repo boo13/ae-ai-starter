@@ -61,7 +61,8 @@
     var settings = data.settings || {};
     var secondsPerWord = settings.seconds_per_word || Config.DEFAULT_SECONDS_PER_WORD;
     var minDuration = settings.min_duration || Config.DEFAULT_MIN_DURATION;
-    var baseStart = settings.base_start || Config.DEFAULT_BASE_START;
+    var baseStart = (typeof settings.base_start === "number")
+        ? settings.base_start : Config.DEFAULT_BASE_START;
 
     // ------------------------------------------------------------------
     // 2. Build the registry
