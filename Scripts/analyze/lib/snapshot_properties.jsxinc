@@ -1,0 +1,256 @@
+/**
+ * snapshot_properties.jsxinc
+ *
+ * Discovers and reports notable properties on layers across all compositions:
+ *   - Essential Properties (name + current value)
+ *   - Effects (name + parameter names/values)
+ *   - Source Text values from text layers
+ *
+ * Only captures data for layers that actually have Essential Properties,
+ * effects, or are text layers. Filters out z_OLD compositions.
+ *
+ * All code is ES3/ExtendScript compatible.
+ *
+ * @requires report_writer.jsxinc (createReportWriter)
+ */
+
+if (typeof SnapshotProperties === "undefined") {
+
+    var SnapshotProperties = (function () {
+
+        /**
+         * Safely converts an AE property value to a display string.
+         * Handles TextDocument objects, arrays, numbers, and null/undefined.
+         *
+         * @param {*} val - Property value from AE.
+         * @returns {string} Human-readable string representation.
+         */
+        function valueToString(val) {
+            if (val === undefined || val === null) return "";
+
+            // TextDocument objects (from Source Text properties)
+            if (val.text !== undefined) return val.text;
+
+            // Array-like values (Position, Color, etc.)
+            if (val instanceof Array || (typeof val === "object" && typeof val.length === "number")) {
+                var parts = [];
+                for (var i = 0; i < val.length; i++) {
+                    parts.push(String(val[i]));
+                }
+                return "[" + parts.join(", ") + "]";
+            }
+
+            // Numbers, booleans, strings
+            return val.toString ? val.toString() : String(val);
+        }
+
+        /**
+         * Safely reads a property's value and returns it as a string.
+         *
+         * @param {Property} prop - AE property reference.
+         * @returns {string} Value as string, or "(no value)" on error.
+         */
+        function safePropertyValue(prop) {
+            if (!prop) return "";
+            try {
+                return valueToString(prop.value);
+            } catch (e) {
+                return "(no value)";
+            }
+        }
+
+        /**
+         * Collects Essential Properties from a layer.
+         * Essential Properties are found at the top level of a layer's
+         * property tree under the "Essential Properties" group.
+         *
+         * @param {Layer} layer - AE layer to inspect.
+         * @returns {Array} Array of { name, value } objects.
+         */
+        function collectEssentialProperties(layer) {
+            var result = [];
+            try {
+                var ep = layer.property("Essential Properties");
+                if (!ep || ep.numProperties === 0) return result;
+                for (var i = 1; i <= ep.numProperties; i++) {
+                    var prop = ep.property(i);
+                    if (!prop) continue;
+                    result.push({
+                        name: prop.name,
+                        value: safePropertyValue(prop)
+                    });
+                }
+            } catch (e) {
+                // Layer may not support Essential Properties
+            }
+            return result;
+        }
+
+        /**
+         * Collects effect information from a layer.
+         * For each effect, records its name and parameter names/values.
+         *
+         * @param {Layer} layer - AE layer to inspect.
+         * @returns {Array} Array of { name, params: [{ name, value }] } objects.
+         */
+        function collectEffects(layer) {
+            var result = [];
+            try {
+                var effects = layer.property("Effects");
+                if (!effects || effects.numProperties === 0) return result;
+
+                for (var i = 1; i <= effects.numProperties; i++) {
+                    var effect = effects.property(i);
+                    if (!effect) continue;
+
+                    var params = [];
+                    for (var p = 1; p <= effect.numProperties; p++) {
+                        var param = effect.property(p);
+                        if (!param) continue;
+                        // Skip the internal "Compositing Options" group
+                        if (param.name === "Compositing Options") continue;
+                        params.push({
+                            name: param.name,
+                            value: safePropertyValue(param)
+                        });
+                    }
+
+                    result.push({
+                        name: effect.name,
+                        matchName: effect.matchName,
+                        params: params
+                    });
+                }
+            } catch (e) {
+                // Layer may not support effects
+            }
+            return result;
+        }
+
+        /**
+         * Reads the Source Text value from a text layer.
+         *
+         * @param {Layer} layer - AE layer to inspect.
+         * @returns {string} Text content, or empty string if not a text layer.
+         */
+        function collectSourceText(layer) {
+            try {
+                if (layer.matchName !== "ADBE Text Layer") return "";
+                var st = layer.property("Source Text");
+                if (!st) return "";
+                var val = st.value;
+                if (val && val.text !== undefined) return val.text;
+            } catch (e) {
+                // Not a text layer or property not accessible
+            }
+            return "";
+        }
+
+        /**
+         * Captures property data for all compositions and writes to the report.
+         *
+         * @param {Object} context - Analysis context object.
+         * @param {Object} context.project       - app.project reference.
+         * @param {Object} context.writer         - Report writer instance.
+         * @param {Function} context.isInOldFolder - Filter function for z_OLD folders.
+         * @returns {{ warnings: string[] }} Capture results.
+         */
+        function capture(context) {
+            var project = context.project;
+            var writer = context.writer;
+            var isInOldFolder = context.isInOldFolder;
+            var warnings = [];
+
+            writer.addSection("Properties");
+
+            var jsonProperties = {};
+            var anyFound = false;
+
+            for (var i = 1; i <= project.items.length; i++) {
+                var item = project.items[i];
+                if (!(item instanceof CompItem)) continue;
+                if (isInOldFolder && isInOldFolder(item)) continue;
+
+                var compEntries = [];
+
+                for (var l = 1; l <= item.numLayers; l++) {
+                    var layer = item.layer(l);
+                    if (!layer) continue;
+
+                    var ep = collectEssentialProperties(layer);
+                    var effects = collectEffects(layer);
+                    var sourceText = collectSourceText(layer);
+
+                    // Skip layers with nothing interesting to report
+                    if (ep.length === 0 && effects.length === 0 && !sourceText) {
+                        continue;
+                    }
+
+                    var entry = {
+                        layerName: layer.name,
+                        layerIndex: l,
+                        essentialProperties: ep,
+                        effects: effects,
+                        sourceText: sourceText
+                    };
+                    compEntries.push(entry);
+                }
+
+                if (compEntries.length === 0) continue;
+
+                anyFound = true;
+                jsonProperties[item.name] = compEntries;
+
+                writer.addSubsection(item.name);
+
+                for (var e = 0; e < compEntries.length; e++) {
+                    var entry = compEntries[e];
+                    writer.addMarkdown("**Layer " + entry.layerIndex + ": " + entry.layerName + "**\n\n");
+
+                    // Essential Properties
+                    if (entry.essentialProperties.length > 0) {
+                        writer.addMarkdown("Essential Properties:\n");
+                        var epLines = [];
+                        for (var ep = 0; ep < entry.essentialProperties.length; ep++) {
+                            var p = entry.essentialProperties[ep];
+                            epLines.push(p.name + ": " + p.value);
+                        }
+                        writer.addList(epLines);
+                    }
+
+                    // Effects
+                    if (entry.effects.length > 0) {
+                        writer.addMarkdown("Effects:\n");
+                        for (var fx = 0; fx < entry.effects.length; fx++) {
+                            var eff = entry.effects[fx];
+                            writer.addMarkdown("- **" + eff.name + "** (" + eff.matchName + ")\n");
+                            for (var pp = 0; pp < eff.params.length; pp++) {
+                                var param = eff.params[pp];
+                                writer.addMarkdown("  - " + param.name + ": " + param.value + "\n");
+                            }
+                        }
+                    }
+
+                    // Source Text
+                    if (entry.sourceText) {
+                        writer.addMarkdown("Source Text: \"" + entry.sourceText + "\"\n");
+                    }
+
+                    writer.addMarkdown("\n");
+                }
+            }
+
+            if (!anyFound) {
+                writer.addMarkdown("(No notable properties found on any layers)\n");
+            }
+
+            writer.setJson(["properties"], jsonProperties);
+
+            return { warnings: warnings };
+        }
+
+        return {
+            capture: capture
+        };
+    })();
+}
