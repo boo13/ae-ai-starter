@@ -1,0 +1,26 @@
+/**
+ * example_config.jsxinc
+ *
+ * Example configuration for the image-swap recipe.
+ * Copy this file into your project and customize the values
+ * to match your After Effects template and folder structure.
+ *
+ * All code is ES3/ExtendScript compatible.
+ */
+
+var Config = {
+    /**
+     * Name of the folder in the AE Project panel where imported assets
+     * will be organized. The folder is created automatically if it does
+     * not already exist.
+     * @type {string}
+     */
+    ASSETS_FOLDER_NAME: "PROJECT_ASSETS",
+
+    /**
+     * Name of the filesystem folder (relative to your project) that
+     * contains source image files to import.
+     * @type {string}
+     */
+    INPUT_FOLDER_NAME: "Input"
+};

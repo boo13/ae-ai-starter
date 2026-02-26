@@ -1,0 +1,143 @@
+/**
+ * assets.jsxinc  --  Image Swap Recipe
+ *
+ * Manages AE Project panel folders and batch-imports image files from
+ * the filesystem into the project.
+ *
+ * Depends on: helpers.jsxinc (isSupportedImageExtension)
+ *
+ * All code is ES3/ExtendScript compatible.
+ */
+
+/**
+ * Finds or creates a folder at the root level of the AE Project panel.
+ *
+ * Use this to organize imported assets into a dedicated folder rather
+ * than cluttering the project root.
+ *
+ * @param {string} folderName - Name of the folder to find or create.
+ * @returns {FolderItem} The existing or newly created folder item.
+ */
+function ensureProjectFolder(folderName) {
+    if (!app.project || !app.project.rootFolder) {
+        throw new Error("No active AE project.");
+    }
+
+    var root = app.project.rootFolder;
+    for (var i = 1; i <= root.numItems; i++) {
+        var item = root.item(i);
+        if (item instanceof FolderItem && item.name === folderName) {
+            return item;
+        }
+    }
+
+    return root.items.addFolder(folderName);
+}
+
+/**
+ * Imports all supported image files from a filesystem folder into an
+ * AE Project panel folder. Files that have already been imported
+ * (detected by path) are skipped.
+ *
+ * Supported extensions are determined by isSupportedImageExtension()
+ * from helpers.jsxinc, falling back to a built-in list if that
+ * function is not available.
+ *
+ * @param {Folder}     sourceFolder      - ExtendScript Folder containing the images.
+ * @param {FolderItem} destinationFolder - AE Project panel folder to import into.
+ * @returns {FootageItem[]} Array of newly imported footage items.
+ */
+function importFolderAssets(sourceFolder, destinationFolder) {
+    var imported = [];
+    if (!sourceFolder || !sourceFolder.exists) return imported;
+    if (!destinationFolder) return imported;
+
+    // Determine extension check function
+    var isSupported = (typeof isSupportedImageExtension === "function")
+        ? isSupportedImageExtension
+        : function (ext) {
+            var list = ["png", "jpg", "jpeg", "gif", "bmp", "tif", "tiff", "psd", "webp"];
+            if (!ext) return false;
+            var lower = String(ext).toLowerCase();
+            for (var k = 0; k < list.length; k++) {
+                if (list[k] === lower) return true;
+            }
+            return false;
+        };
+
+    // Gather image files from the source folder
+    var files = sourceFolder.getFiles(function (f) {
+        if (!(f instanceof File)) return false;
+        var parts = f.name.split(".");
+        var ext = parts.length > 1 ? parts.pop() : "";
+        return isSupported(ext);
+    });
+
+    for (var i = 0; i < files.length; i++) {
+        var file = files[i];
+
+        // Skip if already imported
+        var existing = findFootageByPath(file);
+        if (existing) {
+            // Move to destination folder if it is elsewhere
+            if (existing.parentFolder !== destinationFolder) {
+                try { existing.parentFolder = destinationFolder; } catch (_) {}
+            }
+            continue;
+        }
+
+        // Import the file
+        var importOpts = new ImportOptions(file);
+        try {
+            var footageItem = app.project.importFile(importOpts);
+            if (footageItem) {
+                try { footageItem.parentFolder = destinationFolder; } catch (_) {}
+                imported.push(footageItem);
+            }
+        } catch (importErr) {
+            // Skip files that fail to import
+        }
+    }
+
+    return imported;
+}
+
+/**
+ * Searches the AE project for an existing footage item whose source
+ * file matches the given File reference (compared by filesystem path).
+ *
+ * @param {File} sourceFile - ExtendScript File to look for.
+ * @returns {FootageItem|null} Matching footage item, or null if not found.
+ */
+function findFootageByPath(sourceFile) {
+    if (!sourceFile || !sourceFile.fsName || !app.project) return null;
+
+    var targetPath = _normalizeAssetPath(sourceFile.fsName);
+
+    for (var i = 1; i <= app.project.numItems; i++) {
+        var item = app.project.item(i);
+        if (!(item instanceof FootageItem)) continue;
+        if (!item.mainSource || !item.mainSource.file) continue;
+
+        var itemPath = _normalizeAssetPath(item.mainSource.file.fsName);
+        if (itemPath === targetPath) {
+            return item;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Normalizes a filesystem path for reliable comparison.
+ * Decodes URI encoding and converts backslashes to forward slashes,
+ * then lowercases the result.
+ *
+ * @private
+ * @param {string} path - Raw filesystem path.
+ * @returns {string} Normalized path string.
+ */
+function _normalizeAssetPath(path) {
+    if (!path) return "";
+    return decodeURI(path).replace(/\\/g, "/").toLowerCase();
+}

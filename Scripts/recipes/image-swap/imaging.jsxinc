@@ -1,0 +1,131 @@
+/**
+ * imaging.jsxinc  --  Image Swap Recipe
+ *
+ * Handles importing footage files into the AE project, replacing layer
+ * sources, and scaling layers to fit or fill their parent composition.
+ *
+ * Depends on: helpers.jsxinc (isSupportedImageExtension)
+ *
+ * All code is ES3/ExtendScript compatible.
+ */
+
+/**
+ * Imports a file as footage into the AE project, or returns the existing
+ * footage item if it has already been imported. Duplicate imports are
+ * detected by comparing filesystem paths.
+ *
+ * @param {File} file - ExtendScript File object pointing to the image/video.
+ * @returns {FootageItem|null} The imported (or existing) footage item, or
+ *   null if the file is invalid, missing, or import fails.
+ */
+function getOrImportFootage(file) {
+    if (!file || !file.exists || !app.project) return null;
+
+    var project = app.project;
+
+    // Check whether this file has already been imported
+    for (var i = 1; i <= project.numItems; i++) {
+        var item = project.item(i);
+        if (item instanceof FootageItem &&
+            item.mainSource &&
+            item.mainSource.file &&
+            item.mainSource.file.fsName === file.fsName) {
+            return item;
+        }
+    }
+
+    // Import the file as new footage
+    var importOpts = new ImportOptions(file);
+    try {
+        return project.importFile(importOpts);
+    } catch (err) {
+        return null;
+    }
+}
+
+/**
+ * Scales a layer so that it fits within or fills the given dimensions.
+ *
+ * The layer's anchor point and position are both set to [0, 0] before
+ * scaling, so the layer's top-left corner aligns with the comp origin.
+ *
+ * @param {Layer}  layer      - The layer to scale.
+ * @param {number} compWidth  - Target width in pixels.
+ * @param {number} compHeight - Target height in pixels.
+ * @param {string} mode       - Scaling strategy:
+ *   "fit"  -- scale uniformly so the entire image is visible (may letterbox)
+ *   "fill" -- scale uniformly so no empty space remains (may crop edges)
+ */
+function fitLayerToComp(layer, compWidth, compHeight, mode) {
+    if (!layer || !layer.transform) return;
+
+    try { layer.transform.anchorPoint.setValue([0, 0]); } catch (_) {}
+    try { layer.transform.position.setValue([0, 0]); } catch (_) {}
+
+    var footage = layer.source;
+    if (!footage || !footage.width || !footage.height) return;
+
+    var ratioX = compWidth / footage.width;
+    var ratioY = compHeight / footage.height;
+    var scaleFactor;
+
+    if (mode === "fit") {
+        scaleFactor = Math.min(ratioX, ratioY) * 100;
+    } else {
+        // Default to "fill"
+        scaleFactor = Math.max(ratioX, ratioY) * 100;
+    }
+
+    try { layer.transform.scale.setValue([scaleFactor, scaleFactor]); } catch (_) {}
+}
+
+/**
+ * Convenience function that combines the common workflow of:
+ *   1. Finding (or adding) a layer in a target composition
+ *   2. Importing (or finding) the footage file
+ *   3. Replacing the layer's source with that footage
+ *   4. Scaling the layer to fit or fill the composition
+ *
+ * If the target layer already exists (found by name or index), its source
+ * is replaced. If no matching layer exists, a new layer is added to the
+ * composition with the footage as its source.
+ *
+ * @param {CompItem}       targetComp     - The composition containing the target layer.
+ * @param {string|number}  layerNameOrIndex - Layer name (string) or 1-based index (number).
+ * @param {File}           footageFile    - ExtendScript File object for the image/video.
+ * @param {string}         fitMode        - "fit" or "fill" (see fitLayerToComp).
+ * @returns {boolean} True if the source was successfully replaced and scaled.
+ */
+function replaceLayerSource(targetComp, layerNameOrIndex, footageFile, fitMode) {
+    if (!targetComp || !footageFile || !footageFile.exists) return false;
+
+    // Import (or find) the footage
+    var footage = getOrImportFootage(footageFile);
+    if (!footage) return false;
+
+    // Find the target layer
+    var targetLayer = null;
+    try {
+        targetLayer = targetComp.layer(layerNameOrIndex);
+    } catch (_) {}
+
+    if (targetLayer) {
+        // Replace the existing layer's source
+        try {
+            targetLayer.replaceSource(footage, false);
+        } catch (replaceErr) {
+            return false;
+        }
+    } else {
+        // Add a new layer with the footage
+        try {
+            targetLayer = targetComp.layers.add(footage);
+        } catch (addErr) {
+            return false;
+        }
+    }
+
+    // Scale to fit/fill the composition dimensions
+    fitLayerToComp(targetLayer, targetComp.width, targetComp.height, fitMode || "fill");
+    return true;
+}
