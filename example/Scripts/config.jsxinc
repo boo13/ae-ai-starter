@@ -1,0 +1,19 @@
+/**
+ * config.jsxinc -- Example project configuration
+ *
+ * Configuration constants for the social media card example.
+ * Adjust these values to match your After Effects template.
+ *
+ * All code is ES3/ExtendScript compatible.
+ */
+
+var Config = {
+    MAIN_COMP_NAME: "SOCIAL CARD TEMPLATE",
+    CONTROL_LAYER_NAME: "Control",
+    ELEMENT_PREFIX: "CARD ",
+    MAX_ELEMENTS: 10,
+    ESSENTIAL_PROPERTIES: ["Headline", "Body Text", "Category"],
+    DEFAULT_BASE_START: 0,
+    DEFAULT_SECONDS_PER_WORD: 0.3,
+    DEFAULT_MIN_DURATION: 2.0
+};

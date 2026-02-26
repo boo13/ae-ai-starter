@@ -1,0 +1,21 @@
+{
+  "settings": {
+    "base_start": 0,
+    "seconds_per_word": 0.3,
+    "min_duration": 2.0
+  },
+  "cards": [
+    {
+      "headline": "Breaking: Major Discovery",
+      "body": "Scientists announce breakthrough in renewable energy research.",
+      "category": "Science",
+      "image": "hero_image.jpg"
+    },
+    {
+      "headline": "Tech Company Reports Record Growth",
+      "body": "Revenue up 40% year over year as AI products gain traction.",
+      "category": "Business",
+      "image": "chart_graphic.png"
+    }
+  ]
+}
