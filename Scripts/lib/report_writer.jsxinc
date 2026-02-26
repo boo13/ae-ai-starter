@@ -1,0 +1,121 @@
+/**
+ * report_writer.jsxinc
+ *
+ * Dual Markdown + JSON report builder for After Effects analysis scripts.
+ * Accumulates structured content through a simple API, then produces
+ * both a Markdown string and a JSON object via build().
+ *
+ * All code is ES3/ExtendScript compatible.
+ */
+
+/**
+ * Creates a new report writer that accumulates both Markdown and JSON
+ * content in parallel. Call build() when done to retrieve the final output.
+ *
+ * @returns {Object} Writer object with the following methods:
+ *   - addMarkdown(text)          -- Append raw Markdown text.
+ *   - addSection(title)          -- Append a ## heading.
+ *   - addSubsection(title)       -- Append a ### heading.
+ *   - addList(items)             -- Append a bulleted list from an array.
+ *   - addTable(headers, rows)    -- Append a Markdown table.
+ *   - setJson(path, value)       -- Set a value in the JSON tree at the given key path.
+ *   - build()                    -- Return { markdown: String, json: Object }.
+ *
+ * @example
+ *   var w = createReportWriter();
+ *   w.addSection("Overview");
+ *   w.addMarkdown("This project contains 12 compositions.\n");
+ *   w.setJson(["overview", "compCount"], 12);
+ *   w.addTable(["Name", "Duration"], [["Main", "30s"], ["Intro", "5s"]]);
+ *   var result = w.build();
+ *   // result.markdown  -- full Markdown string
+ *   // result.json      -- { overview: { compCount: 12 } }
+ */
+function createReportWriter() {
+    var md = [];
+    var json = {};
+
+    return {
+        /**
+         * Appends raw Markdown text to the report.
+         * @param {string} text - Markdown content to append.
+         */
+        addMarkdown: function (text) {
+            md.push(text);
+        },
+
+        /**
+         * Appends a level-2 Markdown heading (## Section).
+         * @param {string} title - Section title.
+         */
+        addSection: function (title) {
+            md.push("\n## " + title + "\n");
+        },
+
+        /**
+         * Appends a level-3 Markdown heading (### Subsection).
+         * @param {string} title - Subsection title.
+         */
+        addSubsection: function (title) {
+            md.push("\n### " + title + "\n");
+        },
+
+        /**
+         * Appends a bulleted Markdown list from an array of strings.
+         * @param {string[]} items - List items to render.
+         */
+        addList: function (items) {
+            for (var i = 0; i < items.length; i++) {
+                md.push("- " + items[i] + "\n");
+            }
+        },
+
+        /**
+         * Appends a Markdown table with headers and row data.
+         * @param {string[]}   headers - Column header labels.
+         * @param {string[][]} rows    - Array of row arrays (each row is an array of cell strings).
+         */
+        addTable: function (headers, rows) {
+            md.push("| " + headers.join(" | ") + " |\n");
+            var divider = [];
+            for (var i = 0; i < headers.length; i++) {
+                divider.push("---");
+            }
+            md.push("| " + divider.join(" | ") + " |\n");
+            for (var r = 0; r < rows.length; r++) {
+                md.push("| " + rows[r].join(" | ") + " |\n");
+            }
+            md.push("\n");
+        },
+
+        /**
+         * Sets a value in the JSON output tree at the given key path.
+         * Intermediate objects are created automatically.
+         *
+         * @param {string[]} path  - Array of keys defining the path (e.g. ["overview", "count"]).
+         * @param {*}        value - Value to assign at the leaf.
+         */
+        setJson: function (path, value) {
+            var target = json;
+            for (var i = 0; i < path.length - 1; i++) {
+                var key = path[i];
+                if (!target[key]) {
+                    target[key] = {};
+                }
+                target = target[key];
+            }
+            target[path[path.length - 1]] = value;
+        },
+
+        /**
+         * Builds the final report output.
+         * @returns {{ markdown: string, json: Object }} The assembled report.
+         */
+        build: function () {
+            return {
+                markdown: md.join(""),
+                json: json
+            };
+        }
+    };
+}
