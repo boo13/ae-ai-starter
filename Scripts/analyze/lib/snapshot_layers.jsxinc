@@ -1,0 +1,185 @@
+/**
+ * snapshot_layers.jsxinc
+ *
+ * Captures per-layer details for every composition in the project.
+ * For each comp, records: index, name, type (matchName), enabled, shy,
+ * locked, parent name, in/out points, opacity, and position.
+ *
+ * To keep report size manageable, if the project has more than 10
+ * compositions, only comps with 100 or fewer layers get detailed
+ * layer capture. Skipped comps are noted in warnings.
+ *
+ * All code is ES3/ExtendScript compatible.
+ *
+ * @requires report_writer.jsxinc (createReportWriter)
+ */
+
+if (typeof SnapshotLayers === "undefined") {
+
+    var SnapshotLayers = (function () {
+
+        /** Maximum number of comps before size-gating kicks in. */
+        var COMP_THRESHOLD = 10;
+
+        /** Maximum layers per comp when size-gating is active. */
+        var LAYER_LIMIT = 100;
+
+        /**
+         * Safely reads a property value and returns a display string.
+         *
+         * @param {Layer}  layer    - AE layer reference.
+         * @param {string} propName - Property name (e.g. "Opacity", "Position").
+         * @returns {string} Formatted value or empty string.
+         */
+        function safePropertyString(layer, propName) {
+            try {
+                var prop = layer.property(propName);
+                if (!prop) return "";
+                var val = prop.value;
+                if (val === undefined || val === null) return "";
+                // Array values (Position, Anchor Point, etc.)
+                if (val instanceof Array || (typeof val === "object" && typeof val.length === "number")) {
+                    var parts = [];
+                    for (var i = 0; i < val.length; i++) {
+                        parts.push(Math.round(val[i] * 100) / 100);
+                    }
+                    return "[" + parts.join(", ") + "]";
+                }
+                return String(val);
+            } catch (e) {
+                return "";
+            }
+        }
+
+        /**
+         * Captures a single layer's metadata.
+         *
+         * @param {Layer}  layer - AE layer reference.
+         * @param {number} index - 1-based layer index.
+         * @returns {Object} Layer data object.
+         */
+        function captureLayerInfo(layer, index) {
+            return {
+                index: index,
+                name: layer.name,
+                type: layer.matchName,
+                enabled: layer.enabled,
+                shy: layer.shy,
+                locked: layer.locked,
+                parent: layer.parent ? layer.parent.name : "",
+                inPoint: layer.inPoint,
+                outPoint: layer.outPoint,
+                opacity: safePropertyString(layer, "Opacity"),
+                position: safePropertyString(layer, "Position")
+            };
+        }
+
+        /**
+         * Rounds a number to two decimal places for display.
+         *
+         * @param {number} n - Value to round.
+         * @returns {string} Rounded string.
+         */
+        function r2(n) {
+            return String(Math.round(n * 100) / 100);
+        }
+
+        /**
+         * Captures layer details for all compositions and writes them
+         * to the report writer.
+         *
+         * @param {Object} context - Analysis context object.
+         * @param {Object} context.project       - app.project reference.
+         * @param {Object} context.writer         - Report writer instance.
+         * @param {Function} context.isInOldFolder - Filter function for z_OLD folders.
+         * @returns {{ warnings: string[], totalLayers: number }} Capture results.
+         */
+        function capture(context) {
+            var project = context.project;
+            var writer = context.writer;
+            var isInOldFolder = context.isInOldFolder;
+            var warnings = [];
+            var totalLayers = 0;
+
+            writer.addSection("Layers");
+
+            // Collect all non-z_OLD comps
+            var comps = [];
+            for (var i = 1; i <= project.items.length; i++) {
+                var item = project.items[i];
+                if (!(item instanceof CompItem)) continue;
+                if (isInOldFolder && isInOldFolder(item)) continue;
+                comps.push(item);
+            }
+
+            var sizeGating = comps.length > COMP_THRESHOLD;
+            var jsonLayers = {};
+
+            for (var c = 0; c < comps.length; c++) {
+                var comp = comps[c];
+                totalLayers += comp.numLayers;
+
+                // Size-gate: skip detailed capture for large comps in big projects
+                if (sizeGating && comp.numLayers > LAYER_LIMIT) {
+                    var skipMsg = "Skipped detailed layers for \"" + comp.name +
+                        "\" (" + comp.numLayers + " layers; exceeds " + LAYER_LIMIT +
+                        " layer limit in projects with >" + COMP_THRESHOLD + " comps)";
+                    warnings.push(skipMsg);
+
+                    writer.addSubsection(comp.name);
+                    writer.addMarkdown("_" + skipMsg + "_\n");
+
+                    jsonLayers[comp.name] = {
+                        skipped: true,
+                        layerCount: comp.numLayers,
+                        reason: skipMsg
+                    };
+                    continue;
+                }
+
+                writer.addSubsection(comp.name);
+
+                var rows = [];
+                var layerDataArr = [];
+
+                for (var l = 1; l <= comp.numLayers; l++) {
+                    var layer = comp.layer(l);
+                    var info = captureLayerInfo(layer, l);
+                    layerDataArr.push(info);
+
+                    rows.push([
+                        String(l),
+                        info.name,
+                        info.type,
+                        info.enabled ? "On" : "Off",
+                        info.shy ? "Y" : "",
+                        info.locked ? "Y" : "",
+                        info.parent,
+                        r2(info.inPoint) + "-" + r2(info.outPoint),
+                        info.opacity,
+                        info.position
+                    ]);
+                }
+
+                if (rows.length === 0) {
+                    writer.addMarkdown("(No layers)\n");
+                } else {
+                    writer.addTable(
+                        ["#", "Name", "Type", "Enabled", "Shy", "Locked", "Parent", "In-Out", "Opacity", "Position"],
+                        rows
+                    );
+                }
+
+                jsonLayers[comp.name] = layerDataArr;
+            }
+
+            writer.setJson(["layers"], jsonLayers);
+
+            return { warnings: warnings, totalLayers: totalLayers };
+        }
+
+        return {
+            capture: capture
+        };
+    })();
+}
