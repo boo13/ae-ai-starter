@@ -1,0 +1,96 @@
+/**
+ * snapshot_comps.jsxinc
+ *
+ * Lists all compositions in an After Effects project with key metadata:
+ * name, dimensions (WxH), duration, frame rate, and layer count.
+ * Filters out compositions residing in z_OLD folders.
+ *
+ * All code is ES3/ExtendScript compatible.
+ *
+ * @requires report_writer.jsxinc (createReportWriter)
+ */
+
+if (typeof SnapshotComps === "undefined") {
+
+    var SnapshotComps = (function () {
+
+        /**
+         * Rounds a number to a fixed number of decimal places.
+         * ES3-safe replacement for Number.toFixed where precision matters.
+         *
+         * @param {number} num    - Value to round.
+         * @param {number} places - Decimal places (default 2).
+         * @returns {string} Rounded value as a string.
+         */
+        function roundTo(num, places) {
+            if (places === undefined) places = 2;
+            var factor = Math.pow(10, places);
+            return String(Math.round(num * factor) / factor);
+        }
+
+        /**
+         * Captures composition metadata for all non-z_OLD comps in the project
+         * and writes a Markdown table plus JSON array to the report.
+         *
+         * @param {Object} context - Analysis context object.
+         * @param {Object} context.project       - app.project reference.
+         * @param {Object} context.writer         - Report writer instance.
+         * @param {Function} context.isInOldFolder - Filter function for z_OLD folders.
+         * @returns {{ warnings: string[], compCount: number }} Capture results.
+         */
+        function capture(context) {
+            var project = context.project;
+            var writer = context.writer;
+            var isInOldFolder = context.isInOldFolder;
+            var warnings = [];
+
+            writer.addSection("Compositions");
+
+            var comps = [];
+            var rows = [];
+
+            for (var i = 1; i <= project.items.length; i++) {
+                var item = project.items[i];
+                if (!(item instanceof CompItem)) continue;
+                if (isInOldFolder && isInOldFolder(item)) continue;
+
+                var compData = {
+                    name: item.name,
+                    width: item.width,
+                    height: item.height,
+                    duration: item.duration,
+                    frameRate: item.frameRate,
+                    layerCount: item.numLayers
+                };
+                comps.push(compData);
+
+                rows.push([
+                    item.name,
+                    String(item.width) + "x" + String(item.height),
+                    roundTo(item.duration) + "s",
+                    String(item.frameRate),
+                    String(item.numLayers)
+                ]);
+            }
+
+            if (comps.length === 0) {
+                writer.addMarkdown("(No compositions found)\n");
+                warnings.push("No compositions found in project.");
+            } else {
+                writer.addMarkdown("Total: " + comps.length + " compositions\n\n");
+                writer.addTable(
+                    ["Name", "Dimensions", "Duration", "FPS", "Layers"],
+                    rows
+                );
+            }
+
+            writer.setJson(["comps"], comps);
+
+            return { warnings: warnings, compCount: comps.length };
+        }
+
+        return {
+            capture: capture
+        };
+    })();
+}
