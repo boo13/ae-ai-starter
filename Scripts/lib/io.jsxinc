@@ -1,0 +1,112 @@
+/**
+ * io.jsxinc
+ *
+ * Generic file I/O utilities for After Effects automation scripts.
+ * Provides JSON reading/writing, text file output, folder management,
+ * and timestamp formatting.
+ *
+ * All code is ES3/ExtendScript compatible.
+ */
+
+/**
+ * Reads and parses a JSON file from disk.
+ *
+ * @param {File} file - An ExtendScript File object pointing to a .json file.
+ * @returns {Object} Parsed JSON data.
+ * @throws {Error} If the file does not exist or JSON parsing fails.
+ */
+function readJsonFile(file) {
+    if (!file || !file.exists) {
+        throw new Error("File not found: " + (file ? file.fsName : "(null)"));
+    }
+    file.encoding = "UTF-8";
+    file.open("r");
+    var raw = file.read();
+    file.close();
+    var data;
+    try {
+        data = JSON.parse(raw);
+    } catch (e) {
+        throw new Error("JSON parse error in " + file.displayName + ": " + e.message);
+    }
+    return data;
+}
+
+/**
+ * Writes an object to disk as pretty-printed JSON.
+ *
+ * @param {File} file - An ExtendScript File object for the output path.
+ * @param {Object} data - Data to serialize as JSON.
+ * @throws {Error} If the file cannot be opened for writing.
+ */
+function writeJsonFile(file, data) {
+    if (!file) {
+        throw new Error("No file reference provided to writeJsonFile.");
+    }
+    file.encoding = "UTF-8";
+    var ok = file.open("w");
+    if (!ok) {
+        throw new Error("Unable to open file for writing: " + file.fsName);
+    }
+    file.write(JSON.stringify(data, null, 2));
+    file.close();
+}
+
+/**
+ * Writes a text string to a file on disk.
+ * Useful for writing Markdown reports or plain text output.
+ *
+ * @param {File} file    - An ExtendScript File object for the output path.
+ * @param {string} content - Text content to write.
+ * @throws {Error} If the file cannot be opened for writing.
+ */
+function writeTextFile(file, content) {
+    if (!file) {
+        throw new Error("No file reference provided to writeTextFile.");
+    }
+    file.encoding = "UTF-8";
+    var ok = file.open("w");
+    if (!ok) {
+        throw new Error("Unable to open file for writing: " + file.fsName);
+    }
+    file.write(content);
+    file.close();
+}
+
+/**
+ * Ensures a folder exists at the given path, creating it if necessary.
+ * Returns the Folder object for convenient chaining.
+ *
+ * @param {string} path - Absolute filesystem path for the folder.
+ * @returns {Folder} The existing or newly created Folder object.
+ * @throws {Error} If the folder cannot be created.
+ */
+function ensureFolder(path) {
+    var folder = new Folder(path);
+    if (!folder.exists) {
+        var created = folder.create();
+        if (!created) {
+            throw new Error("Unable to create folder: " + path);
+        }
+    }
+    return folder;
+}
+
+/**
+ * Returns a timestamp string in YYYYMMDD-HHMMSS format.
+ * Useful for generating unique, sortable file name suffixes.
+ *
+ * @returns {string} Formatted timestamp (e.g. "20260225-143012").
+ */
+function formatTimestamp() {
+    function pad(n) {
+        return (n < 10 ? "0" : "") + n;
+    }
+    var d = new Date();
+    return d.getFullYear().toString() +
+        pad(d.getMonth() + 1) +
+        pad(d.getDate()) + "-" +
+        pad(d.getHours()) +
+        pad(d.getMinutes()) +
+        pad(d.getSeconds());
+}
