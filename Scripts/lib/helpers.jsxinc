@@ -1,0 +1,136 @@
+/**
+ * helpers.jsxinc
+ *
+ * General-purpose utility functions for After Effects automation scripts.
+ * All code is ES3/ExtendScript compatible.
+ */
+
+/**
+ * File extensions recognized as importable image formats by After Effects.
+ * @type {string[]}
+ */
+var SUPPORTED_IMAGE_EXTENSIONS = [
+    "png",
+    "jpg",
+    "jpeg",
+    "gif",
+    "bmp",
+    "tif",
+    "tiff",
+    "psd",
+    "webp"
+];
+
+/**
+ * Determines whether a file extension maps to a supported image format.
+ * The comparison is case-insensitive and the leading dot should be omitted.
+ *
+ * @param {string} ext - Extension string without a leading dot (e.g. "png").
+ * @returns {boolean} True when the extension is in SUPPORTED_IMAGE_EXTENSIONS.
+ */
+function isSupportedImageExtension(ext) {
+    if (!ext) return false;
+    var lower = String(ext).toLowerCase();
+    for (var i = 0; i < SUPPORTED_IMAGE_EXTENSIONS.length; i++) {
+        if (SUPPORTED_IMAGE_EXTENSIONS[i] === lower) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Trims leading and trailing whitespace from a string.
+ * Returns an empty string for null, undefined, or empty input.
+ *
+ * @param {string} s - Input string (may be null or undefined).
+ * @returns {string} Trimmed result, or empty string.
+ */
+function safeTrim(s) {
+    return (!s) ? "" : s.replace(/^\s+|\s+$/g, "");
+}
+
+/**
+ * Counts whitespace-delimited words in a string.
+ * Returns 1 for blank or empty input (minimum word count).
+ *
+ * @param {string} str - Text value to inspect.
+ * @returns {number} Number of words detected (minimum 1).
+ */
+function countWords(str) {
+    var c = safeTrim(str);
+    if (!c) return 1;
+    return c.split(/\s+/).length;
+}
+
+/**
+ * Safely sets a text value on an After Effects property.
+ * Handles both TextDocument properties (where you must modify .text then
+ * call setValue) and plain string properties (where you pass the string
+ * directly to setValue).
+ *
+ * @param {Property} prop - After Effects property reference to update.
+ * @param {string} text  - Text content to assign.
+ */
+function setTextPropertyValue(prop, text) {
+    if (!prop) return;
+    try {
+        var val = prop.value;
+        if (val && typeof val.text !== "undefined") {
+            val.text = text;
+            prop.setValue(val);
+        } else {
+            prop.setValue(text);
+        }
+    } catch (_) {}
+}
+
+/**
+ * Reads a numeric value from an After Effects property.
+ * First attempts to parse the property's direct value. If that fails,
+ * looks for a nested "Slider" sub-property or falls back to property(1),
+ * which covers common effect/slider control patterns.
+ *
+ * @param {Property} prop - Property to inspect (effect, slider, etc.).
+ * @returns {number|null} Numeric value if resolvable; otherwise null.
+ */
+function getNumericValue(prop) {
+    if (!prop) return null;
+    if (prop.value !== undefined) {
+        var raw = parseFloat(prop.value);
+        if (!isNaN(raw)) return raw;
+    }
+    var slider = null;
+    try { slider = prop.property("Slider"); } catch (_) {}
+    if (!slider) {
+        try { slider = prop.property(1); } catch (_) {}
+    }
+    if (slider && slider.value !== undefined) {
+        var sliderVal = parseFloat(slider.value);
+        if (!isNaN(sliderVal)) return sliderVal;
+    }
+    return null;
+}
+
+/**
+ * Recursively walks a property group to find a property with the given name.
+ * Useful for locating Essential Properties or effect controls buried inside
+ * nested property groups.
+ *
+ * @param {PropertyGroup} group      - Starting property group to search.
+ * @param {string}        targetName - Name of the property to locate.
+ * @returns {Property|null} The first matching property, or null if not found.
+ */
+function findNestedPropertyByName(group, targetName) {
+    if (!group || typeof group.numProperties !== "number") return null;
+    for (var i = 1; i <= group.numProperties; i++) {
+        var child = group.property(i);
+        if (!child) continue;
+        if ((child.name || "") === targetName) {
+            return child;
+        }
+        var nested = findNestedPropertyByName(child, targetName);
+        if (nested) return nested;
+    }
+    return null;
+}
