@@ -1,0 +1,147 @@
+/**
+ * snapshot_expressions.jsxinc
+ *
+ * Walks all compositions (filtering z_OLD) and collects every expression
+ * found on any property. For each expression, records: comp name, layer name,
+ * property path, expression code, enabled state, and error string.
+ *
+ * All code is ES3/ExtendScript compatible.
+ *
+ * @requires report_writer.jsxinc (createReportWriter)
+ */
+
+if (typeof SnapshotExpressions === "undefined") {
+
+    var SnapshotExpressions = (function () {
+
+        /**
+         * Normalizes line endings and trims whitespace from an expression string.
+         * Converts \r\n and \r to \n, removes trailing whitespace on each line,
+         * and trims leading/trailing whitespace from the whole string.
+         *
+         * @param {string} text - Raw expression code.
+         * @returns {string} Cleaned expression string.
+         */
+        function sanitizeExpression(text) {
+            if (!text) return "";
+            var cleaned = text.replace(/\r\n?/g, "\n");
+            return cleaned.replace(/[ \t]+\n/g, "\n").replace(/^\s+|\s+$/g, "");
+        }
+
+        /**
+         * Recursively walks a layer's property tree and collects all expressions.
+         *
+         * @param {Layer}    layer    - AE layer to walk.
+         * @param {string}   compName - Name of the parent composition.
+         * @param {Object[]} results  - Accumulator array for expression records.
+         */
+        function collectLayerExpressions(layer, compName, results) {
+
+            function walk(group, path) {
+                if (!group || !group.numProperties) return;
+
+                for (var i = 1; i <= group.numProperties; i++) {
+                    var prop = group.property(i);
+                    if (!prop) continue;
+
+                    var propName = prop.name || ("Property " + i);
+                    var nextPath = path.length ? path + "." + propName : propName;
+
+                    // Check if this is a leaf property with an expression
+                    if (prop.propertyType &&
+                        prop.propertyType === PropertyType.PROPERTY &&
+                        prop.canSetExpression) {
+                        if (prop.expression && prop.expression.length > 0) {
+                            results.push({
+                                comp: compName,
+                                layer: layer.name,
+                                path: nextPath,
+                                expression: sanitizeExpression(prop.expression),
+                                enabled: prop.expressionEnabled,
+                                error: prop.expressionError || ""
+                            });
+                        }
+                    }
+
+                    // Recurse into property groups
+                    if (prop.propertyType &&
+                        (prop.propertyType === PropertyType.NAMED_GROUP ||
+                         prop.propertyType === PropertyType.INDEXED_GROUP)) {
+                        walk(prop, nextPath);
+                    }
+                }
+            }
+
+            walk(layer, "");
+        }
+
+        /**
+         * Captures all expressions across the project and writes them
+         * to the report.
+         *
+         * @param {Object} context - Analysis context object.
+         * @param {Object} context.project       - app.project reference.
+         * @param {Object} context.writer         - Report writer instance.
+         * @param {Function} context.isInOldFolder - Filter function for z_OLD folders.
+         * @returns {{ warnings: string[], expressionCount: number }} Capture results.
+         */
+        function capture(context) {
+            var project = context.project;
+            var writer = context.writer;
+            var isInOldFolder = context.isInOldFolder;
+            var warnings = [];
+
+            writer.addSection("Expressions");
+
+            var results = [];
+
+            for (var i = 1; i <= project.items.length; i++) {
+                var item = project.items[i];
+                if (!(item instanceof CompItem)) continue;
+                if (isInOldFolder && isInOldFolder(item)) continue;
+
+                for (var l = 1; l <= item.numLayers; l++) {
+                    collectLayerExpressions(item.layer(l), item.name, results);
+                }
+            }
+
+            if (results.length === 0) {
+                writer.addMarkdown("(No expressions found)\n");
+            } else {
+                writer.addMarkdown("Total: " + results.length + " expressions\n");
+
+                // Count errors
+                var errorCount = 0;
+                for (var e = 0; e < results.length; e++) {
+                    if (results[e].error && results[e].error.length > 0) {
+                        errorCount++;
+                    }
+                }
+                if (errorCount > 0) {
+                    writer.addMarkdown("Errors: " + errorCount + "\n");
+                }
+
+                writer.addMarkdown("\n");
+
+                for (var r = 0; r < results.length; r++) {
+                    var entry = results[r];
+                    var header = entry.comp + " :: " + entry.layer + " :: " + entry.path;
+                    if (entry.error) {
+                        header += " (ERROR: " + entry.error + ")";
+                    }
+                    writer.addSubsection(header);
+                    writer.addMarkdown("Enabled: " + (entry.enabled ? "Yes" : "No") + "\n\n");
+                    writer.addMarkdown("```javascript\n" + entry.expression + "\n```\n");
+                }
+            }
+
+            writer.setJson(["expressions"], results);
+
+            return { warnings: warnings, expressionCount: results.length };
+        }
+
+        return {
+            capture: capture
+        };
+    })();
+}
