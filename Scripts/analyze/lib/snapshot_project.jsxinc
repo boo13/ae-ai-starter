@@ -1,0 +1,167 @@
+/**
+ * snapshot_project.jsxinc
+ *
+ * Captures project-level metadata for an After Effects project analysis.
+ * Records project file path, AE version, total item count, and the
+ * folder tree structure.
+ *
+ * All code is ES3/ExtendScript compatible.
+ *
+ * @requires report_writer.jsxinc (createReportWriter)
+ */
+
+if (typeof SnapshotProject === "undefined") {
+
+    var SnapshotProject = (function () {
+
+        /**
+         * Recursively builds a tree of the project folder structure.
+         * Each node contains the folder name, item count, and child folders.
+         *
+         * @param {FolderItem} folder       - AE project folder to traverse.
+         * @param {Function}   isInOldFolder - Filter function; returns true for z_OLD items.
+         * @returns {Object} Tree node with name, itemCount, and children array.
+         */
+        function buildFolderTree(folder, isInOldFolder) {
+            var node = {
+                name: folder.name,
+                itemCount: 0,
+                children: []
+            };
+
+            for (var i = 1; i <= folder.numItems; i++) {
+                var item = folder.item(i);
+                if (item instanceof FolderItem) {
+                    if (isInOldFolder && isInOldFolder(item)) {
+                        continue;
+                    }
+                    node.children.push(buildFolderTree(item, isInOldFolder));
+                } else {
+                    node.itemCount++;
+                }
+            }
+
+            return node;
+        }
+
+        /**
+         * Formats the folder tree into Markdown list lines for display.
+         *
+         * @param {Object} node   - Tree node from buildFolderTree.
+         * @param {number} depth  - Current indentation depth.
+         * @param {string[]} lines - Accumulator for output lines.
+         */
+        function formatFolderTree(node, depth, lines) {
+            var indent = "";
+            for (var d = 0; d < depth; d++) {
+                indent += "  ";
+            }
+            var label = node.name;
+            if (node.itemCount > 0) {
+                label += " (" + node.itemCount + " items)";
+            }
+            lines.push(indent + "- " + label);
+
+            for (var c = 0; c < node.children.length; c++) {
+                formatFolderTree(node.children[c], depth + 1, lines);
+            }
+        }
+
+        /**
+         * Captures project-level metadata and writes it to the report.
+         *
+         * @param {Object} context - Analysis context object.
+         * @param {Object} context.project      - app.project reference.
+         * @param {Object} context.writer        - Report writer instance (createReportWriter).
+         * @param {Function} context.isInOldFolder - Filter function for z_OLD folders.
+         * @returns {{ warnings: string[] }} Any warnings generated during capture.
+         */
+        function capture(context) {
+            var project = context.project;
+            var writer = context.writer;
+            var isInOldFolder = context.isInOldFolder;
+            var warnings = [];
+
+            writer.addSection("Project Overview");
+
+            // Gather basic metadata
+            var projectPath = project.file ? decodeURI(project.file.fsName) : "(Unsaved)";
+            var aeVersion = app.version;
+            var totalItems = project.items.length;
+
+            var info = [];
+            info.push("**Project File:** " + projectPath);
+            info.push("**After Effects Version:** " + aeVersion);
+            info.push("**Total Items:** " + totalItems);
+            writer.addList(info);
+
+            writer.setJson(["project"], {
+                projectFile: project.file ? project.file.fsName : "",
+                aeVersion: aeVersion,
+                totalItems: totalItems
+            });
+
+            // Count items by type
+            var compCount = 0;
+            var footageCount = 0;
+            var folderCount = 0;
+            var solidCount = 0;
+            for (var i = 1; i <= project.items.length; i++) {
+                var item = project.items[i];
+                if (item instanceof CompItem) {
+                    compCount++;
+                } else if (item instanceof FolderItem) {
+                    folderCount++;
+                } else if (item instanceof FootageItem) {
+                    // Solids have a mainSource of SolidSource
+                    try {
+                        if (item.mainSource instanceof SolidSource) {
+                            solidCount++;
+                        } else {
+                            footageCount++;
+                        }
+                    } catch (e) {
+                        footageCount++;
+                    }
+                }
+            }
+
+            writer.addSubsection("Item Breakdown");
+            var breakdown = [];
+            breakdown.push("Compositions: " + compCount);
+            breakdown.push("Footage: " + footageCount);
+            breakdown.push("Solids: " + solidCount);
+            breakdown.push("Folders: " + folderCount);
+            writer.addList(breakdown);
+
+            writer.setJson(["project", "itemBreakdown"], {
+                compositions: compCount,
+                footage: footageCount,
+                solids: solidCount,
+                folders: folderCount
+            });
+
+            // Build and display folder tree
+            writer.addSubsection("Folder Structure");
+            var tree = buildFolderTree(project.rootFolder, isInOldFolder);
+            var treeLines = [];
+            for (var t = 0; t < tree.children.length; t++) {
+                formatFolderTree(tree.children[t], 0, treeLines);
+            }
+
+            if (treeLines.length === 0) {
+                writer.addMarkdown("(No folders in project)\n");
+            } else {
+                writer.addMarkdown(treeLines.join("\n") + "\n");
+            }
+
+            writer.setJson(["project", "folderTree"], tree.children);
+
+            return { warnings: warnings };
+        }
+
+        return {
+            capture: capture
+        };
+    })();
+}
