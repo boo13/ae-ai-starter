@@ -1,0 +1,100 @@
+/**
+ * updater.jsxinc  --  Repeating Elements Recipe
+ *
+ * Minimal update loop that applies data from an array to the repeating
+ * element layers discovered by the registry.
+ *
+ * The key abstraction is the **property map**: an object that maps field
+ * names in your data to Essential Property names on the AE layer. This
+ * lets you keep your JSON schema independent of the AE template naming.
+ *
+ * Depends on: helpers.jsxinc (setTextPropertyValue)
+ *
+ * All code is ES3/ExtendScript compatible.
+ */
+
+/**
+ * Applies a single data entry to a single registry element.
+ *
+ * For each key in the propertyMap, the function looks up the corresponding
+ * Essential Property in the registry entry and sets its value from the
+ * data entry. Text properties are set via setTextPropertyValue (if available)
+ * to handle both TextDocument and plain string properties correctly.
+ *
+ * @param {Object} regEntry    - A single element from registry.elements,
+ *                               with regEntry.info.essentialProps populated.
+ * @param {Object} dataEntry   - A plain object from your data array
+ *                               (e.g. { text: "Hello", visible: true }).
+ * @param {Object} propertyMap - Maps data field names to Essential Property names.
+ *                               Example: { "text": "Text Content", "visible": "Visibility" }
+ */
+function applyDataToElement(regEntry, dataEntry, propertyMap) {
+    if (!regEntry || !regEntry.info || !regEntry.info.layer) return;
+    if (!dataEntry || !propertyMap) return;
+
+    var eps = regEntry.info.essentialProps;
+
+    for (var dataField in propertyMap) {
+        if (!propertyMap.hasOwnProperty(dataField)) continue;
+
+        var epName = propertyMap[dataField];
+        var prop = eps[epName];
+        if (!prop) continue;
+
+        var value = dataEntry[dataField];
+        if (value === undefined) continue;
+
+        // Use setTextPropertyValue when available for TextDocument handling
+        if (typeof value === "string" && typeof setTextPropertyValue === "function") {
+            setTextPropertyValue(prop, value);
+        } else {
+            try {
+                prop.setValue(value);
+            } catch (_) {}
+        }
+    }
+
+    // Ensure the layer is visible when it has data
+    try {
+        regEntry.info.layer.enabled = true;
+        regEntry.info.layer.transform.opacity.setValue(100);
+    } catch (_) {}
+}
+
+/**
+ * Iterates the data array and applies each entry to the matching registry
+ * element slot. Elements beyond the data array length are hidden by
+ * setting their opacity to 0 and disabling the layer.
+ *
+ * Data entries are matched to elements by array index: dataArray[0] maps
+ * to registry.elements[0] (element 1), dataArray[1] to elements[1], etc.
+ *
+ * @param {Object}   registry    - The full registry from buildElementRegistry().
+ * @param {Object[]} dataArray   - Array of data objects to apply.
+ * @param {Object}   propertyMap - Maps data field names to Essential Property names.
+ * @returns {number} The number of elements that were successfully populated.
+ */
+function updateAllElements(registry, dataArray, propertyMap) {
+    if (!registry || !registry.elements) return 0;
+    if (!dataArray) dataArray = [];
+
+    var populated = 0;
+
+    for (var i = 0; i < registry.elements.length; i++) {
+        var entry = registry.elements[i];
+        if (!entry.info || !entry.info.layer) continue;
+
+        if (i < dataArray.length && dataArray[i]) {
+            applyDataToElement(entry, dataArray[i], propertyMap);
+            populated++;
+        } else {
+            // Hide unused element slots
+            try {
+                entry.info.layer.transform.opacity.setValue(0);
+                entry.info.layer.enabled = false;
+            } catch (_) {}
+        }
+    }
+
+    return populated;
+}

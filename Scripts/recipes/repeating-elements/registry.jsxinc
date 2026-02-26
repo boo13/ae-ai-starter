@@ -1,0 +1,187 @@
+/**
+ * registry.jsxinc  --  Repeating Elements Recipe
+ *
+ * Discovers and caches references to repeating element layers and their
+ * Essential Properties within an After Effects composition.
+ *
+ * The "registry" pattern walks the comp once up front so that subsequent
+ * update loops can work with direct property references instead of
+ * performing repeated, expensive lookups.
+ *
+ * Depends on: (none -- self-contained)
+ *
+ * All code is ES3/ExtendScript compatible.
+ */
+
+/**
+ * Collects Essential Properties, source text, and effects from a single
+ * element layer. Works with both flat layers and pre-composed (nested comp)
+ * layers whose Essential Properties are exposed at the top level.
+ *
+ * @param {Layer} layer          - The After Effects layer to inspect.
+ * @param {string[]} propertyNames - Array of Essential Property names to look for.
+ * @returns {Object|null} An info object with the following shape, or null if
+ *   the layer is invalid:
+ *   {
+ *     layer: Layer,
+ *     defaultPosition: number[],
+ *     sourceTextProp: Property|null,
+ *     essentialProps: Object.<string, Property>,
+ *     effects: PropertyGroup|null
+ *   }
+ */
+function gatherElementInfo(layer, propertyNames) {
+    if (!layer) return null;
+
+    var info = {
+        layer: layer,
+        defaultPosition: null,
+        sourceTextProp: null,
+        essentialProps: {},
+        effects: null
+    };
+
+    // Capture the layer's resting position so callers can reset it later
+    try {
+        var posProp = layer.property("Position");
+        if (posProp) {
+            info.defaultPosition = posProp.value.slice();
+        }
+    } catch (_) {}
+    if (!info.defaultPosition) {
+        info.defaultPosition = [0, 0];
+    }
+
+    // Gather Essential Properties exposed directly on this layer
+    var ep = null;
+    try { ep = layer.property("Essential Properties"); } catch (_) {}
+    if (ep) {
+        for (var i = 0; i < propertyNames.length; i++) {
+            var prop = null;
+            try { prop = ep.property(propertyNames[i]); } catch (_) {}
+            if (prop) {
+                info.essentialProps[propertyNames[i]] = prop;
+            }
+        }
+    }
+
+    // Capture effects group for callers that need slider/checkbox access
+    try { info.effects = layer.property("Effects"); } catch (_) {}
+
+    // If the layer's source is a nested comp, look for a text layer inside
+    if (layer.source instanceof CompItem) {
+        var nested = layer.source;
+        for (var n = 1; n <= nested.numLayers; n++) {
+            var nl = nested.layer(n);
+            if (!nl) continue;
+            var sourceText = null;
+            try { sourceText = nl.property("Source Text"); } catch (_) {}
+            if (sourceText) {
+                info.sourceTextProp = sourceText;
+                break; // take the first text layer found
+            }
+        }
+    }
+
+    return info;
+}
+
+/**
+ * Builds a complete registry of the main composition, control layer,
+ * and all repeating element slots.
+ *
+ * Element layers are expected to follow a naming convention of
+ * PREFIX + index (e.g. "ELEMENT 1", "ELEMENT 2", ...).
+ *
+ * @param {string}   compName         - Name of the main composition.
+ * @param {string}   controlLayerName - Name of the control layer inside that comp.
+ * @param {string}   elementPrefix    - Layer name prefix (include trailing space if needed).
+ * @param {number}   maxElements      - Upper bound of element indices to scan.
+ * @param {string[]} propertyNames    - Essential Property names to gather per element.
+ * @returns {Object} Registry with the following shape:
+ *   {
+ *     comp: CompItem,
+ *     control: Layer,
+ *     elements: Array.<{ index: number, info: Object|null }>
+ *   }
+ * @throws {Error} If the composition or control layer cannot be found.
+ */
+function buildElementRegistry(compName, controlLayerName, elementPrefix, maxElements, propertyNames) {
+    var result = {
+        comp: null,
+        control: null,
+        elements: []
+    };
+
+    // Locate the main composition by name
+    for (var i = 1; i <= app.project.items.length; i++) {
+        var item = app.project.items[i];
+        if (item instanceof CompItem && item.name === compName) {
+            result.comp = item;
+            break;
+        }
+    }
+    if (!result.comp) {
+        throw new Error("Could not find composition: " + compName);
+    }
+
+    // Locate the control layer
+    var ctrl = null;
+    try { ctrl = result.comp.layer(controlLayerName); } catch (_) {}
+    if (!ctrl) {
+        throw new Error("Could not find control layer: " + controlLayerName);
+    }
+    result.control = ctrl;
+
+    // Walk element slots 1..maxElements
+    for (var idx = 1; idx <= maxElements; idx++) {
+        var layerName = elementPrefix + idx;
+        var layer = null;
+        try { layer = result.comp.layer(layerName); } catch (_) {}
+
+        var entry = {
+            index: idx,
+            info: gatherElementInfo(layer, propertyNames)
+        };
+        result.elements.push(entry);
+    }
+
+    return result;
+}
+
+/**
+ * Validates a registry built by buildElementRegistry().
+ *
+ * Checks that the comp and control layer exist, and that every element
+ * slot which has a layer also contains each of the required Essential Properties.
+ * Slots with no layer are silently skipped (sparse layouts are allowed).
+ *
+ * @param {Object}   reg                - Registry object from buildElementRegistry().
+ * @param {string[]} requiredProperties - Essential Property names that must be present
+ *                                        on every populated element.
+ * @throws {Error} If any required component is missing.
+ */
+function verifyElementRegistry(reg, requiredProperties) {
+    if (!reg.comp) {
+        throw new Error("Registry missing main composition.");
+    }
+    if (!reg.control) {
+        throw new Error("Registry missing control layer.");
+    }
+
+    for (var i = 0; i < reg.elements.length; i++) {
+        var entry = reg.elements[i];
+        // Allow empty slots -- only validate elements that have a layer
+        if (!entry.info || !entry.info.layer) continue;
+
+        for (var n = 0; n < requiredProperties.length; n++) {
+            var propName = requiredProperties[n];
+            if (!entry.info.essentialProps[propName]) {
+                throw new Error(
+                    "Missing Essential Property '" + propName +
+                    "' on element " + entry.index
+                );
+            }
+        }
+    }
+}

@@ -1,0 +1,52 @@
+/**
+ * example_config.jsxinc
+ *
+ * Example configuration for the repeating-elements recipe.
+ * Copy this file into your project and customize the values
+ * to match your After Effects template.
+ *
+ * All code is ES3/ExtendScript compatible.
+ */
+
+var Config = {
+    /**
+     * Name of the main composition containing your repeating element layers.
+     * @type {string}
+     */
+    MAIN_COMP_NAME: "YOUR TEMPLATE COMP NAME",
+
+    /**
+     * Name of the control layer in the main composition.
+     * This layer typically holds effects, sliders, or checkboxes
+     * that drive visibility or animation of the element layers.
+     * @type {string}
+     */
+    CONTROL_LAYER_NAME: "Control",
+
+    /**
+     * Naming prefix for your repeating layers.
+     * Layers should be named "ELEMENT 1", "ELEMENT 2", etc.
+     * The script appends a space and a 1-based index after this prefix.
+     * @type {string}
+     */
+    ELEMENT_PREFIX: "ELEMENT ",
+
+    /**
+     * Maximum number of element slots to scan.
+     * The script checks for layers named PREFIX + 1 through PREFIX + MAX_ELEMENTS.
+     * Missing layers are silently skipped; this just sets the upper bound.
+     * @type {number}
+     */
+    MAX_ELEMENTS: 20,
+
+    /**
+     * Array of Essential Property names to gather from each element layer.
+     * These must match the exact names exposed on the layer in After Effects.
+     * The registry will store a reference to each property it finds.
+     * @type {string[]}
+     */
+    ESSENTIAL_PROPERTIES: [
+        "Text Content",
+        "Visibility"
+    ]
+};
