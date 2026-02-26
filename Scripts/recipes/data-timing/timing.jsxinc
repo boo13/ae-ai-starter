@@ -1,0 +1,325 @@
+/**
+ * timing.jsxinc  --  Data Timing Recipe
+ *
+ * Calculates display durations for text-based elements using a
+ * words-per-second model. Supports bidirectional sync: durations can
+ * be computed from text, or existing durations can be analyzed and
+ * recalculated when timing parameters change.
+ *
+ * Depends on: helpers.jsxinc (countWords)
+ *
+ * All code is ES3/ExtendScript compatible.
+ */
+
+/**
+ * Computes a display duration based on word count.
+ *
+ * Duration = wordCount * secondsPerWord, clamped to a minimum.
+ * Falls back to Config defaults if parameters are missing or invalid.
+ *
+ * @param {string} text           - The text content to measure.
+ * @param {number} secondsPerWord - Seconds allocated per word.
+ * @param {number} minDuration    - Minimum duration floor in seconds.
+ * @returns {number} Computed duration in seconds.
+ */
+function computeDurationFromText(text, secondsPerWord, minDuration) {
+    var spw = parseFloat(secondsPerWord);
+    if (isNaN(spw) || spw <= 0) {
+        spw = Config.DEFAULT_SECONDS_PER_WORD;
+    }
+    var minDur = parseFloat(minDuration);
+    if (isNaN(minDur) || minDur < 0) {
+        minDur = Config.DEFAULT_MIN_DURATION;
+    }
+    var duration = countWords(text) * spw;
+    if (duration < minDur) {
+        duration = minDur;
+    }
+    return duration;
+}
+
+/**
+ * Resolves the duration for a single data element.
+ *
+ * If the element has an explicit `duration` field, that value is used.
+ * Otherwise the duration is computed from the element's `text` field
+ * using the words-per-second model.
+ *
+ * @param {Object} element        - Data object with optional `duration` and `text` fields.
+ * @param {number} secondsPerWord - Seconds per word for computed durations.
+ * @param {number} minDuration    - Minimum duration floor in seconds.
+ * @returns {number} Resolved duration in seconds.
+ */
+function resolveElementDuration(element, secondsPerWord, minDuration) {
+    if (element && element.duration !== undefined && element.duration !== null) {
+        var explicit = parseFloat(element.duration);
+        if (!isNaN(explicit) && explicit >= 0) {
+            return explicit;
+        }
+    }
+    var textValue = element && typeof element.text !== "undefined" ? element.text : "";
+    return computeDurationFromText(textValue, secondsPerWord, minDuration);
+}
+
+/**
+ * Rounds a duration to two decimal places.
+ *
+ * @param {number} value - Duration value to round.
+ * @returns {number|null} Rounded value, or null if input is not a number.
+ */
+function roundDurationValue(value) {
+    var num = parseFloat(value);
+    if (isNaN(num)) return null;
+    return Math.round(num * 100) / 100;
+}
+
+/**
+ * Tests whether two duration values are approximately equal.
+ * Uses a tolerance of 0.01 seconds to account for floating-point rounding.
+ *
+ * @param {number} a - First duration.
+ * @param {number} b - Second duration.
+ * @returns {boolean} True if the values are within 0.01 of each other.
+ */
+function durationsApproximatelyEqual(a, b) {
+    if (isNaN(a) || isNaN(b)) return false;
+    return Math.abs(a - b) < 0.01;
+}
+
+/**
+ * Estimates the minimum duration that was previously used to generate
+ * the durations on existing elements.
+ *
+ * Strategy: looks for the smallest duration that appears at least twice
+ * (since the minimum is a floor value, short elements will cluster at it).
+ * Falls back to the absolute minimum observed, or the provided fallback.
+ *
+ * @param {Object[]} elements - Array of data objects with `duration` fields.
+ * @param {number}   fallback - Fallback minimum if estimation fails.
+ * @returns {number} Estimated previous minimum duration.
+ */
+function estimatePreviousMinDuration(elements, fallback) {
+    var repeatedMin = null;
+    var observedMin = null;
+    var observedKeyCount = {};
+
+    if (elements) {
+        for (var i = 0; i < elements.length; i++) {
+            var el = elements[i];
+            if (!el || el.duration === undefined || el.duration === null) continue;
+            var val = parseFloat(el.duration);
+            if (isNaN(val)) continue;
+            if (observedMin === null || val < observedMin) {
+                observedMin = val;
+            }
+            var key = val.toFixed(2);
+            observedKeyCount[key] = (observedKeyCount[key] || 0) + 1;
+        }
+    }
+
+    for (var key in observedKeyCount) {
+        if (!observedKeyCount.hasOwnProperty(key)) continue;
+        if (observedKeyCount[key] < 2) continue;
+        var numeric = parseFloat(key);
+        if (isNaN(numeric)) continue;
+        if (repeatedMin === null || numeric < repeatedMin) {
+            repeatedMin = numeric;
+        }
+    }
+
+    var fallbackNum = parseFloat(fallback);
+    if (isNaN(fallbackNum)) {
+        fallbackNum = Config.DEFAULT_MIN_DURATION;
+    }
+
+    if (repeatedMin !== null) {
+        return repeatedMin;
+    }
+    if (observedMin !== null && (observedMin + 0.01) < fallbackNum) {
+        return observedMin;
+    }
+    return fallbackNum;
+}
+
+/**
+ * Estimates the seconds-per-word value that was previously used to
+ * generate existing element durations.
+ *
+ * Works by computing the ratio duration/wordCount for each element
+ * whose duration exceeds the minimum (i.e. was not floor-clamped),
+ * then taking the median of those ratios.
+ *
+ * @param {Object[]} elements    - Array of data objects with `duration` and `text` fields.
+ * @param {number}   minDuration - Known or estimated minimum duration floor.
+ * @returns {number|null} Estimated seconds-per-word, or null if not enough data.
+ */
+function estimatePreviousSecondsPerWord(elements, minDuration) {
+    if (!elements || !elements.length) return null;
+
+    var ratios = [];
+    for (var i = 0; i < elements.length; i++) {
+        var el = elements[i];
+        if (!el || el.duration === undefined || el.duration === null) continue;
+        var duration = parseFloat(el.duration);
+        if (isNaN(duration)) continue;
+        // Skip floor-clamped elements -- they do not reveal the per-word rate
+        if (duration <= minDuration + 0.01) continue;
+        var words = countWords(el.text || "");
+        if (!words || words <= 0) continue;
+        ratios.push(duration / words);
+    }
+
+    if (!ratios.length) return null;
+
+    ratios.sort(function (a, b) { return a - b; });
+    var medianIndex = Math.floor(ratios.length / 2);
+    var median = ratios[medianIndex];
+
+    if (isNaN(median) || !isFinite(median) || median <= 0) {
+        return null;
+    }
+    return median;
+}
+
+/**
+ * Analyzes existing element durations to determine whether they were
+ * auto-generated and, if so, what parameters produced them.
+ *
+ * This enables bidirectional sync: when the user changes timing
+ * settings, the script can detect which durations were auto-computed
+ * (vs. manually overridden) and selectively recalculate them.
+ *
+ * @param {Object[]} elements - Array of data objects with `duration` and `text` fields.
+ * @param {Object}   settings - Settings object with optional `min_duration` field.
+ * @returns {Object} Analysis result:
+ *   {
+ *     canAuto: boolean,   -- true if auto-recalculation is possible
+ *     prevMin: number,    -- estimated previous minimum duration
+ *     prevSpw: number,    -- estimated previous seconds-per-word
+ *     confidence: number  -- fraction of elements matching the estimated model
+ *   }
+ */
+function analyzeExistingDurations(elements, settings) {
+    if (!elements || !elements.length) {
+        return { canAuto: false };
+    }
+
+    var fallbackMin = Config.DEFAULT_MIN_DURATION;
+    if (settings && settings.min_duration !== undefined) {
+        var parsedMin = parseFloat(settings.min_duration);
+        if (!isNaN(parsedMin)) {
+            fallbackMin = parsedMin;
+        }
+    }
+
+    var prevMin = estimatePreviousMinDuration(elements, fallbackMin);
+    var prevSpw = estimatePreviousSecondsPerWord(elements, prevMin);
+
+    if (prevSpw === null) {
+        return { canAuto: false };
+    }
+
+    var comparable = 0;
+    var matches = 0;
+    for (var i = 0; i < elements.length; i++) {
+        var el = elements[i];
+        if (!el || el.duration === undefined || el.duration === null) continue;
+        var numeric = parseFloat(el.duration);
+        if (isNaN(numeric)) continue;
+        var expected = computeDurationFromText(el.text || "", prevSpw, prevMin);
+        comparable++;
+        if (durationsApproximatelyEqual(numeric, expected)) {
+            matches++;
+        }
+    }
+
+    if (comparable === 0) {
+        return { canAuto: false };
+    }
+
+    var confidence = matches / comparable;
+    return {
+        canAuto: confidence >= 0.5,
+        prevMin: prevMin,
+        prevSpw: prevSpw,
+        confidence: confidence
+    };
+}
+
+/**
+ * Recalculates auto-generated durations on a data object when timing
+ * parameters have changed.
+ *
+ * The function first analyzes existing durations to determine the
+ * previous timing parameters. Then, for each element whose duration
+ * matches the old model (and is not manually locked), it recomputes
+ * the duration using the new parameters.
+ *
+ * Elements can be excluded from recalculation by setting any of these
+ * flags to true: `duration_locked`, `durationLocked`, or `manualDuration`.
+ *
+ * @param {Object} data                  - Data object containing an `elements` array.
+ *                                         (Also accepts a `messages` array for compatibility.)
+ * @param {number} targetSecondsPerWord  - New seconds-per-word value.
+ * @param {number} targetMinDuration     - New minimum duration value.
+ * @param {Object} [analysisSettings]    - Optional settings to pass to analyzeExistingDurations.
+ *                                         Defaults to data.settings.
+ * @returns {boolean} True if any durations were changed.
+ */
+function recalculateDurationsOnJson(data, targetSecondsPerWord, targetMinDuration, analysisSettings) {
+    if (!data) return false;
+
+    // Support both "elements" and "messages" array names
+    var items = data.elements || data.messages;
+    if (!items || !items.length) return false;
+
+    var analysisSource = analysisSettings || data.settings || {};
+    var analysis = analyzeExistingDurations(items, analysisSource);
+    if (!analysis.canAuto || !analysis.prevSpw) {
+        return false;
+    }
+
+    var changed = false;
+    for (var i = 0; i < items.length; i++) {
+        var el = items[i];
+        if (!el) continue;
+
+        // Respect manual lock flags
+        if (el.duration_locked === true || el.durationLocked === true || el.manualDuration === true) {
+            continue;
+        }
+
+        var treatAsAuto = true;
+        var current = (el.duration !== undefined && el.duration !== null) ? parseFloat(el.duration) : NaN;
+        if (!isNaN(current)) {
+            var expectedPrev = computeDurationFromText(el.text || "", analysis.prevSpw, analysis.prevMin);
+            if (!durationsApproximatelyEqual(current, expectedPrev)) {
+                treatAsAuto = false;
+            }
+        }
+
+        if (!treatAsAuto) {
+            continue;
+        }
+
+        var newDuration = computeDurationFromText(el.text || "", targetSecondsPerWord, targetMinDuration);
+        var rounded = roundDurationValue(newDuration);
+        if (rounded === null) continue;
+
+        if (el.duration === undefined || el.duration === null) {
+            el.duration = rounded;
+            changed = true;
+        } else {
+            var numericCurrent = parseFloat(el.duration);
+            if (isNaN(numericCurrent) || !durationsApproximatelyEqual(numericCurrent, rounded)) {
+                el.duration = rounded;
+                changed = true;
+            } else if (el.duration !== rounded) {
+                el.duration = rounded;
+                changed = true;
+            }
+        }
+    }
+
+    return changed;
+}

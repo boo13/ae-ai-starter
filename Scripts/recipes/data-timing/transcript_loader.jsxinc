@@ -1,0 +1,200 @@
+/**
+ * transcript_loader.jsxinc  --  Data Timing Recipe
+ *
+ * Loads and validates JSON data files, applies settings overrides,
+ * and provides a basic text-to-JSON converter with a pluggable
+ * line parser.
+ *
+ * Depends on: helpers.jsxinc (safeTrim), io.jsxinc (readJsonFile)
+ *
+ * All code is ES3/ExtendScript compatible.
+ */
+
+/**
+ * Reads and performs basic validation on a JSON data file.
+ *
+ * Validation checks:
+ *   - The parsed result must be a non-null object.
+ *   - The object should contain at least one array field (a warning is
+ *     logged if not, but no error is thrown -- the caller may have a
+ *     schema that does not require one).
+ *
+ * @param {File} file - ExtendScript File object pointing to a .json file.
+ * @returns {Object} Parsed and validated data object.
+ * @throws {Error} If the file is missing, unreadable, or does not contain
+ *   a valid JSON object.
+ */
+function parseJsonDataFile(file) {
+    if (!file || !file.exists) {
+        throw new Error("File not found: " + (file ? file.fsName : "(null)"));
+    }
+
+    file.encoding = "UTF-8";
+    file.open("r");
+    var raw = file.read();
+    file.close();
+
+    var data;
+    try {
+        data = JSON.parse(raw);
+    } catch (e) {
+        throw new Error("JSON parse error in " + file.displayName + ": " + e.message);
+    }
+
+    if (!data || typeof data !== "object") {
+        throw new Error("JSON file must contain an object. Got: " + typeof data);
+    }
+
+    // Warn (but do not throw) if there is no array field
+    var hasArray = false;
+    for (var key in data) {
+        if (!data.hasOwnProperty(key)) continue;
+        if (data[key] && typeof data[key].length === "number" && typeof data[key].push === "function") {
+            hasArray = true;
+            break;
+        }
+    }
+    if (!hasArray) {
+        // Non-fatal: log to ExtendScript console if available
+        try { $.writeln("Warning: JSON data has no array field."); } catch (_) {}
+    }
+
+    return data;
+}
+
+/**
+ * Merges override values into a defaults object.
+ *
+ * Only keys present in the overrides object are applied. Existing keys
+ * in defaults that are not overridden remain unchanged. Numeric overrides
+ * are validated (NaN values are ignored).
+ *
+ * @param {Object} defaults  - Base settings object (will not be mutated).
+ * @param {Object} overrides - Override values to apply.
+ * @returns {Object} A new object containing the merged settings.
+ */
+function applySettingsOverrides(defaults, overrides) {
+    var result = {};
+
+    // Copy all defaults
+    if (defaults) {
+        for (var key in defaults) {
+            if (defaults.hasOwnProperty(key)) {
+                result[key] = defaults[key];
+            }
+        }
+    }
+
+    // Apply overrides
+    if (overrides) {
+        for (var oKey in overrides) {
+            if (!overrides.hasOwnProperty(oKey)) continue;
+            var val = overrides[oKey];
+            if (val === undefined || val === null) continue;
+
+            // For numeric fields, validate before applying
+            if (typeof val === "number") {
+                if (isNaN(val)) continue;
+            }
+
+            result[oKey] = val;
+        }
+    }
+
+    return result;
+}
+
+/**
+ * Opens a file dialog, loads a JSON data file, and applies settings
+ * overrides from a configuration object.
+ *
+ * The dialog accepts both .json and .txt files. If a .txt file is
+ * selected and a convertSimpleTextFile function is available, the
+ * caller can handle conversion before passing the result here.
+ *
+ * @param {Object} [overridesConfig] - Optional overrides to merge into
+ *   the data's `settings` field.
+ * @returns {Object} Result object:
+ *   {
+ *     file: File,       -- the selected file
+ *     data: Object,     -- parsed JSON data
+ *     settings: Object  -- merged settings (data.settings + overrides)
+ *   }
+ * @throws {Error} If no file is selected, the file cannot be parsed,
+ *   or the data is invalid.
+ */
+function loadDataFile(overridesConfig) {
+    var selectedFile = File.openDialog("Select data file", "*.json;*.txt", false);
+    if (!selectedFile) {
+        throw new Error("No file selected.");
+    }
+
+    var data = parseJsonDataFile(selectedFile);
+    var baseSettings = (data && data.settings) ? data.settings : {};
+    var settings = applySettingsOverrides(baseSettings, overridesConfig);
+
+    return {
+        file: selectedFile,
+        data: data,
+        settings: settings
+    };
+}
+
+/**
+ * Converts a plain text file into a JSON-compatible array by applying
+ * a user-provided line parser function to each non-empty line.
+ *
+ * This is a generic alternative to hardcoded transcript formats. The
+ * caller supplies the parsing logic via the lineParser callback, which
+ * receives each trimmed line and returns a data object (or null to skip).
+ *
+ * @param {File}     txtFile    - ExtendScript File object for the .txt file.
+ * @param {Function} lineParser - Callback invoked for each non-empty line.
+ *   Signature: function(line, lineIndex) => Object|null
+ *   Return an object to include it in the result array, or null to skip.
+ * @returns {Object[]} Array of parsed data objects.
+ * @throws {Error} If the file is missing, unreadable, or produces no entries.
+ *
+ * @example
+ * // Simple "Speaker: Text" format
+ * var entries = convertSimpleTextFile(txtFile, function(line, idx) {
+ *     var colon = line.indexOf(":");
+ *     if (colon === -1) return null;
+ *     return {
+ *         speaker: safeTrim(line.substring(0, colon)),
+ *         text: safeTrim(line.substring(colon + 1))
+ *     };
+ * });
+ */
+function convertSimpleTextFile(txtFile, lineParser) {
+    if (!txtFile || !txtFile.exists) {
+        throw new Error("Text file not found: " + (txtFile ? txtFile.fsName : "(null)"));
+    }
+    if (typeof lineParser !== "function") {
+        throw new Error("convertSimpleTextFile requires a lineParser function.");
+    }
+
+    txtFile.encoding = "UTF-8";
+    txtFile.open("r");
+    var raw = txtFile.read();
+    txtFile.close();
+
+    var lines = raw.split(/\r?\n/);
+    var results = [];
+
+    for (var i = 0; i < lines.length; i++) {
+        var trimmed = (typeof safeTrim === "function") ? safeTrim(lines[i]) : lines[i].replace(/^\s+|\s+$/g, "");
+        if (!trimmed) continue;
+
+        var parsed = lineParser(trimmed, i);
+        if (parsed !== null && parsed !== undefined) {
+            results.push(parsed);
+        }
+    }
+
+    if (!results.length) {
+        throw new Error("No entries produced from " + txtFile.displayName);
+    }
+
+    return results;
+}

@@ -1,0 +1,31 @@
+/**
+ * example_config.jsxinc
+ *
+ * Example configuration for the data-timing recipe.
+ * Copy this file into your project and customize the default values
+ * to match your content type and pacing requirements.
+ *
+ * All code is ES3/ExtendScript compatible.
+ */
+
+var Config = {
+    /**
+     * Default starting time in seconds for the first element.
+     * @type {number}
+     */
+    DEFAULT_BASE_START: 0,
+
+    /**
+     * Default seconds allocated per word when computing durations.
+     * Adjust for reading speed: lower values = faster pacing.
+     * @type {number}
+     */
+    DEFAULT_SECONDS_PER_WORD: 0.38,
+
+    /**
+     * Minimum duration in seconds for any element, regardless of word count.
+     * Prevents very short items from flashing by too quickly.
+     * @type {number}
+     */
+    DEFAULT_MIN_DURATION: 1.5
+};
