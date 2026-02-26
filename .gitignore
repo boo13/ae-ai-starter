@@ -1,0 +1,16 @@
+# OS files
+.DS_Store
+Thumbs.db
+
+# After Effects
+*.aep
+*.aepx
+~*.aep
+
+# Temp files
+*.tmp
+*~
+
+# IDE
+.idea/
+.vscode/
