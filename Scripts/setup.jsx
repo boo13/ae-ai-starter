@@ -230,6 +230,9 @@
         claudeContent = claudeContent.split("{{PROJECT_DESCRIPTION}}").join("After Effects automation project");
         claudeContent = claudeContent.split("{{MAIN_COMP_DETAILS}}").join(compDetails);
 
+        // Remove the placeholder fallback hint (no longer needed after setup)
+        claudeContent = claudeContent.split("> If you see `{{placeholders}}` above, the user hasn't run `Scripts/setup.jsx` yet. Ask them to run it in After Effects first.\n\n").join("");
+
         writeTextFile(claudeFile, claudeContent);
         claudeUpdated = true;
     }
