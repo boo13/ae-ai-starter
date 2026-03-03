@@ -1,88 +1,45 @@
 # ae-ai-starter
 
-An AI-friendly starter kit for After Effects automation. It gives AI coding assistants the context they need to write ExtendScript for your AE projects by providing an analysis system, shared libraries, and reusable automation recipes.
+Use AI assistants to automate your After Effects projects.
+
+## What This Does
+
+This template gives AI coding assistants the context they need to write ExtendScript automation for your AE projects. You describe what you want in plain language, the AI writes the script, and you run it in After Effects. It includes an analysis system that extracts your project structure into a report the AI can read, shared libraries for common scripting tasks, and reusable recipes for patterns like populating repeated layers or swapping images.
 
 ## Quick Start
 
-1. Clone this repo (or use it as a template) into your project directory.
-2. Open your After Effects project file (`.aep`).
-3. Run `Scripts/setup.jsx` via `File > Scripts > Run Script File...`.
-4. The setup dialog will ask for a project name, main composition, and whether to create a UI panel.
-5. Setup generates `Scripts/config.jsxinc`, populates `CLAUDE.md` with your project details, and runs the analysis system.
-
-After setup, your AI assistant can read `CLAUDE.md` and `Scripts/reports/analysis.md` to understand your AE project structure and start writing automation scripts.
+1. Clone this repo (or click **Use this template** on GitHub)
+2. Open your After Effects project (`.aep`)
+3. Run `Scripts/setup.jsx` via **File > Scripts > Run Script File**
+4. Follow the setup dialog to configure your project name, main composition, and optional UI panel
+5. Open your AI assistant and follow **[Your First Automation](docs/first-automation.md)**
 
 ## How It Works
 
-### Analysis System
+The core workflow is a loop:
 
-The analysis system (`Scripts/analyze/run_analysis.jsx`) captures a complete snapshot of your After Effects project: compositions, layers, properties, effects, and expressions. The report is written to `Scripts/reports/analysis.md` (human-readable) and `Scripts/reports/analysis.json` (machine-readable).
+- **Analyze** — `setup.jsx` scans your AE project and produces a plain-text report that the AI can read. Since AI assistants can't open After Effects directly, this report is their window into your project.
+- **Describe** — Tell the AI what you want to automate. It knows your compositions, layers, and properties from the report.
+- **Run** — The AI writes an ExtendScript. You run it in AE via **File > Scripts > Run Script File**.
+- **Iterate** — When your template changes, re-run analysis (`Scripts/analyze/run_analysis.jsx`) to keep the report current.
 
-Since AI assistants cannot open After Effects directly, this report is their primary source of truth about your project.
+## What's Included
 
-### Shared Libraries
-
-`Scripts/lib/` contains ES3-compatible utility modules:
-
-- **helpers.jsxinc** -- Text property handling, word counting, numeric value extraction, nested property search
-- **io.jsxinc** -- JSON read/write, text file output, folder management, timestamps
-- **report_writer.jsxinc** -- Dual Markdown/JSON report generation
-
-Include these in your scripts with `#include "lib/helpers.jsxinc"`.
-
-### Recipes
-
-`Scripts/recipes/` contains reusable automation patterns. Each recipe is a self-contained folder you can copy and customize:
-
-- **repeating-elements** -- Populate N similarly-named layers from a data array
-- **image-swap** -- Import images and replace layer sources with fit/fill scaling
-- **data-timing** -- Calculate display durations from word counts with configurable pacing
-
-See [docs/recipes.md](docs/recipes.md) for details on each recipe.
-
-### Optional UI Panel
-
-Setup can generate a dockable ScriptUI panel that acts as an AE automation lab. It includes one-click actions to create comps, add guide presets, build title stacks, create a simple camera rig, add timing markers, and queue the active comp for render. A ready-to-run version also lives at `Scripts/panel/automation_lab_panel.jsx`.
-
-## AI Workflow
-
-The development loop is: run analysis, let the AI read the report, have it write scripts, test in AE, iterate. See [docs/ai-workflow.md](docs/ai-workflow.md) for the full guide.
-
-## File Structure
-
-```
-Scripts/
-  setup.jsx              -- Interactive project setup (run this first)
-  config.jsxinc          -- Generated project configuration
-  analyze/
-    run_analysis.jsx     -- Analysis entry point
-    lib/                 -- Snapshot modules (project, comps, layers, properties, expressions)
-  lib/
-    helpers.jsxinc       -- Shared utility functions
-    io.jsxinc            -- File I/O utilities
-    report_writer.jsxinc -- Report generation
-  recipes/
-    repeating-elements/  -- Data-driven repeated layers
-    image-swap/          -- Footage import and replacement
-    data-timing/         -- Word-count-based timing
-  panel/
-    README.md            -- Panel setup instructions
-  reports/
-    analysis.md          -- Generated analysis report (Markdown)
-    analysis.json        -- Generated analysis report (JSON)
-  tests/
-    test_helpers.jsx     -- Unit tests for helper functions
-Input/                   -- Data files (JSON, images, etc.)
-docs/
-  ai-workflow.md         -- AI-assisted development guide
-  recipes.md             -- Recipe reference
-CLAUDE.md                -- AI context file (populated by setup.jsx)
-```
+- `Scripts/analyze/` — Project analysis system (generates structure reports)
+- `Scripts/lib/` — Shared ES3 utilities for AI-generated scripts
+- `Scripts/recipes/` — Copy-and-adapt patterns for common automation tasks
+- `Scripts/panel/` — Optional ScriptUI panel with utility actions (configured during setup)
+- `docs/` — Workflow guides and recipe reference
+- `example/` — Complete working example project
 
 ## Requirements
 
-- All scripts are ES3/ExtendScript compatible -- no modern JavaScript features
+- After Effects (any recent version)
+- An AI assistant ([Claude Code](https://claude.ai/download), ChatGPT, Cursor, Gemini, etc.)
 
-## Example
+## Learn More
 
-The `example/` directory contains a complete working example of a social media card automation project. See [example/README.md](example/README.md) for a walkthrough.
+- **[Your First Automation](docs/first-automation.md)** — Step-by-step walkthrough from setup to first script
+- **[AI Workflow Guide](docs/ai-workflow.md)** — Advanced tips, symlink patterns, and development practices
+- **[Recipes Reference](docs/recipes.md)** — When to use each recipe and how to customize them
+- **[Complete Example](example/README.md)** — Full multi-recipe workflow demonstration
