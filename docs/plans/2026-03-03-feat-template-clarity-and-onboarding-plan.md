@@ -3,7 +3,7 @@ title: "feat: Template Clarity and Onboarding Improvements"
 type: feat
 status: completed
 date: 2026-03-03
-brainstorm: docs/brainstorms/2026-03-03-template-clarity-brainstorm.md
+brainstorm: docs/brainstorms/2026-03-03-template-clarity-brainstorm.md (local only, gitignored)
 ---
 
 # Template Clarity and Onboarding Improvements
@@ -42,7 +42,7 @@ Research verified:
 
 **Action:** Verify `.gitignore` is correct and sufficient. No `git rm --cached` needed.
 
-**Decision needed:** Should `docs/brainstorms/` be committed? Currently untracked. Recommend committing — design decision documentation has value for future contributors.
+**Decision:** `docs/brainstorms/` added to `.gitignore` — kept as private working notes, not committed.
 
 ---
 

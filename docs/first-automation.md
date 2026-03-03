@@ -83,6 +83,7 @@ app.beginUndoGroup("Load data");
 
 var comp = app.project.activeItem;
 var scriptFile = new File($.fileName);
+// Navigate from Scripts/ up to project root, then into Input/
 var dataFile = new File(scriptFile.parent.parent.fsName + "/Input/data.json");
 var data = readJsonFile(dataFile);
 
@@ -109,7 +110,7 @@ Scripts won't always work on the first try. Here's how to handle common issues:
 
 **Layer names changed since analysis.** If you've modified your AE template (added, removed, or renamed layers), re-run the analysis: `File > Scripts > Run Script File > Scripts/analyze/run_analysis.jsx`. Then share the updated report with your AI.
 
-**The AI writes modern JavaScript (const, let, arrow functions).** Remind it: "This needs to be ES3/ExtendScript compatible. Use var, function keywords, and string concatenation only." The CLAUDE.md file should prevent this, but it can happen with paste-based assistants.
+**The AI writes modern JavaScript (const, let, arrow functions).** Remind it: "This needs to be ES3/ExtendScript compatible. Use var, function keywords, and string concatenation only." The AGENTS.md file should prevent this, but it can happen with paste-based assistants that don't have the full context.
 
 ## Where to Save Scripts
 

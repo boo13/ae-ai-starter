@@ -27,7 +27,7 @@
 ## Scripting Patterns
 
 - Wrap all changes in `app.beginUndoGroup("Label"); ... app.endUndoGroup()`
-- Use `#include "lib/helpers.jsxinc"` -- NOT `import` or `require`
+- Use `#include` directives to load libraries -- NOT `import` or `require`
 - Access layers: `comp.layer(index)` (1-based) or `comp.layer("Name")`
 - Access properties: `layer.property("Transform").property("Position")`
 - File paths: use `new File(path)` and `new Folder(path)`, not Node.js APIs
