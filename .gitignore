@@ -16,6 +16,9 @@ Scripts/config.jsxinc
 Scripts/panel/*_panel.jsx
 !Scripts/panel/automation_lab_panel.jsx
 
+# Working notes
+docs/brainstorms/
+
 # IDE
 .idea/
 .vscode/

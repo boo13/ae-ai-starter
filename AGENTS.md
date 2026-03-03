@@ -46,19 +46,25 @@
 
 ## Shared Libraries (`Scripts/lib/`)
 
-Include with `#include "lib/helpers.jsxinc"` at top of scripts.
+Each library is a separate file. Include only the ones you need:
 
-- **io.jsxinc** -- `readJsonFile(file)`, `writeTextFile(file, content)`, `ensureFolder(path)`, `nowTimestamp()`
-- **helpers.jsxinc** -- `setTextPropertyValue(prop, text)`, `isSupportedImage(ext)`, `countWords(str)`, `findNestedProperty(layer, name)`
-- **report_writer.jsxinc** -- `ReportWriter(reportsDir, baseName)` for dual MD/JSON output
+- **io.jsxinc** -- `readJsonFile(file)`, `writeJsonFile(file, data)`, `writeTextFile(file, content)`, `ensureFolder(path)`, `formatTimestamp()`
+  - Include with `#include "lib/io.jsxinc"`
+- **helpers.jsxinc** -- `setTextPropertyValue(prop, text)`, `isSupportedImageExtension(ext)`, `countWords(str)`, `safeTrim(s)`, `getNumericValue(prop)`, `findNestedPropertyByName(group, targetName)`
+  - Include with `#include "lib/helpers.jsxinc"`
+- **report_writer.jsxinc** -- `createReportWriter()` returns a builder with `addMarkdown`, `addSection`, `addSubsection`, `addList`, `addTable`, `setJson`, `build` methods
+  - Include with `#include "lib/report_writer.jsxinc"`
 
 ## Recipes (`Scripts/recipes/`)
 
 Copy and adapt these patterns instead of writing from scratch:
 
 - **repeating-elements** -- Populate N layers from a data array
+  - *Use when:* You need to populate multiple similar layers from a data array (list items, cards, slides, credits)
 - **image-swap** -- Import images, replace layer sources with fit/fill scaling
+  - *Use when:* You need to import external images and replace layer sources with proper scaling (photo galleries, thumbnails, product shots)
 - **data-timing** -- Calculate display durations from word counts
+  - *Use when:* Display duration should vary based on text length (subtitle timing, auto-paced slideshows, narration sync)
 
 Each recipe has a README with usage instructions.
 
