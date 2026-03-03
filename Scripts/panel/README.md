@@ -4,11 +4,17 @@ This directory holds your project's ScriptUI panel.
 
 ## Setup
 
-Run `Scripts/setup.jsx` with the "Create UI Panel" option enabled. It generates `project_panel.jsx` here with:
+Run `Scripts/setup.jsx` with the "Create UI Panel" option enabled. It generates a dockable automation panel here.
 
-- **Refresh Analysis** button (re-runs the analysis system)
-- **Select Data File** button (JSON picker)
-- **Debug section** (collapsible, shows data file summary)
+The panel is meant to show what AE automation can do without requiring project analysis first. It includes actions for:
+
+- **Create Comp** -- seeds a new composition from width / height / duration / FPS inputs
+- **Build Demo Scene** -- creates a comp, backdrop, guides, title stack, camera rig, and markers
+- **Guide Presets** -- adds thirds, safe-area, and center guides to the active comp
+- **Layer Tools** -- creates a backdrop, animated title stack, and a simple camera orbit rig
+- **Queue Active Comp** -- sends the active comp to the render queue
+
+You can also use the ready-to-run panel at `Scripts/panel/automation_lab_panel.jsx` directly.
 
 ## Installation
 
@@ -26,7 +32,7 @@ mklink "C:\Program Files\Adobe\After Effects <version>\Scripts\ScriptUI Panels\p
 
 ## Development
 
-Edit `project_panel.jsx` in your code editor. To reload in AE:
+Edit `panel_template.jsxinc` to change the generated panel, or edit `automation_lab_panel.jsx` if you want a direct entry point. To reload in AE:
 - Close and reopen the panel (Window menu)
 - Or restart After Effects
 

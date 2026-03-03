@@ -42,11 +42,28 @@ See [docs/recipes.md](docs/recipes.md) for details on each recipe.
 
 ### Optional UI Panel
 
-Setup can generate a dockable ScriptUI panel (`Scripts/panel/project_panel.jsx`) with buttons for refreshing analysis and loading data files. The setup script offers to symlink it into AE's ScriptUI Panels folder.
+Setup can generate a dockable ScriptUI panel that acts as an AE automation lab. It includes one-click actions to create comps, add guide presets, build title stacks, create a simple camera rig, add timing markers, and queue the active comp for render. A ready-to-run version also lives at `Scripts/panel/automation_lab_panel.jsx`.
 
 ## AI Workflow
 
 The development loop is: run analysis, let the AI read the report, have it write scripts, test in AE, iterate. See [docs/ai-workflow.md](docs/ai-workflow.md) for the full guide.
+
+## Secret Scanning
+
+This repo includes a GitHub Actions workflow at `.github/workflows/gitleaks.yml` that runs Gitleaks on every push, pull request, manual run, and a weekly schedule. It scans the full git history available in the workflow checkout, so secrets introduced in commits are caught even if they are removed later in the branch.
+
+To make it a hard publishing gate for `main`:
+
+1. Push this workflow to GitHub and let it complete successfully once.
+2. In GitHub, open `Settings > Branches` for this repository.
+3. Add or edit the protection rule for `main`.
+4. Enable `Require a pull request before merging`.
+5. Enable `Require status checks to pass before merging` and select the `gitleaks` check.
+6. Disable direct pushes to `main` unless you intentionally want an admin bypass.
+
+If this repository is owned by a personal GitHub account, no extra Gitleaks license secret is required. If you move it to a GitHub organization later, add a `GITLEAKS_LICENSE` repository secret before using `gitleaks/gitleaks-action@v2`.
+
+GitHub Actions cannot block the very first push of a new branch, because workflows run after GitHub receives the push. If you want server-side push blocking for any branch, pair this workflow with GitHub push protection or a local pre-push hook.
 
 ## File Structure
 
