@@ -177,37 +177,57 @@ function addFlowCameraRig(comp) {
     controller.property("Transform").property("Position").setValue([comp.width / 2, comp.height / 2, 0]);
     controller.property("Transform").property("Orientation").setValue([0, 0, 0]);
 
-    try {
-        camera.property("Camera Options").property("Zoom").setValueAtTime(0, 1200);
-        camera.property("Camera Options").property("Zoom").setValueAtTime(comp.duration, 1450);
-    } catch (_) {}
-
-    try {
-        controller.property("Transform").property("Y Rotation").setValueAtTime(0, -9);
-        controller.property("Transform").property("Y Rotation").setValueAtTime(comp.duration * 0.5, 11);
-        controller.property("Transform").property("Y Rotation").setValueAtTime(comp.duration, -7);
-    } catch (_) {}
-
-    try {
-        controller.property("Transform").property("X Rotation").setValueAtTime(0, 5);
-        controller.property("Transform").property("X Rotation").setValueAtTime(comp.duration, -4);
-    } catch (_) {}
-
-    try {
-        controller.property("Transform").property("Z Rotation").setValueAtTime(0, -1.5);
-        controller.property("Transform").property("Z Rotation").setValueAtTime(comp.duration, 1.5);
-    } catch (_) {}
-
-    try {
-        controller.property("Transform").property("Position").setValueAtTime(0, [comp.width / 2, comp.height / 2, 80]);
-        controller.property("Transform").property("Position").setValueAtTime(comp.duration * 0.5, [comp.width / 2, comp.height / 2 - 60, -120]);
-        controller.property("Transform").property("Position").setValueAtTime(comp.duration, [comp.width / 2, comp.height / 2 + 20, 140]);
-    } catch (_) {}
+    applyFlowLoopRigExpressions(comp, controller, camera);
 
     return {
         controller: controller,
         camera: camera
     };
+}
+
+function applyFlowLoopRigExpressions(comp, controller, camera) {
+    var controllerPos = controller.property("Transform").property("Position");
+    var xRot = controller.property("Transform").property("X Rotation");
+    var yRot = controller.property("Transform").property("Y Rotation");
+    var zRot = controller.property("Transform").property("Z Rotation");
+    var zoom = camera.property("Camera Options").property("Zoom");
+    var width = comp.width;
+    var height = comp.height;
+
+    controllerPos.expression = [
+        "var dur = Math.max(thisComp.duration, 0.001);",
+        "var p = (time % dur) / dur;",
+        "var a = p * Math.PI * 2;",
+        "[" + (width / 2).toFixed(4) + " + Math.cos(a) * 120, " + (height / 2).toFixed(4) + " + Math.sin(a * 1.2) * 70, Math.sin(a) * 180];"
+    ].join("\n");
+
+    yRot.expression = [
+        "var dur = Math.max(thisComp.duration, 0.001);",
+        "var p = (time % dur) / dur;",
+        "var a = p * Math.PI * 2;",
+        "Math.sin(a) * 12;"
+    ].join("\n");
+
+    xRot.expression = [
+        "var dur = Math.max(thisComp.duration, 0.001);",
+        "var p = (time % dur) / dur;",
+        "var a = p * Math.PI * 2;",
+        "Math.sin(a * 0.8 + 1.2) * 6;"
+    ].join("\n");
+
+    zRot.expression = [
+        "var dur = Math.max(thisComp.duration, 0.001);",
+        "var p = (time % dur) / dur;",
+        "var a = p * Math.PI * 2;",
+        "Math.cos(a * 1.1) * 2;"
+    ].join("\n");
+
+    zoom.expression = [
+        "var dur = Math.max(thisComp.duration, 0.001);",
+        "var p = (time % dur) / dur;",
+        "var a = p * Math.PI * 2;",
+        "1320 + (Math.sin(a) * 110) + (Math.cos(a * 2) * 35);"
+    ].join("\n");
 }
 
 function flowTurbulenceToScale(turbulence) {
@@ -286,10 +306,36 @@ function buildStreamlineLayers(comp, controlLayer, config) {
     return streamlines.length;
 }
 
-function buildFlowTrimExpression() {
+function buildFlowTrimStartExpression(indexValue, totalValue) {
+    var phase = totalValue > 0 ? ((indexValue - 1) / totalValue).toFixed(6) : "0";
     return [
         "var speed = thisComp.layer('" + CTRL.LAYER_NAME + "').effect('" + CTRL.SPEED + "')('Slider');",
-        "Math.min(Math.max(time * speed * (100 / thisComp.duration), 0), 100);"
+        "var cycles = Math.max(1, Math.round(speed));",
+        "var dur = Math.max(thisComp.duration, 0.001);",
+        "var p = (time % dur) / dur;",
+        "var phase = " + phase + ";",
+        "var a = ((p * cycles) + phase) * Math.PI * 2;",
+        "var center = (Math.sin(a) * 0.5) + 0.5;",
+        "var trail = 16 + (Math.sin(a * 0.5 + 1.1) * 6);",
+        "trail = Math.max(8, Math.min(34, trail));",
+        "center * (100 - trail);"
+    ].join("\n");
+}
+
+function buildFlowTrimEndExpression(indexValue, totalValue) {
+    var phase = totalValue > 0 ? ((indexValue - 1) / totalValue).toFixed(6) : "0";
+    return [
+        "var speed = thisComp.layer('" + CTRL.LAYER_NAME + "').effect('" + CTRL.SPEED + "')('Slider');",
+        "var cycles = Math.max(1, Math.round(speed));",
+        "var dur = Math.max(thisComp.duration, 0.001);",
+        "var p = (time % dur) / dur;",
+        "var phase = " + phase + ";",
+        "var a = ((p * cycles) + phase) * Math.PI * 2;",
+        "var center = (Math.sin(a) * 0.5) + 0.5;",
+        "var trail = 16 + (Math.sin(a * 0.5 + 1.1) * 6);",
+        "trail = Math.max(8, Math.min(34, trail));",
+        "var startVal = center * (100 - trail);",
+        "startVal + trail;"
     ].join("\n");
 }
 
@@ -356,6 +402,7 @@ function wireFlowExpressions(comp, streamlineCount) {
     var groupContents;
     var stroke;
     var trim;
+    var trimStart;
     var trimEnd;
     var strokeColor;
     var strokeWidth;
@@ -376,14 +423,17 @@ function wireFlowExpressions(comp, streamlineCount) {
         }
         currentIndex++;
 
+        trimStart = trim.property("ADBE Vector Trim Start");
         trimEnd = trim.property("ADBE Vector Trim End");
         strokeColor = stroke.property("ADBE Vector Stroke Color");
         strokeWidth = stroke.property("ADBE Vector Stroke Width");
 
-        trimEnd.expression = buildFlowTrimExpression();
+        trimStart.expression = buildFlowTrimStartExpression(currentIndex, streamlineCount || 1);
+        trimEnd.expression = buildFlowTrimEndExpression(currentIndex, streamlineCount || 1);
         strokeColor.expression = buildFlowColorExpression(currentIndex, streamlineCount || 1);
         strokeWidth.expression = buildFlowWidthExpression(currentIndex);
 
+        assertExpressionOk(trimStart, layer.name + " trim start");
         assertExpressionOk(trimEnd, layer.name + " trim");
         assertExpressionOk(strokeColor, layer.name + " color");
         assertExpressionOk(strokeWidth, layer.name + " width");
@@ -408,6 +458,7 @@ function ensureFlowSceneRig(comp) {
     try { controller = comp.layer("Flow Camera CTRL"); } catch (_) {}
     try { camera = comp.layer("Flow Camera"); } catch (_) {}
     if (controller && camera) {
+        applyFlowLoopRigExpressions(comp, controller, camera);
         return {
             controller: controller,
             camera: camera

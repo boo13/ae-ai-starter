@@ -36,6 +36,7 @@
         });
         var count = buildStreamlineLayers(comp, controlLayer, { seed: 321 });
         var layer = null;
+        var trimStart = null;
         var trimEnd = null;
         var strokeColor = null;
         var i;
@@ -62,11 +63,14 @@
         groupContents = layer.property("ADBE Root Vectors Group").property(1).property("ADBE Vectors Group");
         trim = findFirstByMatchName(groupContents, "ADBE Vector Filter - Trim");
         stroke = findFirstByMatchName(groupContents, "ADBE Vector Graphic - Stroke");
+        trimStart = trim.property("ADBE Vector Trim Start");
         trimEnd = trim.property("ADBE Vector Trim End");
         strokeColor = stroke.property("ADBE Vector Stroke Color");
 
+        assert(trimStart.expression !== "", "Trim start expression should be set");
         assert(trimEnd.expression !== "", "Trim expression should be set");
         assert(strokeColor.expression !== "", "Color expression should be set");
+        assert(trimStart.expressionError === "", "Trim start expression should be valid");
         assert(trimEnd.expressionError === "", "Trim expression should be valid");
         assert(strokeColor.expressionError === "", "Color expression should be valid");
 
