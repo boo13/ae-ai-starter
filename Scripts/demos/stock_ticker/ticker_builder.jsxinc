@@ -225,13 +225,13 @@ function createTickerLineLayer(comp, name, startPoint, endPoint, colorValue, str
 }
 
 function tickerTextColorExpression(mainCompName, isPositive) {
-    var color = isPositive ? "[0.22, 0.84, 0.47]" : "[0.95, 0.32, 0.28]";
+    var color = isPositive ? "[0.22, 0.84, 0.47, 1]" : "[0.95, 0.32, 0.28, 1]";
     return [
         "var enabled = comp('" + mainCompName + "').layer('" + TICKER_CTRL.LAYER_NAME + "').effect('" + TICKER_CTRL.GAIN_LOSS + "')('Checkbox');",
         "if (enabled > 0.5) {",
         "    " + color + ";",
         "} else {",
-        "    [0.96, 0.96, 0.96];",
+        "    [0.96, 0.96, 0.96, 1];",
         "}"
     ].join("\n");
 }
@@ -398,13 +398,13 @@ function buildGridLines(comp, stockData, chartDays) {
 }
 
 function sparklineColorExpression(trendPositive) {
-    var color = trendPositive ? "[0.22, 0.84, 0.47]" : "[0.95, 0.32, 0.28]";
+    var color = trendPositive ? "[0.22, 0.84, 0.47, 1]" : "[0.95, 0.32, 0.28, 1]";
     return [
         "var enabled = thisComp.layer('" + TICKER_CTRL.LAYER_NAME + "').effect('" + TICKER_CTRL.GAIN_LOSS + "')('Checkbox');",
         "if (enabled > 0.5) {",
         "    " + color + ";",
         "} else {",
-        "    [0.94, 0.94, 0.94];",
+        "    [0.94, 0.94, 0.94, 1];",
         "}"
     ].join("\n");
 }
