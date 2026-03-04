@@ -114,6 +114,7 @@ function addFlowControlLayer(comp, config) {
     getOrAddSliderControl(layer, CTRL.COLOR_MODE, config && config.colorMode !== undefined ? config.colorMode : 0);
 
     try { layer.moveToBeginning(); } catch (_) {}
+    try { return comp.layer(CTRL.LAYER_NAME); } catch (_) {}
     return layer;
 }
 

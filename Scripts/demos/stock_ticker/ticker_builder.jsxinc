@@ -117,6 +117,7 @@ function addTickerControlLayer(comp, config) {
     addTickerCheckboxControl(layer, TICKER_CTRL.SHOW_GRID, config && config.showGrid !== undefined ? config.showGrid : true);
 
     try { layer.moveToBeginning(); } catch (_) {}
+    try { return comp.layer(TICKER_CTRL.LAYER_NAME); } catch (_) {}
     return layer;
 }
 
