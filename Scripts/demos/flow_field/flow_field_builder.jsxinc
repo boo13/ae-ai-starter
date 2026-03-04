@@ -161,6 +161,55 @@ function createStreamlineShapeLayer(comp, layerName, pathData, strokeWidth) {
     return layer;
 }
 
+function addFlowCameraRig(comp) {
+    var controller = comp.layers.addNull();
+    var camera = comp.layers.addCamera("Flow Camera", [comp.width / 2, comp.height / 2]);
+    controller.name = "Flow Camera CTRL";
+    controller.threeDLayer = true;
+    camera.parent = controller;
+
+    try {
+        controller.moveAfter(comp.layer(CTRL.LAYER_NAME));
+    } catch (_) {}
+
+    camera.property("Transform").property("Position").setValue([comp.width / 2, comp.height / 2, -2200]);
+    camera.property("Transform").property("Point of Interest").setValue([comp.width / 2, comp.height / 2, 0]);
+    controller.property("Transform").property("Position").setValue([comp.width / 2, comp.height / 2, 0]);
+    controller.property("Transform").property("Orientation").setValue([0, 0, 0]);
+
+    try {
+        camera.property("Camera Options").property("Zoom").setValueAtTime(0, 1200);
+        camera.property("Camera Options").property("Zoom").setValueAtTime(comp.duration, 1450);
+    } catch (_) {}
+
+    try {
+        controller.property("Transform").property("Y Rotation").setValueAtTime(0, -9);
+        controller.property("Transform").property("Y Rotation").setValueAtTime(comp.duration * 0.5, 11);
+        controller.property("Transform").property("Y Rotation").setValueAtTime(comp.duration, -7);
+    } catch (_) {}
+
+    try {
+        controller.property("Transform").property("X Rotation").setValueAtTime(0, 5);
+        controller.property("Transform").property("X Rotation").setValueAtTime(comp.duration, -4);
+    } catch (_) {}
+
+    try {
+        controller.property("Transform").property("Z Rotation").setValueAtTime(0, -1.5);
+        controller.property("Transform").property("Z Rotation").setValueAtTime(comp.duration, 1.5);
+    } catch (_) {}
+
+    try {
+        controller.property("Transform").property("Position").setValueAtTime(0, [comp.width / 2, comp.height / 2, 80]);
+        controller.property("Transform").property("Position").setValueAtTime(comp.duration * 0.5, [comp.width / 2, comp.height / 2 - 60, -120]);
+        controller.property("Transform").property("Position").setValueAtTime(comp.duration, [comp.width / 2, comp.height / 2 + 20, 140]);
+    } catch (_) {}
+
+    return {
+        controller: controller,
+        camera: camera
+    };
+}
+
 function flowTurbulenceToScale(turbulence) {
     var normalized = (turbulence - 0.5) / 11.5;
     normalized = flowClamp(normalized, 0, 1);
@@ -169,6 +218,29 @@ function flowTurbulenceToScale(turbulence) {
 
 function flowSeparationForDensity(density) {
     return flowClamp(12 - ((density - 80) / 40), 3.2, 12);
+}
+
+function styleStreamlineDepth(layer, indexValue, totalValue, comp) {
+    var transform;
+    var position;
+    var opacity;
+    var scale;
+    var centered = totalValue > 1 ? ((indexValue - 1) / (totalValue - 1)) - 0.5 : 0;
+    var wave = Math.sin(indexValue * 1.173);
+    var zDepth = centered * 2400 + (wave * 260);
+    var xOffset = Math.cos(indexValue * 0.67) * 90 * (1 - Math.abs(centered));
+    var yOffset = Math.sin(indexValue * 0.49) * 70;
+    var scaleValue = 100 + (Math.abs(centered) * 10);
+    var opacityValue = flowClamp(92 - (Math.abs(centered) * 28), 52, 92);
+
+    try { layer.threeDLayer = true; } catch (_) {}
+    transform = layer.property("Transform");
+    position = transform.property("Position");
+    opacity = transform.property("Opacity");
+    scale = transform.property("Scale");
+    try { position.setValue([xOffset, yOffset, zDepth]); } catch (_) {}
+    try { scale.setValue([scaleValue, scaleValue, scaleValue]); } catch (_) {}
+    try { opacity.setValue(opacityValue); } catch (_) {}
 }
 
 function buildStreamlineLayers(comp, controlLayer, config) {
@@ -201,12 +273,14 @@ function buildStreamlineLayers(comp, controlLayer, config) {
     var pathData;
 
     for (i = 0; i < streamlines.length; i++) {
+        var streamlineLayer;
         simplified = simplifyPoints(streamlines[i], 0.9);
         if (!simplified || simplified.length < 2) {
             continue;
         }
         pathData = pointsToBezierPath(simplified, 0.92);
-        createStreamlineShapeLayer(comp, "Streamline " + (i + 1), pathData, 2.2);
+        streamlineLayer = createStreamlineShapeLayer(comp, "Streamline " + (i + 1), pathData, 2.2);
+        styleStreamlineDepth(streamlineLayer, i + 1, streamlines.length, comp);
     }
 
     return streamlines.length;
@@ -326,4 +400,18 @@ function removeStreamlineLayers(comp) {
         }
     }
     return removed;
+}
+
+function ensureFlowSceneRig(comp) {
+    var controller = null;
+    var camera = null;
+    try { controller = comp.layer("Flow Camera CTRL"); } catch (_) {}
+    try { camera = comp.layer("Flow Camera"); } catch (_) {}
+    if (controller && camera) {
+        return {
+            controller: controller,
+            camera: camera
+        };
+    }
+    return addFlowCameraRig(comp);
 }

@@ -42,7 +42,9 @@
         var groupContents;
         var trim;
         var stroke;
+        var rig;
 
+        rig = ensureFlowSceneRig(comp);
         wireFlowExpressions(comp, count);
 
         for (i = 1; i <= comp.layers.length; i++) {
@@ -54,6 +56,8 @@
 
         assert(count > 0, "Expected streamlines to be created");
         assert(layer !== null, "Expected at least one streamline layer");
+        assert(rig && rig.camera !== null, "Expected a camera rig to be created");
+        assert(layer.threeDLayer === true, "Expected streamlines to be 3D layers");
 
         groupContents = layer.property("ADBE Root Vectors Group").property(1).property("ADBE Vectors Group");
         trim = findFirstByMatchName(groupContents, "ADBE Vector Filter - Trim");

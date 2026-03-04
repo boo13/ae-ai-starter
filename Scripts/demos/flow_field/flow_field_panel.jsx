@@ -211,6 +211,7 @@
 
             latestComp = createFlowFieldComp();
             controlLayer = addFlowControlLayer(latestComp, settings);
+            ensureFlowSceneRig(latestComp);
             updateControlLayerFromPanel(controlLayer);
             count = buildStreamlineLayers(latestComp, controlLayer, { seed: seed });
             wireFlowExpressions(latestComp, count);
@@ -234,6 +235,7 @@
             }
 
             settings = updateControlLayerFromPanel(controlLayer);
+            ensureFlowSceneRig(latestComp);
             setStatus("Generating " + settings.density + " streamlines...", [0.96, 0.75, 0.2]);
             try { win.update(); } catch (_) {}
 
