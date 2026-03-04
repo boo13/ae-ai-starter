@@ -1,0 +1,185 @@
+/**
+ * data_fetcher.jsxinc
+ *
+ * Bundled JSON loading and optional live-data fetching for the stock ticker demo.
+ */
+
+function resolveStockDataFile(scriptFile) {
+    var fileRef = (scriptFile instanceof File) ? scriptFile : File(scriptFile);
+    var folder;
+    if (!fileRef) {
+        throw new Error("Script file path is invalid.");
+    }
+    folder = fileRef.parent;
+    while (folder && folder.exists && folder.name !== "Scripts") {
+        folder = folder.parent;
+    }
+    if (!folder || folder.name !== "Scripts" || !folder.parent) {
+        throw new Error("Could not resolve repo root from script path: " + fileRef.fsName);
+    }
+    return File(folder.parent.fsName + "/Input/sample_stock_data.json");
+}
+
+function validateStockData(stockData) {
+    var i;
+    var j;
+    var stock;
+    var price;
+
+    if (!stockData || !stockData.stocks || !(stockData.stocks instanceof Array) || stockData.stocks.length === 0) {
+        throw new Error("Stock data must contain a non-empty stocks array.");
+    }
+
+    for (i = 0; i < stockData.stocks.length; i++) {
+        stock = stockData.stocks[i];
+        if (!stock.symbol || !stock.prices || !(stock.prices instanceof Array) || stock.prices.length === 0) {
+            throw new Error("Invalid stock entry at index " + i + ".");
+        }
+        if (typeof stock.current !== "number") {
+            throw new Error("Stock " + stock.symbol + " is missing numeric current price.");
+        }
+        if (typeof stock.change !== "string") {
+            throw new Error("Stock " + stock.symbol + " is missing change string.");
+        }
+        for (j = 0; j < stock.prices.length; j++) {
+            price = stock.prices[j];
+            if (!price.date || typeof price.close !== "number") {
+                throw new Error("Invalid price entry for " + stock.symbol + " at index " + j + ".");
+            }
+        }
+    }
+    return true;
+}
+
+function loadStockData(scriptFile) {
+    var dataFile = resolveStockDataFile(scriptFile);
+    var stockData = readJsonFile(dataFile);
+    validateStockData(stockData);
+    return stockData;
+}
+
+function shellQuote(value) {
+    return "'" + String(value).replace(/'/g, "'\"'\"'") + "'";
+}
+
+function parseAlphaVantageSeries(json, symbol, displayName) {
+    var series = json["Time Series (Daily)"];
+    var dates = [];
+    var i;
+    var current;
+    var previous;
+    var change;
+    var prices = [];
+
+    if (json["Note"]) {
+        throw new Error("Alpha Vantage rate limit reached: " + json["Note"]);
+    }
+    if (json["Error Message"]) {
+        throw new Error("Alpha Vantage error for " + symbol + ": " + json["Error Message"]);
+    }
+    if (!series) {
+        throw new Error("No daily series returned for " + symbol + ".");
+    }
+
+    for (i in series) {
+        if (series.hasOwnProperty(i)) {
+            dates.push(i);
+        }
+    }
+    dates.sort();
+
+    while (dates.length > 90) {
+        dates.shift();
+    }
+
+    for (i = 0; i < dates.length; i++) {
+        prices.push({
+            date: dates[i],
+            close: parseFloat(series[dates[i]]["4. close"])
+        });
+    }
+
+    current = prices[prices.length - 1].close;
+    previous = prices[prices.length - 2].close;
+    change = ((current - previous) / previous) * 100;
+
+    return {
+        symbol: symbol,
+        name: displayName,
+        prices: prices,
+        current: current,
+        change: (change >= 0 ? "+" : "") + change.toFixed(2) + "%"
+    };
+}
+
+function fetchLiveData(scriptFile, apiKey) {
+    var key = safeTrim(apiKey);
+    var inputFile = resolveStockDataFile(scriptFile);
+    var backupFile = File(inputFile.parent.fsName + "/sample_stock_data.backup.json");
+    var symbols = [
+        ["AAPL", "Apple Inc."],
+        ["GOOGL", "Alphabet Inc."],
+        ["MSFT", "Microsoft Corp."],
+        ["AMZN", "Amazon.com Inc."],
+        ["TSLA", "Tesla Inc."],
+        ["NVDA", "NVIDIA Corp."],
+        ["META", "Meta Platforms Inc."],
+        ["NFLX", "Netflix Inc."]
+    ];
+    var result = { stocks: [] };
+    var i;
+    var url;
+    var command;
+    var raw;
+    var parsed;
+
+    if (!key) {
+        throw new Error("API key required for live fetch.");
+    }
+
+    if (backupFile.exists) {
+        try { backupFile.remove(); } catch (_) {}
+    }
+    if (inputFile.exists) {
+        inputFile.copy(backupFile.fsName);
+    }
+
+    for (i = 0; i < symbols.length; i++) {
+        url = "https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&outputsize=compact&symbol=" +
+            symbols[i][0] + "&apikey=" + key;
+        command = "curl -fsSL " + shellQuote(url);
+        raw = system.callSystem(command);
+        if (!raw) {
+            throw new Error("No response returned for " + symbols[i][0] + ".");
+        }
+        parsed = JSON.parse(raw);
+        result.stocks.push(parseAlphaVantageSeries(parsed, symbols[i][0], symbols[i][1]));
+    }
+
+    validateStockData(result);
+    writeJsonFile(inputFile, result);
+    return result;
+}
+
+function filterByDays(stockData, days) {
+    var dayCount = Math.max(1, Math.floor(days || 30));
+    var filtered = { stocks: [] };
+    var i;
+    var stock;
+    var prices;
+
+    validateStockData(stockData);
+
+    for (i = 0; i < stockData.stocks.length; i++) {
+        stock = stockData.stocks[i];
+        prices = stock.prices.slice(Math.max(0, stock.prices.length - dayCount));
+        filtered.stocks.push({
+            symbol: stock.symbol,
+            name: stock.name,
+            prices: prices,
+            current: stock.current,
+            change: stock.change
+        });
+    }
+    return filtered;
+}

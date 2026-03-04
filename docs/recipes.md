@@ -2,6 +2,13 @@
 
 Recipes are reusable automation patterns in `Scripts/recipes/`. Each recipe is a self-contained folder with its own README, configuration template, and library modules. Copy what you need into your project and customize.
 
+## Advanced demos
+
+If you want fully built examples instead of copy-and-adapt recipes, look at the demo panels in `Scripts/demos/`:
+
+- [`Scripts/demos/flow_field/flow_field_panel.jsx`](/Users/randy/Git/ae-ai-starter/.worktrees/feat-demo-panels/Scripts/demos/flow_field/flow_field_panel.jsx) — generative shape-layer art driven by Perlin noise, path generation, and trim-path expressions.
+- [`Scripts/demos/stock_ticker/stock_ticker_panel.jsx`](/Users/randy/Git/ae-ai-starter/.worktrees/feat-demo-panels/Scripts/demos/stock_ticker/stock_ticker_panel.jsx) — a data-to-motion example that turns JSON market data into a looping ticker and sparkline dashboard.
+
 ## repeating-elements
 
 **When to use:** Your AE template has N similarly-named layers (e.g., `CARD 1`, `CARD 2`, ..., `CARD 10`) that each expose the same Essential Properties and need to be populated from a data array.
