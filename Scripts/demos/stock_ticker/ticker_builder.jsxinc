@@ -180,9 +180,9 @@ function createOpenShapeLayer(comp, name, pathData, colorValue, strokeWidth) {
     var root = layer.property("ADBE Root Vectors Group");
     var vectorGroup = root.addProperty("ADBE Vector Group");
     var groupContents = vectorGroup.property("ADBE Vectors Group");
-    var pathGroup = groupContents.addProperty("ADBE Vector Shape - Group");
-    var stroke = groupContents.addProperty("ADBE Vector Graphic - Stroke");
-    var trim = groupContents.addProperty("ADBE Vector Filter - Trim");
+    var pathGroup;
+    var stroke;
+    var trim;
     var shape = new Shape();
 
     layer.name = name;
@@ -196,6 +196,16 @@ function createOpenShapeLayer(comp, name, pathData, colorValue, strokeWidth) {
     shape.inTangents = pathData.inTangents;
     shape.outTangents = pathData.outTangents;
     shape.closed = false;
+    groupContents.addProperty("ADBE Vector Shape - Group");
+    groupContents.addProperty("ADBE Vector Graphic - Stroke");
+    groupContents.addProperty("ADBE Vector Filter - Trim");
+
+    // Reacquire children after all additions; AE can invalidate earlier refs.
+    groupContents = vectorGroup.property("ADBE Vectors Group");
+    pathGroup = tickerFindFirstByMatchName(groupContents, "ADBE Vector Shape - Group");
+    stroke = tickerFindFirstByMatchName(groupContents, "ADBE Vector Graphic - Stroke");
+    trim = tickerFindFirstByMatchName(groupContents, "ADBE Vector Filter - Trim");
+
     pathGroup.property("ADBE Vector Shape").setValue(shape);
     stroke.property("ADBE Vector Stroke Color").setValue(colorValue || [1, 1, 1]);
     stroke.property("ADBE Vector Stroke Width").setValue(strokeWidth || 2);

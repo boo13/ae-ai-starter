@@ -123,9 +123,9 @@ function createStreamlineShapeLayer(comp, layerName, pathData, strokeWidth) {
     var root = layer.property("ADBE Root Vectors Group");
     var vectorGroup = root.addProperty("ADBE Vector Group");
     var groupContents = vectorGroup.property("ADBE Vectors Group");
-    var pathGroup = groupContents.addProperty("ADBE Vector Shape - Group");
-    var stroke = groupContents.addProperty("ADBE Vector Graphic - Stroke");
-    var trim = groupContents.addProperty("ADBE Vector Filter - Trim");
+    var pathGroup;
+    var stroke;
+    var trim;
     var shape = new Shape();
 
     layer.name = layerName;
@@ -135,6 +135,16 @@ function createStreamlineShapeLayer(comp, layerName, pathData, strokeWidth) {
     } catch (_) {}
 
     vectorGroup.name = "Stream Path";
+    groupContents.addProperty("ADBE Vector Shape - Group");
+    groupContents.addProperty("ADBE Vector Graphic - Stroke");
+    groupContents.addProperty("ADBE Vector Filter - Trim");
+
+    // Reacquire children after all additions; AE can invalidate earlier refs.
+    groupContents = vectorGroup.property("ADBE Vectors Group");
+    pathGroup = findFirstByMatchName(groupContents, "ADBE Vector Shape - Group");
+    stroke = findFirstByMatchName(groupContents, "ADBE Vector Graphic - Stroke");
+    trim = findFirstByMatchName(groupContents, "ADBE Vector Filter - Trim");
+
     shape.vertices = pathData.vertices;
     shape.inTangents = pathData.inTangents;
     shape.outTangents = pathData.outTangents;
