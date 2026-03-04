@@ -152,16 +152,16 @@
     generationPanel.alignChildren = ["fill", "top"];
     generationPanel.margins = 10;
 
-    var turbulenceRow = addSliderRow(generationPanel, "Turbulence", 0.5, 10, 4.0, 1);
-    var densityRow = addSliderRow(generationPanel, "Density", 50, 300, 150, 0);
-    var lineLengthRow = addSliderRow(generationPanel, "Line Length", 50, 300, 150, 0);
+    var turbulenceRow = addSliderRow(generationPanel, "Turbulence", 0.5, 12, 6.5, 1);
+    var densityRow = addSliderRow(generationPanel, "Density", 80, 420, 220, 0);
+    var lineLengthRow = addSliderRow(generationPanel, "Line Length", 80, 420, 220, 0);
 
     var livePanel = win.add("panel", undefined, "Live Controls");
     livePanel.orientation = "column";
     livePanel.alignChildren = ["fill", "top"];
     livePanel.margins = 10;
 
-    var speedRow = addSliderRow(livePanel, "Speed", 0.5, 5, 2.0, 1);
+    var speedRow = addSliderRow(livePanel, "Speed", 0.5, 5, 2.4, 1);
 
     var colorRow = livePanel.add("group");
     colorRow.orientation = "row";
@@ -171,7 +171,7 @@
     var colorWarm = colorRow.add("radiobutton", undefined, "Warm");
     var colorCool = colorRow.add("radiobutton", undefined, "Cool");
     var colorRainbow = colorRow.add("radiobutton", undefined, "Rainbow");
-    colorMono.value = true;
+    colorRainbow.value = true;
 
     var regenerateBtn = win.add("button", undefined, "Regenerate");
     regenerateBtn.enabled = false;

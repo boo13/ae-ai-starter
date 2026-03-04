@@ -107,11 +107,11 @@ function addFlowControlLayer(comp, config) {
     try { layer.guideLayer = true; } catch (_) {}
     try { layer.label = 9; } catch (_) {}
 
-    getOrAddSliderControl(layer, CTRL.TURBULENCE, config && config.turbulence !== undefined ? config.turbulence : 4.0);
-    getOrAddSliderControl(layer, CTRL.DENSITY, config && config.density !== undefined ? config.density : 150);
-    getOrAddSliderControl(layer, CTRL.LINE_LENGTH, config && config.lineLength !== undefined ? config.lineLength : 150);
-    getOrAddSliderControl(layer, CTRL.SPEED, config && config.speed !== undefined ? config.speed : 2.0);
-    getOrAddSliderControl(layer, CTRL.COLOR_MODE, config && config.colorMode !== undefined ? config.colorMode : 0);
+    getOrAddSliderControl(layer, CTRL.TURBULENCE, config && config.turbulence !== undefined ? config.turbulence : 6.5);
+    getOrAddSliderControl(layer, CTRL.DENSITY, config && config.density !== undefined ? config.density : 220);
+    getOrAddSliderControl(layer, CTRL.LINE_LENGTH, config && config.lineLength !== undefined ? config.lineLength : 220);
+    getOrAddSliderControl(layer, CTRL.SPEED, config && config.speed !== undefined ? config.speed : 2.4);
+    getOrAddSliderControl(layer, CTRL.COLOR_MODE, config && config.colorMode !== undefined ? config.colorMode : 3);
 
     try { layer.moveToBeginning(); } catch (_) {}
     try { return comp.layer(CTRL.LAYER_NAME); } catch (_) {}
@@ -161,35 +161,52 @@ function createStreamlineShapeLayer(comp, layerName, pathData, strokeWidth) {
     return layer;
 }
 
+function flowTurbulenceToScale(turbulence) {
+    var normalized = (turbulence - 0.5) / 11.5;
+    normalized = flowClamp(normalized, 0, 1);
+    return 0.006 + (normalized * 0.06);
+}
+
+function flowSeparationForDensity(density) {
+    return flowClamp(12 - ((density - 80) / 40), 3.2, 12);
+}
+
 function buildStreamlineLayers(comp, controlLayer, config) {
     var turbulence = Math.max(0.5, getControlValue(controlLayer, CTRL.TURBULENCE, 4.0));
-    var density = Math.min(300, Math.max(10, Math.round(getControlValue(controlLayer, CTRL.DENSITY, 150))));
-    var lineLength = Math.max(20, Math.round(getControlValue(controlLayer, CTRL.LINE_LENGTH, 150)));
+    var density = Math.min(420, Math.max(20, Math.round(getControlValue(controlLayer, CTRL.DENSITY, 220))));
+    var lineLength = Math.max(20, Math.round(getControlValue(controlLayer, CTRL.LINE_LENGTH, 220)));
     var seed = (config && config.seed !== undefined) ? config.seed : (new Date().getTime() % 1000000);
+    var scale = flowTurbulenceToScale(turbulence);
+    var separation = flowSeparationForDensity(density);
+    var seedSpacing = Math.max(5, separation * 1.05);
+    var jitter = Math.max(2.5, separation * 0.9);
+    var normalizedTurbulence = flowClamp((turbulence - 0.5) / 11.5, 0, 1);
+    var stepSize = 2.8 - (normalizedTurbulence * 0.9);
+    var maxSteps = Math.round(lineLength * (1.1 + (normalizedTurbulence * 0.55)));
     var streamlines = generateStreamlines({
         width: comp.width,
         height: comp.height,
-        scale: 1 / (turbulence * 40),
+        scale: scale,
         density: density,
-        maxSteps: lineLength,
-        separation: 10,
-        stepSize: 3,
-        margin: 30,
+        maxSteps: maxSteps,
+        separation: separation,
+        stepSize: stepSize,
+        margin: 18,
         seed: seed,
-        seedSpacing: 16,
-        jitter: 8
+        seedSpacing: seedSpacing,
+        jitter: jitter
     });
     var i;
     var simplified;
     var pathData;
 
     for (i = 0; i < streamlines.length; i++) {
-        simplified = simplifyPoints(streamlines[i], 1.5);
+        simplified = simplifyPoints(streamlines[i], 0.9);
         if (!simplified || simplified.length < 2) {
             continue;
         }
-        pathData = pointsToBezierPath(simplified, 1);
-        createStreamlineShapeLayer(comp, "Streamline " + (i + 1), pathData, 2);
+        pathData = pointsToBezierPath(simplified, 0.92);
+        createStreamlineShapeLayer(comp, "Streamline " + (i + 1), pathData, 2.2);
     }
 
     return streamlines.length;
