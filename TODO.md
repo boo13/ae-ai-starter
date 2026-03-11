@@ -6,9 +6,9 @@ Tasks to complete before making this repository public.
 
 ## High Priority
 
-- [ ] **Add CONTRIBUTING.md** — Explain how to report bugs, suggest features, and submit pull requests. Clarifies expectations for open-source contributors.
+- [x] **Add CONTRIBUTING.md** — Explain how to report bugs, suggest features, and submit pull requests. Clarifies expectations for open-source contributors.
 
-- [ ] **Add CODE_OF_CONDUCT.md** — Standard for public open-source projects. The [Contributor Covenant](https://www.contributor-covenant.org/) template is a common choice.
+- [x] **Add CODE_OF_CONDUCT.md** — Standard for public open-source projects. The [Contributor Covenant](https://www.contributor-covenant.org/) template is a common choice.
 
 - [ ] **Decide what to do with `docs/plans/` and `docs/solutions/`** — These are internal planning and integration notes. They aren't harmful to publish, but they may confuse end users who aren't contributors. Options: remove them, move them to a wiki, or keep them as-is for transparency.
 
