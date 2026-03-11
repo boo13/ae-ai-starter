@@ -12,7 +12,7 @@ Tasks to complete before making this repository public.
 
 - [ ] **Decide what to do with `docs/plans/` and `docs/solutions/`** — These are internal planning and integration notes. They aren't harmful to publish, but they may confuse end users who aren't contributors. Options: remove them, move them to a wiki, or keep them as-is for transparency.
 
-- [ ] **Configure the GitHub repo as a template** — On GitHub: Settings → check "Template repository". This enables the **Use this template** button referenced in the README.
+- [x] **Configure the GitHub repo as a template** — On GitHub: Settings → check "Template repository". This enables the **Use this template** button referenced in the README.
 
 - [ ] **Add a GitHub repository description and topics** — On the repo's main page, add a short description and relevant topics (e.g., `after-effects`, `extendscript`, `automation`, `ai`, `motion-design`). This improves discoverability.
 
