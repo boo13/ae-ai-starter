@@ -1,8 +1,8 @@
-// Audio Spectrum — Post-Setup Diagnostic
+// Audio Spectrum -- Post-Setup Diagnostic
 // Run AFTER setup.jsx in AE with Main Comp selected.
 //
 // Validates: layer existence, effect properties, expression errors,
-// and — critically — whether sampleImage() returns non-zero brightness.
+// and -- critically -- whether sampleImage() returns non-zero brightness.
 //
 // Output: diagnose_results.txt next to this script.
 
@@ -29,7 +29,7 @@
         return;
     }
 
-    log("Audio Spectrum — Diagnostic Results");
+    log("Audio Spectrum -- Diagnostic Results");
     log("Date: " + new Date().toString());
     log("Comp: " + comp.name + " (" + comp.width + "x" + comp.height + ")");
     log("Config: NUM_BARS=" + AudioSpectrumConfig.NUM_BARS +
@@ -64,7 +64,7 @@
         outputFile.open("w");
         outputFile.write(results.join("\n"));
         outputFile.close();
-        alert("Diagnostic aborted — missing layers.\nResults: " + outputFile.fsName);
+        alert("Diagnostic aborted -- missing layers.\nResults: " + outputFile.fsName);
         return;
     }
 
@@ -231,7 +231,7 @@
         log("  3. Audio layer reference is wrong (stale index)");
         log("  4. Expression samples the wrong coordinates");
     } else {
-        logPass("Scale Y is non-zero at some time points — sampleImage() is working");
+        logPass("Scale Y is non-zero at some time points -- sampleImage() is working");
     }
 
     // =======================================================
