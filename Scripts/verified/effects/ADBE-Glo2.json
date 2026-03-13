@@ -1,0 +1,128 @@
+{
+  "displayName": "Glow",
+  "matchName": "ADBE Glo2",
+  "addPropertyName": "ADBE Glo2",
+  "category": "Effect",
+  "verifiedDate": "2026-03-13",
+  "verifiedAEVersion": "26.0x67",
+  "totalProperties": 14,
+  "properties": [
+    {
+      "index": 1,
+      "name": "Glow Based On",
+      "matchName": "ADBE Glo2-0001",
+      "valueType": "OneD",
+      "defaultValue": 2
+    },
+    {
+      "index": 2,
+      "name": "Glow Threshold",
+      "matchName": "ADBE Glo2-0002",
+      "valueType": "OneD",
+      "defaultValue": 153
+    },
+    {
+      "index": 3,
+      "name": "Glow Radius",
+      "matchName": "ADBE Glo2-0003",
+      "valueType": "OneD",
+      "defaultValue": 10
+    },
+    {
+      "index": 4,
+      "name": "Glow Intensity",
+      "matchName": "ADBE Glo2-0004",
+      "valueType": "OneD",
+      "defaultValue": 1
+    },
+    {
+      "index": 5,
+      "name": "Composite Original",
+      "matchName": "ADBE Glo2-0005",
+      "valueType": "OneD",
+      "defaultValue": 2
+    },
+    {
+      "index": 6,
+      "name": "Glow Operation",
+      "matchName": "ADBE Glo2-0006",
+      "valueType": "OneD",
+      "defaultValue": 3
+    },
+    {
+      "index": 7,
+      "name": "Glow Colors",
+      "matchName": "ADBE Glo2-0007",
+      "valueType": "OneD",
+      "defaultValue": 1
+    },
+    {
+      "index": 8,
+      "name": "Color Looping",
+      "matchName": "ADBE Glo2-0008",
+      "valueType": "OneD",
+      "defaultValue": 3
+    },
+    {
+      "index": 9,
+      "name": "Color Loops",
+      "matchName": "ADBE Glo2-0009",
+      "valueType": "OneD",
+      "defaultValue": 1
+    },
+    {
+      "index": 10,
+      "name": "Color Phase",
+      "matchName": "ADBE Glo2-0010",
+      "valueType": "OneD",
+      "defaultValue": 0
+    },
+    {
+      "index": 11,
+      "name": "A & B Midpoint",
+      "matchName": "ADBE Glo2-0011",
+      "valueType": "OneD",
+      "defaultValue": 0.5
+    },
+    {
+      "index": 12,
+      "name": "Color A",
+      "matchName": "ADBE Glo2-0012",
+      "valueType": "COLOR",
+      "defaultValue": [
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    {
+      "index": 13,
+      "name": "Color B",
+      "matchName": "ADBE Glo2-0013",
+      "valueType": "COLOR",
+      "defaultValue": [
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "index": 14,
+      "name": "Glow Dimensions",
+      "matchName": "ADBE Glo2-0014",
+      "valueType": "OneD",
+      "defaultValue": 1
+    }
+  ],
+  "knownAliases": {
+    "work": [
+      "ADBE Glo2"
+    ],
+    "doNotUse": []
+  },
+  "warnings": [
+    "Match-name is 'ADBE Glo2' NOT 'ADBE Glow' \u2014 the original Glow was superseded internally"
+  ]
+}

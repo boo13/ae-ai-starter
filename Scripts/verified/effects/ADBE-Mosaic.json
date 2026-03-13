@@ -1,0 +1,39 @@
+{
+  "displayName": "Mosaic",
+  "matchName": "ADBE Mosaic",
+  "addPropertyName": "ADBE Mosaic",
+  "category": "Effect",
+  "verifiedDate": "2026-03-13",
+  "verifiedAEVersion": "26.0x67",
+  "totalProperties": 3,
+  "properties": [
+    {
+      "index": 1,
+      "name": "Horizontal Blocks",
+      "matchName": "ADBE Mosaic-0001",
+      "valueType": "OneD",
+      "defaultValue": 10
+    },
+    {
+      "index": 2,
+      "name": "Vertical Blocks",
+      "matchName": "ADBE Mosaic-0002",
+      "valueType": "OneD",
+      "defaultValue": 10
+    },
+    {
+      "index": 3,
+      "name": "Sharp Colors",
+      "matchName": "ADBE Mosaic-0003",
+      "valueType": "OneD",
+      "defaultValue": 0
+    }
+  ],
+  "knownAliases": {
+    "work": [
+      "ADBE Mosaic"
+    ],
+    "doNotUse": []
+  },
+  "warnings": []
+}

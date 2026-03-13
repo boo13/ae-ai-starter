@@ -1,0 +1,203 @@
+{
+  "displayName": "Audio Spectrum",
+  "matchName": "ADBE AudSpect",
+  "addPropertyName": "ADBE AudSpect",
+  "category": "Effect",
+  "verifiedDate": "2026-03-13",
+  "verifiedAEVersion": "26.0x67",
+  "totalProperties": 23,
+  "properties": [
+    {
+      "index": 1,
+      "name": "Audio Layer",
+      "matchName": "ADBE AudSpect-0001",
+      "valueType": "LAYER_INDEX",
+      "defaultValue": 1
+    },
+    {
+      "index": 2,
+      "name": "Start Point",
+      "matchName": "ADBE AudSpect-0002",
+      "valueType": "TwoD_SPATIAL",
+      "defaultValue": [
+        108,
+        540
+      ]
+    },
+    {
+      "index": 3,
+      "name": "End Point",
+      "matchName": "ADBE AudSpect-0003",
+      "valueType": "TwoD_SPATIAL",
+      "defaultValue": [
+        972,
+        540
+      ]
+    },
+    {
+      "index": 4,
+      "name": "Path",
+      "matchName": "ADBE AudSpect-0004",
+      "valueType": "MASK_INDEX",
+      "defaultValue": 0
+    },
+    {
+      "index": 5,
+      "name": "Use Polar Path",
+      "matchName": "ADBE AudSpect-0005",
+      "valueType": "OneD",
+      "defaultValue": 0
+    },
+    {
+      "index": 6,
+      "name": "Start Frequency",
+      "matchName": "ADBE AudSpect-0006",
+      "valueType": "OneD",
+      "defaultValue": 20
+    },
+    {
+      "index": 7,
+      "name": "End Frequency",
+      "matchName": "ADBE AudSpect-0007",
+      "valueType": "OneD",
+      "defaultValue": 2000
+    },
+    {
+      "index": 8,
+      "name": "Frequency bands",
+      "matchName": "ADBE AudSpect-0008",
+      "valueType": "OneD",
+      "defaultValue": 64
+    },
+    {
+      "index": 9,
+      "name": "Maximum Height",
+      "matchName": "ADBE AudSpect-0009",
+      "valueType": "OneD",
+      "defaultValue": 480
+    },
+    {
+      "index": 10,
+      "name": "Audio Duration (milliseconds)",
+      "matchName": "ADBE AudSpect-0010",
+      "valueType": "OneD",
+      "defaultValue": 90
+    },
+    {
+      "index": 11,
+      "name": "Audio Offset (milliseconds)",
+      "matchName": "ADBE AudSpect-0011",
+      "valueType": "OneD",
+      "defaultValue": 0
+    },
+    {
+      "index": 12,
+      "name": "Thickness",
+      "matchName": "ADBE AudSpect-0012",
+      "valueType": "OneD",
+      "defaultValue": 3
+    },
+    {
+      "index": 13,
+      "name": "Softness",
+      "matchName": "ADBE AudSpect-0013",
+      "valueType": "OneD",
+      "defaultValue": 0.5
+    },
+    {
+      "index": 14,
+      "name": "Inside Color",
+      "matchName": "ADBE AudSpect-0014",
+      "valueType": "COLOR",
+      "defaultValue": [
+        1,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "index": 15,
+      "name": "Outside Color",
+      "matchName": "ADBE AudSpect-0015",
+      "valueType": "COLOR",
+      "defaultValue": [
+        1,
+        0.19607843137255,
+        0.58823529411765,
+        0.19607843137255
+      ]
+    },
+    {
+      "index": 16,
+      "name": "Blend Overlapping Colors",
+      "matchName": "ADBE AudSpect-0016",
+      "valueType": "OneD",
+      "defaultValue": 0
+    },
+    {
+      "index": 17,
+      "name": "Hue Interpolation",
+      "matchName": "ADBE AudSpect-0017",
+      "valueType": "OneD",
+      "defaultValue": 0.00045776367188
+    },
+    {
+      "index": 18,
+      "name": "Dynamic Hue Phase",
+      "matchName": "ADBE AudSpect-0018",
+      "valueType": "OneD",
+      "defaultValue": 1
+    },
+    {
+      "index": 19,
+      "name": "Color Symmetry",
+      "matchName": "ADBE AudSpect-0019",
+      "valueType": "OneD",
+      "defaultValue": 1
+    },
+    {
+      "index": 20,
+      "name": "Display Options",
+      "matchName": "ADBE AudSpect-0020",
+      "valueType": "OneD",
+      "defaultValue": 1
+    },
+    {
+      "index": 21,
+      "name": "Side Options",
+      "matchName": "ADBE AudSpect-0021",
+      "valueType": "OneD",
+      "defaultValue": 3
+    },
+    {
+      "index": 22,
+      "name": "Duration Averaging",
+      "matchName": "ADBE AudSpect-0022",
+      "valueType": "OneD",
+      "defaultValue": 0
+    },
+    {
+      "index": 23,
+      "name": "Composite On Original",
+      "matchName": "ADBE AudSpect-0023",
+      "valueType": "OneD",
+      "defaultValue": 0
+    }
+  ],
+  "knownAliases": {
+    "work": [
+      "ADBE AudSpect",
+      "Audio Spectrum"
+    ],
+    "doNotUse": [
+      "ADBE Audio Spectrum"
+    ]
+  },
+  "warnings": [
+    "Third-party plugins (e.g., HitFilm) may intercept the display name 'Audio Spectrum' via addProperty() \u2014 always use matchName 'ADBE AudSpect'",
+    "Display Options enum: 1=Digital, 2=Analog Lines, 3=Analog Dots (1-indexed, NOT 0-indexed)",
+    "Inside/Outside Color are RGBA 4-element arrays [r,g,b,a], not RGB 3-element",
+    "Audio Layer property takes an integer layer index (1-based), NOT a layer name string"
+  ]
+}
