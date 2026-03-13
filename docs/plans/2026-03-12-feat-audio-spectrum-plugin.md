@@ -407,24 +407,27 @@ layer.transform.rotation.setValue(theta * 180 / Math.PI + 90);
 var fx = layer.property("ADBE Effect Parade").addProperty("MATCH_NAME");
 ```
 
-### Audio Spectrum (`"ADBE Audio Spectrum"`)
-| Property | Match-Name |
-|----------|-----------|
-| Audio Layer | `"ADBE Audio Spectrum-0001"` |
-| Start Point | `"ADBE Audio Spectrum-0002"` |
-| End Point | `"ADBE Audio Spectrum-0003"` |
-| Start Frequency | `"ADBE Audio Spectrum-0006"` |
-| End Frequency | `"ADBE Audio Spectrum-0007"` |
-| Frequency Bands | `"ADBE Audio Spectrum-0008"` |
-| Maximum Height | `"ADBE Audio Spectrum-0009"` |
-| Audio Duration | `"ADBE Audio Spectrum-0010"` |
-| Audio Offset | `"ADBE Audio Spectrum-0011"` |
-| Thickness | `"ADBE Audio Spectrum-0012"` |
-| Softness | `"ADBE Audio Spectrum-0013"` |
-| Inside Color | `"ADBE Audio Spectrum-0014"` |
-| Outside Color | `"ADBE Audio Spectrum-0015"` |
-| Hue Interpolation | `"ADBE Audio Spectrum-0017"` |
-| Display Options | `"ADBE Audio Spectrum-0020"` |
+### Audio Spectrum (`"ADBE AudSpect"`) — VERIFIED 2026-03-13
+| Property | Match-Name | Notes |
+|----------|-----------|-------|
+| Audio Layer | `"ADBE AudSpect-0001"` | Integer layer index |
+| Start Point | `"ADBE AudSpect-0002"` | |
+| End Point | `"ADBE AudSpect-0003"` | |
+| Start Frequency | `"ADBE AudSpect-0006"` | Hz |
+| End Frequency | `"ADBE AudSpect-0007"` | Hz |
+| Frequency Bands | `"ADBE AudSpect-0008"` | |
+| Maximum Height | `"ADBE AudSpect-0009"` | pixels |
+| Audio Duration (ms) | `"ADBE AudSpect-0010"` | milliseconds, not seconds |
+| Audio Offset (ms) | `"ADBE AudSpect-0011"` | milliseconds |
+| Thickness | `"ADBE AudSpect-0012"` | |
+| Softness | `"ADBE AudSpect-0013"` | |
+| Inside Color | `"ADBE AudSpect-0014"` | **RGBA** [r,g,b,a] 4-element |
+| Outside Color | `"ADBE AudSpect-0015"` | **RGBA** [r,g,b,a] 4-element |
+| Hue Interpolation | `"ADBE AudSpect-0017"` | |
+| Display Options | `"ADBE AudSpect-0020"` | 0=Digital, 1=Analog Lines, 2=Analog Dots |
+| Side Options | `"ADBE AudSpect-0021"` | |
+| Duration Averaging | `"ADBE AudSpect-0022"` | |
+| Composite On Original | `"ADBE AudSpect-0023"` | |
 
 ### Mosaic (`"ADBE Mosaic"`)
 | Property | Match-Name |
@@ -433,14 +436,15 @@ var fx = layer.property("ADBE Effect Parade").addProperty("MATCH_NAME");
 | Vertical Blocks | `"ADBE Mosaic-0002"` |
 | Sharp Colors | `"ADBE Mosaic-0003"` |
 
-### Glow (`"ADBE Glo2"`)
+### Glow (`"ADBE Glo2"`) — VERIFIED 2026-03-13
 | Property | Match-Name |
 |----------|-----------|
-| Glow Threshold | `"ADBE Glo2-0001"` |
-| Glow Radius | `"ADBE Glo2-0002"` |
-| Glow Intensity | `"ADBE Glo2-0003"` |
+| Glow Based On | `"ADBE Glo2-0001"` |
+| Glow Threshold | `"ADBE Glo2-0002"` |
+| Glow Radius | `"ADBE Glo2-0003"` |
+| Glow Intensity | `"ADBE Glo2-0004"` |
 
-### Shape Layer
+### Shape Layer — VERIFIED 2026-03-13
 | Element | Match-Name |
 |---------|-----------|
 | Contents group | `"ADBE Root Vectors Group"` |
@@ -456,6 +460,11 @@ var fx = layer.property("ADBE Effect Parade").addProperty("MATCH_NAME");
 | Gradient Start Point | `"ADBE Vector Grad Start Pt"` |
 | Gradient End Point | `"ADBE Vector Grad End Pt"` |
 | Gradient Colors | `"ADBE Vector Grad Colors"` |
+| Transform Group | `"ADBE Transform Group"` |
+| Anchor Point | `"ADBE Anchor Point"` |
+| Position | `"ADBE Position"` |
+| Scale | `"ADBE Scale"` |
+| Rotation (Z) | `"ADBE Rotate Z"` |
 
 ---
 

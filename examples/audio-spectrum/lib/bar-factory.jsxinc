@@ -1,0 +1,140 @@
+// Audio Spectrum Plugin — Bar Factory
+// Creates N shape layers with expressions that sample the data layer.
+// Supports all display modes and SOLID / HUE_SPECTRUM color modes.
+// Phase 2 TODO: GRADIENT color mode (gradient fill color stop format unverified)
+
+function createBars(comp, dataLayer, config) {
+    var blockW = comp.width / config.NUM_BARS;
+
+    // Resolve layout defaults
+    var padding = comp.width * 0.05;
+    var startX = (config.START_X !== null) ? config.START_X : padding;
+    var endX = (config.END_X !== null) ? config.END_X : (comp.width - padding);
+    var baselineY = (config.BASELINE_Y !== null) ? config.BASELINE_Y : (comp.height * 0.75);
+
+    var totalWidth = endX - startX;
+    var barWidth = (config.BAR_WIDTH !== null)
+        ? config.BAR_WIDTH
+        : (totalWidth - (config.NUM_BARS - 1) * config.BAR_GAP) / config.NUM_BARS;
+
+    for (var i = 0; i < config.NUM_BARS; i++) {
+        // --- Frequency-to-sample-position mapping ---
+        var sampleX;
+        if (config.FREQ_SCALE === "LOG") {
+            var f_i = config.MIN_FREQ * Math.pow(config.MAX_FREQ / config.MIN_FREQ, i / (config.NUM_BARS - 1));
+            var t = (f_i - config.MIN_FREQ) / (config.MAX_FREQ - config.MIN_FREQ);
+            sampleX = blockW / 2 + t * (comp.width - blockW);
+        } else {
+            // LINEAR: sample center of each Mosaic block
+            sampleX = blockW / 2 + i * blockW;
+        }
+
+        // --- Display position ---
+        var centerX = startX + i * (barWidth + config.BAR_GAP) + barWidth / 2;
+
+        // --- Create shape layer ---
+        var layer = comp.layers.addShape();
+        layer.name = "AS BAR " + (i + 1);
+
+        // Add rectangle shape
+        var contents = layer.property("ADBE Root Vectors Group");
+        var grp = contents.addProperty("ADBE Vector Group");
+        var grpContents = grp.property("ADBE Vectors Group");
+
+        var rect = grpContents.addProperty("ADBE Vector Shape - Rect");
+        rect.property("ADBE Vector Rect Size").setValue([barWidth, config.MAX_HEIGHT]);
+        rect.property("ADBE Vector Rect Roundness").setValue(config.CORNER_RADIUS);
+
+        // --- Fill color ---
+        var fill = grpContents.addProperty("ADBE Vector Graphic - Fill");
+
+        if (config.COLOR_MODE === "HUE_SPECTRUM") {
+            var fraction = (config.NUM_BARS > 1) ? (i / (config.NUM_BARS - 1)) : 0;
+            var colorExpr = COLOR_EXPR_HUE
+                .split("{{BAR_FRACTION}}").join(String(fraction))
+                .split("{{HUE_START}}").join(String(config.HUE_RANGE[0]))
+                .split("{{HUE_END}}").join(String(config.HUE_RANGE[1]));
+            fill.property("ADBE Vector Fill Color").expression = colorExpr;
+        } else {
+            // SOLID mode (default)
+            fill.property("ADBE Vector Fill Color").setValue(config.BAR_COLOR);
+        }
+
+        // --- Position and anchor point per display mode ---
+        var xform = layer.property("ADBE Transform Group");
+
+        if (config.DISPLAY_MODE === "RADIAL") {
+            var theta = (i / config.NUM_BARS) * 2 * Math.PI;
+            var rx = comp.width / 2 + config.RADIAL_RADIUS * Math.cos(theta);
+            var ry = comp.height / 2 + config.RADIAL_RADIUS * Math.sin(theta);
+            xform.property("ADBE Anchor Point").setValue([barWidth / 2, config.MAX_HEIGHT]);
+            xform.property("ADBE Position").setValue([rx, ry]);
+            xform.property("ADBE Rotate Z").setValue(theta * 180 / Math.PI + 90);
+        } else if (config.DISPLAY_MODE === "BARS_DOWN") {
+            // Anchor at top center — bar grows downward
+            xform.property("ADBE Anchor Point").setValue([barWidth / 2, 0]);
+            xform.property("ADBE Position").setValue([centerX, baselineY]);
+        } else if (config.DISPLAY_MODE === "MIRROR") {
+            // Anchor at vertical center — bar grows both ways
+            xform.property("ADBE Anchor Point").setValue([barWidth / 2, config.MAX_HEIGHT / 2]);
+            xform.property("ADBE Position").setValue([centerX, baselineY]);
+        } else {
+            // BARS_UP (default): anchor at bottom center — bar grows upward
+            xform.property("ADBE Anchor Point").setValue([barWidth / 2, config.MAX_HEIGHT]);
+            xform.property("ADBE Position").setValue([centerX, baselineY]);
+        }
+
+        // --- Scale expression (drives animation) ---
+        var scaleExprTemplate;
+        if (config.DISPLAY_MODE === "BARS_DOWN") {
+            scaleExprTemplate = SCALE_EXPR_BARS_DOWN;
+        } else if (config.DISPLAY_MODE === "MIRROR") {
+            scaleExprTemplate = SCALE_EXPR_MIRROR;
+        } else if (config.DISPLAY_MODE === "RADIAL") {
+            scaleExprTemplate = SCALE_EXPR_RADIAL;
+        } else {
+            scaleExprTemplate = SCALE_EXPR_BARS_UP;
+        }
+
+        var scaleExpr = scaleExprTemplate
+            .split("{{SAMPLE_X}}").join(String(sampleX));
+        xform.property("ADBE Scale").expression = scaleExpr;
+
+        // --- Glow effect ---
+        if (config.GLOW_ENABLED) {
+            var glow = layer.property("ADBE Effect Parade").addProperty("ADBE Glo2");
+            glow.property("ADBE Glo2-0002").setValue(config.GLOW_THRESHOLD);  // Glow Threshold
+            glow.property("ADBE Glo2-0003").setValue(config.GLOW_RADIUS);     // Glow Radius
+            glow.property("ADBE Glo2-0004").setValue(config.GLOW_INTENSITY);  // Glow Intensity
+        }
+
+        // --- Peak marker ---
+        if (config.PEAK_MARKERS) {
+            var peakLayer = comp.layers.addShape();
+            peakLayer.name = "AS PEAK " + (i + 1);
+
+            var peakContents = peakLayer.property("ADBE Root Vectors Group");
+            var peakGrp = peakContents.addProperty("ADBE Vector Group");
+            var peakGrpContents = peakGrp.property("ADBE Vectors Group");
+
+            var ellipse = peakGrpContents.addProperty("ADBE Vector Shape - Ellipse");
+            ellipse.property("ADBE Vector Ellipse Size").setValue([config.PEAK_SIZE * 2, config.PEAK_SIZE * 2]);
+
+            var peakFill = peakGrpContents.addProperty("ADBE Vector Graphic - Fill");
+            peakFill.property("ADBE Vector Fill Color").setValue(config.PEAK_COLOR);
+
+            // Anchor at center of the circle
+            var peakXform = peakLayer.property("ADBE Transform Group");
+            peakXform.property("ADBE Anchor Point").setValue([config.PEAK_SIZE, config.PEAK_SIZE]);
+
+            // Position expression tracks the bar's current height
+            var peakExpr = PEAK_EXPR
+                .split("{{SAMPLE_X}}").join(String(sampleX))
+                .split("{{MAX_HEIGHT}}").join(String(config.MAX_HEIGHT))
+                .split("{{BAR_CENTER_X}}").join(String(centerX))
+                .split("{{BASELINE_Y}}").join(String(baselineY))
+                .split("{{PEAK_OFFSET}}").join(String(config.PEAK_SIZE + 4));
+            peakXform.property("ADBE Position").expression = peakExpr;
+        }
+    }
+}

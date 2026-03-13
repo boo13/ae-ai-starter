@@ -1,0 +1,16 @@
+// Audio Spectrum Plugin — Layer Cleaner
+// Removes all layers whose name starts with "AS " or equals "AS_DATA".
+// This allows setup.jsx to be re-run safely after changing config.
+
+function cleanAudioSpectrum(comp) {
+    var removed = 0;
+    // Iterate backwards so removing layers doesn't shift indices
+    for (var i = comp.numLayers; i >= 1; i--) {
+        var name = comp.layer(i).name;
+        if (name === "AS_DATA" || name.indexOf("AS ") === 0) {
+            comp.layer(i).remove();
+            removed++;
+        }
+    }
+    return removed;
+}

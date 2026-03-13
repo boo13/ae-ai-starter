@@ -9,3 +9,4 @@ Each subfolder is a complete, standalone project that demonstrates what you can 
 | Example | What it shows |
 |---------|---------------|
 | [social-card](social-card/) | Combines all three recipes (repeating-elements, image-swap, data-timing) to automate a multi-card social media template |
+| [audio-spectrum](audio-spectrum/) | Procedurally generated audio spectrum visualizer with log-frequency mapping, multiple display modes, and per-bar shape layers |

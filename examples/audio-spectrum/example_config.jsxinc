@@ -1,0 +1,49 @@
+// Audio Spectrum Plugin — Configuration
+// Copy this file, rename it, and adjust settings to taste.
+// Then update setup.jsx to #include your copy instead of this one.
+
+var AudioSpectrumConfig = {
+    // --- Target ---
+    COMP_NAME: "Main Comp",          // Comp to build spectrum in
+    AUDIO_LAYER_NAME: "Audio",       // Name of audio layer in that comp
+
+    // --- Spectrum shape ---
+    NUM_BARS: 32,                    // Number of frequency bars (32-64 recommended; higher = slower preview)
+    MIN_FREQ: 20,                    // Hz (lowest displayed frequency)
+    MAX_FREQ: 20000,                 // Hz (highest displayed frequency)
+    FREQ_SCALE: "LOG",               // "LOG" (musical) or "LINEAR"
+
+    // --- Layout ---
+    DISPLAY_MODE: "BARS_UP",         // "BARS_UP" | "BARS_DOWN" | "MIRROR" | "RADIAL"
+    START_X: null,                   // null = auto (left edge with padding)
+    END_X: null,                     // null = auto (right edge with padding)
+    BASELINE_Y: null,                // null = comp height * 0.75 (lower third)
+    MAX_HEIGHT: 300,                 // Max bar height in pixels
+    RADIAL_RADIUS: 200,              // Inner radius for RADIAL mode
+
+    // --- Bar styling ---
+    BAR_WIDTH: null,                 // null = auto (fills available width with GAP)
+    BAR_GAP: 2,                      // Pixels between bars
+    CORNER_RADIUS: 3,                // Rounded corners (0 = square)
+
+    // --- Color ---
+    // Supported: "SOLID" | "HUE_SPECTRUM"
+    // Phase 2 TODO: "GRADIENT" mode (gradient fill color stop format needs verification)
+    COLOR_MODE: "HUE_SPECTRUM",      // "SOLID" | "HUE_SPECTRUM"
+    BAR_COLOR: [0, 0.8, 1.0],       // SOLID mode: [r, g, b] in 0-1 range
+    HUE_RANGE: [200, 320],          // HUE_SPECTRUM: [startDeg, endDeg] across bars
+
+    // --- Glow ---
+    GLOW_ENABLED: true,
+    GLOW_THRESHOLD: 60,              // 0-100 (percentage)
+    GLOW_RADIUS: 10,                 // pixels
+    GLOW_INTENSITY: 1.0,             // 0-4
+
+    // --- Reactivity ---
+    SMOOTHING: 50,                   // Audio Duration in milliseconds (0-500). Higher = smoother but laggier.
+
+    // --- Peak markers ---
+    PEAK_MARKERS: false,             // Show floating peak dot above each bar
+    PEAK_COLOR: [1, 1, 1],          // Peak dot color [r,g,b]
+    PEAK_SIZE: 4                     // Peak dot radius in pixels
+};
