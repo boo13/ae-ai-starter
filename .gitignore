@@ -16,6 +16,9 @@ Scripts/config.jsxinc
 Scripts/panel/*_panel.jsx
 !Scripts/panel/automation_lab_panel.jsx
 
+# Diagnostic output (transient, not committed)
+**/diagnose_results.txt
+
 # Working notes
 docs/brainstorms/
 
