@@ -78,11 +78,26 @@
         );
 
         var asFx;
-        try {
-            asFx = testSolid.property("ADBE Effect Parade").addProperty("ADBE Audio Spectrum");
-            logPass("Applied 'ADBE Audio Spectrum' effect");
-        } catch (e) {
-            logFail("Apply 'ADBE Audio Spectrum'", e.message);
+        var asMatchNames = [
+            "ADBE Audio Spectrum",
+            "Audio Spectrum",
+            "ADBE AudSpectrum",
+            "ADBE AudSpec",
+            "audioSpectrum"
+        ];
+        var asAppliedName = null;
+        for (var n = 0; n < asMatchNames.length; n++) {
+            try {
+                asFx = testSolid.property("ADBE Effect Parade").addProperty(asMatchNames[n]);
+                asAppliedName = asMatchNames[n];
+                logPass("Applied Audio Spectrum via '" + asMatchNames[n] + "'");
+                break;
+            } catch (e) {
+                log("  tried '" + asMatchNames[n] + "' — " + e.message);
+            }
+        }
+        if (!asFx) {
+            logFail("Apply Audio Spectrum", "None of the attempted names worked");
         }
 
         if (asFx) {
@@ -405,11 +420,23 @@
                 } else {
                     logFail("'ADBE Scale'", "not found");
                 }
-                var rotation = xformGroup.property("ADBE Rotation");
-                if (rotation) {
-                    logPass("'ADBE Rotation' found (Z Rotation)");
-                } else {
-                    logFail("'ADBE Rotation'", "not found");
+                var rotNames = ["ADBE Rotation", "ADBE Rotate Z", "Rotation"];
+                var rotFound = false;
+                for (var r = 0; r < rotNames.length; r++) {
+                    var rot = xformGroup.property(rotNames[r]);
+                    if (rot) {
+                        logPass("Rotation found via '" + rotNames[r] + "' (matchName: " + rot.matchName + ")");
+                        rotFound = true;
+                        break;
+                    }
+                }
+                if (!rotFound) {
+                    logFail("Rotation", "none of [ADBE Rotation, ADBE Rotate Z, Rotation] found");
+                    log("  Dumping all transform properties:");
+                    for (var t = 1; t <= xformGroup.numProperties; t++) {
+                        var tp = xformGroup.property(t);
+                        log("    [" + t + "] " + tp.name + " = " + tp.matchName);
+                    }
                 }
             } else {
                 logFail("'ADBE Transform Group'", "not found");
