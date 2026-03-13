@@ -126,7 +126,7 @@
             matchName: fx.matchName,
             addPropertyName: matchName,
             category: "Effect",
-            verifiedDate: new Date().toISOString().split("T")[0],
+            verifiedDate: (function () { var d = new Date(); var m = d.getMonth() + 1; var day = d.getDate(); return d.getFullYear() + "-" + (m < 10 ? "0" : "") + m + "-" + (day < 10 ? "0" : "") + day; })(),
             verifiedAEVersion: aeVersion,
             totalProperties: properties.length,
             properties: properties,
