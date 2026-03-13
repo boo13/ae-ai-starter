@@ -3,6 +3,23 @@
 Runtime pitfalls discovered empirically. Read this before writing ExtendScript
 that touches effects, expressions, or layer properties.
 
+## Non-ASCII Characters in .jsx Files
+
+ExtendScript's parser rejects files containing non-ASCII characters. The file
+will not appear in AE's File > Scripts > Run Script File dialog at all -- no
+error, it simply doesn't load.
+
+Common offenders: em dashes (`--` the Unicode U+2014 kind), curly quotes,
+accented characters, or any multi-byte UTF-8 sequences.
+
+**Fix:** Use only ASCII in `.jsx` files. Use `--` instead of em dashes, straight
+quotes instead of curly quotes. Verify with:
+
+```bash
+LC_ALL=C tr -d '[:print:][:space:]' < script.jsx | wc -c
+# Should output 0
+```
+
 ## Layer Index Shifting
 
 Adding a layer via `addSolid()`, `addShape()`, etc. inserts at the TOP of the
@@ -48,8 +65,10 @@ sampleImage(point, radius, postEffect, time)
 - `sampleImage()` reads the layer's internal render buffer, not the composited
   frame — it works the same whether the layer is visible or hidden
 
-**Guide layers:** UNVERIFIED — the audio-spectrum diagnostic will test whether
-`sampleImage()` works on guide layers and this entry will be updated with results.
+**Guide layers:** VERIFIED -- `sampleImage()` returns the same results regardless
+of whether the sampled layer has `guideLayer = true` or `false`. Guide layer mode
+does NOT prevent `sampleImage()` from reading pixel data. (Tested via
+audio-spectrum `diagnose.jsx`, 2026-03-13.)
 
 ## setValue() Type Mismatches
 
