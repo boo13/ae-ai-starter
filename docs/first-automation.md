@@ -124,4 +124,4 @@ You've got the basics. Here's where to go from here:
 
 - **[Recipes](recipes.md)** — Pre-built patterns for common tasks like populating repeated layers, swapping images, and calculating timing. Much faster than writing from scratch.
 - **[AI Workflow Guide](ai-workflow.md)** — Advanced tips on keeping reports current, using the test harness, and organizing scripts.
-- **[Complete Example](../example/README.md)** — A full multi-recipe workflow showing how all the pieces fit together.
+- **[Examples](../examples/)** — Standalone projects showing how all the pieces fit together.

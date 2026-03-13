@@ -42,7 +42,7 @@
 - `Scripts/tests/` -- Unit tests (run in AE via File > Scripts)
 - `Input/` -- Data files (JSON, etc.)
 - `docs/` -- Workflow guides and recipe reference
-- `example/` -- Complete working example project
+- `examples/` -- Standalone example projects (social-card, etc.)
 
 ## Shared Libraries (`Scripts/lib/`)
 

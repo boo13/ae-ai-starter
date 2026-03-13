@@ -1,0 +1,11 @@
+# Examples
+
+Each subfolder is a complete, standalone project that demonstrates what you can build with ae-ai-starter's recipes and scripting patterns.
+
+**These are optional.** Delete any example folder you don't need — nothing in `Scripts/` depends on them.
+
+## What's Here
+
+| Example | What it shows |
+|---------|---------------|
+| [social-card](social-card/) | Combines all three recipes (repeating-elements, image-swap, data-timing) to automate a multi-card social media template |

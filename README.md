@@ -30,7 +30,7 @@ The core workflow is a loop:
 - `Scripts/recipes/` — Copy-and-adapt patterns for common automation tasks
 - `Scripts/panel/` — Optional ScriptUI panel with utility actions (configured during setup)
 - `docs/` — Workflow guides and recipe reference
-- `example/` — Complete working example project
+- `examples/` — Standalone example projects (social-card, etc.)
 
 ## Requirements
 
@@ -42,4 +42,4 @@ The core workflow is a loop:
 - **[Your First Automation](docs/first-automation.md)** — Step-by-step walkthrough from setup to first script
 - **[AI Workflow Guide](docs/ai-workflow.md)** — Advanced tips, symlink patterns, and development practices
 - **[Recipes Reference](docs/recipes.md)** — When to use each recipe and how to customize them
-- **[Complete Example](example/README.md)** — Full multi-recipe workflow demonstration
+- **[Examples](examples/)** — Standalone projects showing what you can build
