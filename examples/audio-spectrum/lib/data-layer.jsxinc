@@ -1,48 +1,65 @@
-// Audio Spectrum Plugin — Data Layer
-// Creates the hidden AS_DATA layer: black solid + Audio Spectrum + Mosaic.
-// Each Mosaic block's brightness = amplitude of one frequency band.
-// Bar expressions sample this layer via sampleImage().
+// Audio Spectrum Plugin -- Data Layer
+// Creates AS_DATA as a precomp containing a black solid + Audio Spectrum.
+// Using a precomp forces AE to fully render Audio Spectrum (including audio
+// decoding) before the parent comp's bar expressions evaluate sampleImage().
+// Without a precomp, sampleImage() returns stale/cached pixels because the
+// Audio Spectrum effect hasn't rendered yet in the expression evaluation phase.
 
 function createDataLayer(comp, config) {
     var blockW = comp.width / config.NUM_BARS;
 
-    // Look up audio layer index by name
+    // Verify audio layer exists before creating anything
     var audioLayer = comp.layer(config.AUDIO_LAYER_NAME);
     if (!audioLayer) {
         throw new Error("Audio layer '" + config.AUDIO_LAYER_NAME + "' not found in comp '" + comp.name + "'");
     }
-    var audioLayerIndex = audioLayer.index;
 
-    // Create black solid
-    var layer = comp.layers.addSolid(
-        [0, 0, 0], "AS_DATA", comp.width, comp.height, 1, comp.duration
+    // --- Create precomp for Audio Spectrum rendering ---
+    var precomp = app.project.items.addComp(
+        "AS_DATA_PRE", comp.width, comp.height, comp.pixelAspect, comp.duration, comp.frameRate
     );
 
-    // --- Audio Spectrum effect ---
-    var fx = layer.property("ADBE Effect Parade").addProperty("ADBE AudSpect");
+    // Add the same audio source to the precomp so Audio Spectrum can reference it
+    var precompAudio = precomp.layers.add(audioLayer.source);
+    precompAudio.name = "Audio";
+    precompAudio.audioEnabled = true;
 
-    fx.property("ADBE AudSpect-0001").setValue(audioLayerIndex);          // Audio Layer
-    fx.property("ADBE AudSpect-0002").setValue([blockW / 2, comp.height / 2]);  // Start Point (inset by half block)
-    fx.property("ADBE AudSpect-0003").setValue([comp.width - blockW / 2, comp.height / 2]);  // End Point
+    // Add black solid inside the precomp
+    var solid = precomp.layers.addSolid(
+        [0, 0, 0], "Spectrum", precomp.width, precomp.height, 1, precomp.duration
+    );
+
+    // --- Audio Spectrum effect (inside precomp) ---
+    var fx = solid.property("ADBE Effect Parade").addProperty("ADBE AudSpect");
+
+    // Reference audio layer INSIDE the precomp (look up after addSolid shifted indices)
+    var precompAudioIdx = precomp.layer("Audio").index;
+    fx.property("ADBE AudSpect-0001").setValue(precompAudioIdx);          // Audio Layer
+    fx.property("ADBE AudSpect-0002").setValue([blockW / 2, precomp.height]);           // Start Point (bottom)
+    fx.property("ADBE AudSpect-0003").setValue([precomp.width - blockW / 2, precomp.height]); // End Point (bottom)
     fx.property("ADBE AudSpect-0006").setValue(config.MIN_FREQ);          // Start Frequency
     fx.property("ADBE AudSpect-0007").setValue(config.MAX_FREQ);          // End Frequency
     fx.property("ADBE AudSpect-0008").setValue(config.NUM_BARS);          // Frequency Bands
-    fx.property("ADBE AudSpect-0009").setValue(comp.height * 0.49);       // Maximum Height
+    fx.property("ADBE AudSpect-0009").setValue(precomp.height);           // Maximum Height (fill entire layer)
     fx.property("ADBE AudSpect-0010").setValue(config.SMOOTHING);         // Audio Duration (ms)
     fx.property("ADBE AudSpect-0012").setValue(blockW);                   // Thickness = one block width
     fx.property("ADBE AudSpect-0014").setValue([1, 1, 1, 1]);             // Inside Color (white RGBA)
     fx.property("ADBE AudSpect-0015").setValue([1, 1, 1, 1]);             // Outside Color (white RGBA)
-    fx.property("ADBE AudSpect-0020").setValue(0);                        // Display Options: 0 = Digital
+    fx.property("ADBE AudSpect-0020").setValue(1);                        // Display Options: 1=Digital
+    fx.property("ADBE AudSpect-0021").setValue(1);                        // Side Options: 1=Side A (bars grow upward only)
 
-    // --- Mosaic effect ---
-    var mosaic = layer.property("ADBE Effect Parade").addProperty("ADBE Mosaic");
+    // Mute audio in the precomp layer so it doesn't double-play
+    precompAudio.audioEnabled = false;
 
-    mosaic.property("ADBE Mosaic-0001").setValue(config.NUM_BARS);        // Horizontal Blocks
-    mosaic.property("ADBE Mosaic-0002").setValue(1);                      // Vertical Blocks
-    mosaic.property("ADBE Mosaic-0003").setValue(true);                   // Sharp Colors
+    // --- Add precomp as layer in main comp (shifts all layer indices!) ---
+    var dataLayer = comp.layers.add(precomp);
+    dataLayer.name = "AS_DATA";
 
     // Hide from render output but keep computing pixels for sampleImage()
-    layer.guideLayer = true;
+    dataLayer.guideLayer = true;
 
-    return layer;
+    // Mute precomp audio in main comp too (audio plays from original layer)
+    dataLayer.audioEnabled = false;
+
+    return dataLayer;
 }

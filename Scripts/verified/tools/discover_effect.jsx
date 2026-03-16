@@ -9,30 +9,52 @@
 // Can also be #included by other scripts — call discoverEffect(matchName)
 // directly to skip the prompt.
 
-// --- Core discovery function (usable via #include) ---
-function discoverEffect(matchName) {
-    var scriptFile = new File($.fileName);
-    var toolsFolder = scriptFile.parent;
-    var verifiedFolder = toolsFolder.parent;
-    var effectsFolder = new Folder(verifiedFolder.fsName + "/effects");
+function _discoverEffectToolsFolder() {
+    return new File($.fileName).parent;
+}
+
+function _discoverEffectVerifiedFolder() {
+    return _discoverEffectToolsFolder().parent;
+}
+
+function _discoverEffectEffectsFolder() {
+    var effectsFolder = new Folder(_discoverEffectVerifiedFolder().fsName + "/effects");
     if (!effectsFolder.exists) effectsFolder.create();
+    return effectsFolder;
+}
 
-    var safeFileName = matchName.replace(/ /g, "-") + ".json";
-    var outputFile = new File(effectsFolder.fsName + "/" + safeFileName);
+function _discoverEffectSafeFileName(matchName) {
+    var safeName = String(matchName).replace(/[^A-Za-z0-9._-]+/g, "-");
+    safeName = safeName.replace(/^-+/, "").replace(/-+$/, "");
+    if (!safeName) safeName = "effect";
+    return safeName;
+}
 
-    // --- Find or create a temp comp ---
-    var comp = app.project.activeItem;
-    var createdComp = false;
-    if (!(comp instanceof CompItem)) {
-        comp = app.project.items.addComp(
-            "DISCOVER_TEMP", 1920, 1080, 1, 10, 30
-        );
-        createdComp = true;
-    }
+function getDiscoveredEffectOutputFile(matchName) {
+    return new File(
+        _discoverEffectEffectsFolder().fsName + "/" +
+        _discoverEffectSafeFileName(matchName) + ".json"
+    );
+}
+
+// --- Core discovery function (usable via #include) ---
+function discoverEffect(matchName, targetComp) {
+    var outputFile = getDiscoveredEffectOutputFile(matchName);
+    var comp = targetComp;
 
     app.beginUndoGroup("Discover Effect: " + matchName);
 
     try {
+        // --- Find or create a temp comp ---
+        if (!(comp instanceof CompItem)) {
+            comp = app.project.activeItem;
+        }
+        if (!(comp instanceof CompItem)) {
+            comp = app.project.items.addComp(
+                "DISCOVER_TEMP", 1920, 1080, 1, 10, 30
+            );
+        }
+
         // --- Create temp solid and apply effect ---
         var solid = comp.layers.addSolid(
             [0, 0, 0], "DISCOVER_TEMP_SOLID",
