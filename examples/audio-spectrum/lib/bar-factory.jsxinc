@@ -97,7 +97,7 @@ function createBars(comp, dataLayer, config) {
         }
 
         var scaleExpr = scaleExprTemplate
-            .split("{{SAMPLE_X}}").join(String(sampleX));
+            .split("{{BAND_NUM}}").join(String(i + 1));
         xform.property("ADBE Scale").expression = scaleExpr;
 
         // --- Glow effect ---
@@ -129,7 +129,7 @@ function createBars(comp, dataLayer, config) {
 
             // Position expression tracks the bar's current height
             var peakExpr = PEAK_EXPR
-                .split("{{SAMPLE_X}}").join(String(sampleX))
+                .split("{{BAND_NUM}}").join(String(i + 1))
                 .split("{{MAX_HEIGHT}}").join(String(config.MAX_HEIGHT))
                 .split("{{BAR_CENTER_X}}").join(String(centerX))
                 .split("{{BASELINE_Y}}").join(String(baselineY))

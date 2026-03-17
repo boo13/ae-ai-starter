@@ -1,29 +1,30 @@
-// Audio Spectrum Plugin — Expression Templates
+// Audio Spectrum Plugin -- Expression Templates
 // String arrays joined with '\n'. Bar factory replaces {{TOKEN}} placeholders
 // with per-bar computed values before assigning to .expression properties.
 //
 // NOTE: Expressions run in AE's JavaScript engine (ES6+), but we use var
 // everywhere for compatibility with users on the legacy ExtendScript expression engine.
+//
+// Bar expressions read from Slider Controls on AS_DATA (not sampleImage).
+// AS_DATA's sliders use thisLayer.sampleImage() internally, which works
+// because the layer's effects render before its own expressions evaluate.
 
 // --- Scale expressions by display mode ---
 
 // BARS_UP: bar grows upward from baseline (anchor at bottom center)
-// sampleImage radius [1, dl.height/2] averages the full column height,
-// giving brightness proportional to Audio Spectrum bar amplitude.
+// Reads amplitude (0-100) from AS_DATA's "Band N" slider.
 var SCALE_EXPR_BARS_UP = [
-    'var dl = thisComp.layer("AS_DATA");',
-    'var col = dl.sampleImage([{{SAMPLE_X}}, dl.height * 0.5], [1, dl.height / 2], true, time);',
-    'var b = col[0];',
+    'var b = thisComp.layer("AS_DATA").effect("Band {{BAND_NUM}}")("Slider") / 100;',
     '[100, ease(b, 0.05, 0.85, 0, 100)]'
 ].join('\n');
 
 // BARS_DOWN: bar grows downward (anchor at top center)
 var SCALE_EXPR_BARS_DOWN = SCALE_EXPR_BARS_UP;
-// Same expression — the difference is anchor point placement (handled in bar-factory)
+// Same expression -- the difference is anchor point placement (handled in bar-factory)
 
 // MIRROR: bar grows both up and down from center (anchor at vertical center)
 var SCALE_EXPR_MIRROR = SCALE_EXPR_BARS_UP;
-// Same expression — anchor at center makes scale grow symmetrically
+// Same expression -- anchor at center makes scale grow symmetrically
 
 // RADIAL: same scale logic, bar grows outward from circle edge
 var SCALE_EXPR_RADIAL = SCALE_EXPR_BARS_UP;
@@ -41,9 +42,7 @@ var COLOR_EXPR_HUE = [
 // --- Peak marker position expression ---
 
 var PEAK_EXPR = [
-    'var dl = thisComp.layer("AS_DATA");',
-    'var col = dl.sampleImage([{{SAMPLE_X}}, dl.height * 0.5], [1, dl.height / 2], true, time);',
-    'var b = col[0];',
+    'var b = thisComp.layer("AS_DATA").effect("Band {{BAND_NUM}}")("Slider") / 100;',
     'var h = ease(b, 0.05, 0.85, 0, {{MAX_HEIGHT}});',
     '[{{BAR_CENTER_X}}, {{BASELINE_Y}} - h - {{PEAK_OFFSET}}]'
 ].join('\n');

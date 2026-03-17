@@ -1,9 +1,12 @@
 // Audio Spectrum Plugin -- Data Layer
-// Creates AS_DATA as a precomp containing a black solid + Audio Spectrum.
-// Using a precomp forces AE to fully render Audio Spectrum (including audio
-// decoding) before the parent comp's bar expressions evaluate sampleImage().
-// Without a precomp, sampleImage() returns stale/cached pixels because the
-// Audio Spectrum effect hasn't rendered yet in the expression evaluation phase.
+// Creates AS_DATA: black solid + Audio Spectrum + Slider Controls.
+//
+// Architecture: sampleImage() from OTHER layers cannot read time-varying
+// Audio Spectrum output (AE render pipeline limitation). Instead, AS_DATA
+// has one Slider Control per frequency band with a thisLayer.sampleImage()
+// expression. thisLayer.sampleImage(postEffect=true) works because the
+// layer's effects have already rendered when its own expressions evaluate.
+// Bar expressions simply read these slider values.
 
 function createDataLayer(comp, config) {
     var blockW = comp.width / config.NUM_BARS;
@@ -14,52 +17,55 @@ function createDataLayer(comp, config) {
         throw new Error("Audio layer '" + config.AUDIO_LAYER_NAME + "' not found in comp '" + comp.name + "'");
     }
 
-    // --- Create precomp for Audio Spectrum rendering ---
-    var precomp = app.project.items.addComp(
-        "AS_DATA_PRE", comp.width, comp.height, comp.pixelAspect, comp.duration, comp.frameRate
+    // Create black solid (this shifts all layer indices!)
+    var layer = comp.layers.addSolid(
+        [0, 0, 0], "AS_DATA", comp.width, comp.height, 1, comp.duration
     );
 
-    // Add the same audio source to the precomp so Audio Spectrum can reference it
-    var precompAudio = precomp.layers.add(audioLayer.source);
-    precompAudio.name = "Audio";
-    precompAudio.audioEnabled = true;
+    // --- Audio Spectrum effect ---
+    var fx = layer.property("ADBE Effect Parade").addProperty("ADBE AudSpect");
 
-    // Add black solid inside the precomp
-    var solid = precomp.layers.addSolid(
-        [0, 0, 0], "Spectrum", precomp.width, precomp.height, 1, precomp.duration
-    );
-
-    // --- Audio Spectrum effect (inside precomp) ---
-    var fx = solid.property("ADBE Effect Parade").addProperty("ADBE AudSpect");
-
-    // Reference audio layer INSIDE the precomp (look up after addSolid shifted indices)
-    var precompAudioIdx = precomp.layer("Audio").index;
-    fx.property("ADBE AudSpect-0001").setValue(precompAudioIdx);          // Audio Layer
-    fx.property("ADBE AudSpect-0002").setValue([blockW / 2, precomp.height]);           // Start Point (bottom)
-    fx.property("ADBE AudSpect-0003").setValue([precomp.width - blockW / 2, precomp.height]); // End Point (bottom)
+    // Look up audio layer index AFTER adding AS_DATA, since addSolid shifts indices
+    var audioLayerIndex = comp.layer(config.AUDIO_LAYER_NAME).index;
+    fx.property("ADBE AudSpect-0001").setValue(audioLayerIndex);          // Audio Layer
+    fx.property("ADBE AudSpect-0002").setValue([blockW / 2, comp.height]);           // Start Point (bottom)
+    fx.property("ADBE AudSpect-0003").setValue([comp.width - blockW / 2, comp.height]); // End Point (bottom)
     fx.property("ADBE AudSpect-0006").setValue(config.MIN_FREQ);          // Start Frequency
     fx.property("ADBE AudSpect-0007").setValue(config.MAX_FREQ);          // End Frequency
     fx.property("ADBE AudSpect-0008").setValue(config.NUM_BARS);          // Frequency Bands
-    fx.property("ADBE AudSpect-0009").setValue(precomp.height);           // Maximum Height (fill entire layer)
+    fx.property("ADBE AudSpect-0009").setValue(comp.height);              // Maximum Height (fill entire layer)
     fx.property("ADBE AudSpect-0010").setValue(config.SMOOTHING);         // Audio Duration (ms)
     fx.property("ADBE AudSpect-0012").setValue(blockW);                   // Thickness = one block width
     fx.property("ADBE AudSpect-0014").setValue([1, 1, 1, 1]);             // Inside Color (white RGBA)
     fx.property("ADBE AudSpect-0015").setValue([1, 1, 1, 1]);             // Outside Color (white RGBA)
     fx.property("ADBE AudSpect-0020").setValue(1);                        // Display Options: 1=Digital
-    fx.property("ADBE AudSpect-0021").setValue(1);                        // Side Options: 1=Side A (bars grow upward only)
+    fx.property("ADBE AudSpect-0021").setValue(1);                        // Side Options: 1=Side A (upward only)
 
-    // Mute audio in the precomp layer so it doesn't double-play
-    precompAudio.audioEnabled = false;
+    // --- Slider Controls: one per frequency band ---
+    // Each slider samples its own layer's post-effect pixels at the band's X position.
+    // The value (0-100) represents the average brightness of that column = amplitude.
+    var effects = layer.property("ADBE Effect Parade");
 
-    // --- Add precomp as layer in main comp (shifts all layer indices!) ---
-    var dataLayer = comp.layers.add(precomp);
-    dataLayer.name = "AS_DATA";
+    for (var i = 0; i < config.NUM_BARS; i++) {
+        // Compute sample X position (must match bar-factory logic)
+        var sampleX;
+        if (config.FREQ_SCALE === "LOG") {
+            var f_i = config.MIN_FREQ * Math.pow(config.MAX_FREQ / config.MIN_FREQ, i / (config.NUM_BARS - 1));
+            var t = (f_i - config.MIN_FREQ) / (config.MAX_FREQ - config.MIN_FREQ);
+            sampleX = blockW / 2 + t * (comp.width - blockW);
+        } else {
+            sampleX = blockW / 2 + i * blockW;
+        }
+
+        var slider = effects.addProperty("ADBE Slider Control");
+        slider.name = "Band " + (i + 1);
+        slider.property("ADBE Slider Control-0001").expression =
+            'var col = thisLayer.sampleImage([' + sampleX + ', thisLayer.height * 0.5], [1, thisLayer.height / 2], true, time);\n' +
+            'col[0] * 100';
+    }
 
     // Hide from render output but keep computing pixels for sampleImage()
-    dataLayer.guideLayer = true;
+    layer.guideLayer = true;
 
-    // Mute precomp audio in main comp too (audio plays from original layer)
-    dataLayer.audioEnabled = false;
-
-    return dataLayer;
+    return layer;
 }
