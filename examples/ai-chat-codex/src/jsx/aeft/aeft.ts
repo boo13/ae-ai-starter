@@ -85,6 +85,8 @@ export const runAnalysisScript = () => {
 
   try {
     //@ts-ignore
+    $.__evalFileDir__ = scriptFile.parent.fsName;
+    //@ts-ignore
     $.evalFile(scriptFile);
     return { success: true, message: "Analysis complete." };
   } catch (e: any) {

@@ -70,9 +70,14 @@
         //   scriptFile.parent  = Scripts/analyze/
         //   .parent            = Scripts/
         //   + /reports/        = Scripts/reports/
-        var scriptFile = new File($.fileName);
+        // FALLBACK: When eval'd from CEP, $.fileName may be empty or wrong.
+        var scriptFilePath = $.fileName || $.__evalFileDir__ || "";
+        if (!scriptFilePath) {
+            throw new Error("Unable to resolve script path. Run from AE File > Scripts or ensure __evalFileDir__ is set.");
+        }
+        var scriptFile = new File(scriptFilePath);
         var scriptsDir = scriptFile.parent.parent;
-        var reportsDir = ensureFolder(scriptsDir.fsName + "/reports");
+        var reportsDir = ensureFolder(String(scriptsDir.fsName) + "/reports");
 
         var mdPath = reportsDir.fsName + "/analysis.md";
         var jsonPath = reportsDir.fsName + "/analysis.json";
