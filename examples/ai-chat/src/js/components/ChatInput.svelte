@@ -1,10 +1,11 @@
 <script lang="ts">
   interface Props {
+    assistantName: string;
     disabled: boolean;
     onsubmit: (text: string) => void;
   }
 
-  let { disabled, onsubmit }: Props = $props();
+  let { assistantName, disabled, onsubmit }: Props = $props();
   let text: string = $state("");
   let textareaEl: HTMLTextAreaElement | undefined = $state();
 
@@ -39,7 +40,7 @@
     bind:value={text}
     onkeydown={handleKeydown}
     oninput={autoResize}
-    placeholder={disabled ? "Thinking..." : "Ask Claude about your AE project..."}
+    placeholder={disabled ? "Thinking..." : "Ask " + assistantName + " about your AE project..."}
     rows="1"
     {disabled}
   ></textarea>
