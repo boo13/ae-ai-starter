@@ -7,6 +7,7 @@
 Directive InstallExample(example_name) {
   State {
     project_root = exec("git rev-parse --show-toplevel")
+
     example_path = path.join(project_root, "examples", example_name)
     required_commands = ["npm", "git"]
   }
