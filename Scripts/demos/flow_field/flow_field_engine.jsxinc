@@ -1,0 +1,434 @@
+/**
+ * flow_field_engine.jsxinc
+ *
+ * Pure math helpers for the Flow Field demo.
+ * All code is ES3/ExtendScript compatible and avoids AE dependencies.
+ */
+
+var FLOW_FIELD_BASE_PERMUTATION = [
+    151, 160, 137, 91, 90, 15, 131, 13, 201, 95, 96, 53, 194, 233, 7, 225,
+    140, 36, 103, 30, 69, 142, 8, 99, 37, 240, 21, 10, 23, 190, 6, 148,
+    247, 120, 234, 75, 0, 26, 197, 62, 94, 252, 219, 203, 117, 35, 11, 32,
+    57, 177, 33, 88, 237, 149, 56, 87, 174, 20, 125, 136, 171, 168, 68, 175,
+    74, 165, 71, 134, 139, 48, 27, 166, 77, 146, 158, 231, 83, 111, 229, 122,
+    60, 211, 133, 230, 220, 105, 92, 41, 55, 46, 245, 40, 244, 102, 143, 54,
+    65, 25, 63, 161, 1, 216, 80, 73, 209, 76, 132, 187, 208, 89, 18, 169,
+    200, 196, 135, 130, 116, 188, 159, 86, 164, 100, 109, 198, 173, 186, 3, 64,
+    52, 217, 226, 250, 124, 123, 5, 202, 38, 147, 118, 126, 255, 82, 85, 212,
+    207, 206, 59, 227, 47, 16, 58, 17, 182, 189, 28, 42, 223, 183, 170, 213,
+    119, 248, 152, 2, 44, 154, 163, 70, 221, 153, 101, 155, 167, 43, 172, 9,
+    129, 22, 39, 253, 19, 98, 108, 110, 79, 113, 224, 232, 178, 185, 112, 104,
+    218, 246, 97, 228, 251, 34, 242, 193, 238, 210, 144, 12, 191, 179, 162, 241,
+    81, 51, 145, 235, 249, 14, 239, 107, 49, 192, 214, 31, 181, 199, 106, 157,
+    184, 84, 204, 176, 115, 121, 50, 45, 127, 4, 150, 254, 138, 236, 205, 93,
+    222, 114, 67, 29, 24, 72, 243, 141, 128, 195, 78, 66, 215, 61, 156, 180
+];
+
+function flowClamp(value, minValue, maxValue) {
+    if (value < minValue) return minValue;
+    if (value > maxValue) return maxValue;
+    return value;
+}
+
+function flowLerp(a, b, t) {
+    return a + ((b - a) * t);
+}
+
+function flowFade(t) {
+    return t * t * t * (t * ((t * 6) - 15) + 10);
+}
+
+function createFlowRandom(seed) {
+    var state = Math.floor(Math.abs(seed || 1)) % 2147483647;
+    if (state <= 0) {
+        state += 2147483646;
+    }
+    return function () {
+        state = (state * 16807) % 2147483647;
+        return (state - 1) / 2147483646;
+    };
+}
+
+function duplicatePermutation(source) {
+    var out = [];
+    var i;
+    for (i = 0; i < source.length; i++) {
+        out[i] = source[i];
+    }
+    return out;
+}
+
+function shufflePermutation(source, seed) {
+    var shuffled = duplicatePermutation(source);
+    var rand = createFlowRandom(seed || 1);
+    var i;
+    var j;
+    var temp;
+    for (i = shuffled.length - 1; i > 0; i--) {
+        j = Math.floor(rand() * (i + 1));
+        temp = shuffled[i];
+        shuffled[i] = shuffled[j];
+        shuffled[j] = temp;
+    }
+    return shuffled;
+}
+
+function createPerlinNoise(seed) {
+    var permutation = seed ? shufflePermutation(FLOW_FIELD_BASE_PERMUTATION, seed) : duplicatePermutation(FLOW_FIELD_BASE_PERMUTATION);
+    var perm = [];
+    var i;
+
+    function grad(hash, x, y) {
+        switch (hash & 7) {
+        case 0: return x + y;
+        case 1: return -x + y;
+        case 2: return x - y;
+        case 3: return -x - y;
+        case 4: return x;
+        case 5: return -x;
+        case 6: return y;
+        default: return -y;
+        }
+    }
+
+    for (i = 0; i < 512; i++) {
+        perm[i] = permutation[i & 255];
+    }
+
+    return {
+        seed: seed || 0,
+        get: function (x, y) {
+            var xi = Math.floor(x) & 255;
+            var yi = Math.floor(y) & 255;
+            var xf = x - Math.floor(x);
+            var yf = y - Math.floor(y);
+
+            var u = flowFade(xf);
+            var v = flowFade(yf);
+
+            var aa = perm[perm[xi] + yi];
+            var ab = perm[perm[xi] + yi + 1];
+            var ba = perm[perm[xi + 1] + yi];
+            var bb = perm[perm[xi + 1] + yi + 1];
+
+            var x1 = flowLerp(grad(aa, xf, yf), grad(ba, xf - 1, yf), u);
+            var x2 = flowLerp(grad(ab, xf, yf - 1), grad(bb, xf - 1, yf - 1), u);
+            return flowClamp(flowLerp(x1, x2, v), -1, 1);
+        }
+    };
+}
+
+function flowAngle(noiseGen, x, y, scale) {
+    var effectiveScale = (scale && scale > 0) ? scale : 0.02;
+    var value = noiseGen.get(x * effectiveScale, y * effectiveScale);
+    return ((value + 1) * 0.5) * Math.PI * 2;
+}
+
+function isFlowPointInside(x, y, width, height, margin) {
+    return x >= margin && x <= (width - margin) && y >= margin && y <= (height - margin);
+}
+
+function traceFlowDirection(noiseGen, startX, startY, scale, stepSize, maxSteps, width, height, margin, direction) {
+    var points = [];
+    var x = startX;
+    var y = startY;
+    var angle;
+    var i;
+
+    for (i = 0; i < maxSteps; i++) {
+        if (!isFlowPointInside(x, y, width, height, margin)) {
+            break;
+        }
+        points.push([x, y]);
+        angle = flowAngle(noiseGen, x, y, scale);
+        x += Math.cos(angle) * stepSize * direction;
+        y += Math.sin(angle) * stepSize * direction;
+    }
+    return points;
+}
+
+function traceStreamline(noiseGen, startX, startY, scale, stepSize, maxSteps, width, height, margin) {
+    var backward = traceFlowDirection(noiseGen, startX, startY, scale, stepSize, maxSteps, width, height, margin, -1);
+    var forward = traceFlowDirection(noiseGen, startX, startY, scale, stepSize, maxSteps, width, height, margin, 1);
+    var points = [];
+    var i;
+
+    for (i = backward.length - 1; i >= 1; i--) {
+        points.push(backward[i]);
+    }
+    for (i = 0; i < forward.length; i++) {
+        points.push(forward[i]);
+    }
+
+    return points;
+}
+
+function createOccupancyGrid(width, height, cellSize) {
+    var size = Math.max(1, cellSize);
+    return {
+        cellSize: size,
+        cols: Math.ceil(width / size),
+        rows: Math.ceil(height / size),
+        cells: {}
+    };
+}
+
+function occupancyKey(col, row) {
+    return col + ":" + row;
+}
+
+function occupancyCoords(grid, x, y) {
+    return {
+        col: Math.floor(x / grid.cellSize),
+        row: Math.floor(y / grid.cellSize)
+    };
+}
+
+function isOccupied(grid, x, y) {
+    var coords = occupancyCoords(grid, x, y);
+    var col;
+    var row;
+    var key;
+    for (col = coords.col - 1; col <= coords.col + 1; col++) {
+        for (row = coords.row - 1; row <= coords.row + 1; row++) {
+            key = occupancyKey(col, row);
+            if (grid.cells[key]) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+function markOccupied(grid, x, y) {
+    var coords = occupancyCoords(grid, x, y);
+    grid.cells[occupancyKey(coords.col, coords.row)] = true;
+}
+
+function streamlineTouchesOccupied(grid, points) {
+    var i;
+    for (i = 0; i < points.length; i++) {
+        if (isOccupied(grid, points[i][0], points[i][1])) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function markStreamline(grid, points) {
+    var i;
+    for (i = 0; i < points.length; i++) {
+        markOccupied(grid, points[i][0], points[i][1]);
+    }
+}
+
+function shufflePoints(points, seed) {
+    var rand = createFlowRandom(seed || 1);
+    var out = [];
+    var i;
+    var j;
+    var temp;
+    for (i = 0; i < points.length; i++) {
+        out[i] = points[i];
+    }
+    for (i = out.length - 1; i > 0; i--) {
+        j = Math.floor(rand() * (i + 1));
+        temp = out[i];
+        out[i] = out[j];
+        out[j] = temp;
+    }
+    return out;
+}
+
+function generateSeedPoints(config, rand) {
+    var margin = config.margin || 0;
+    var spacing = config.seedSpacing || config.separation || 12;
+    var jitter = config.jitter || 0;
+    var points = [];
+    var x;
+    var y;
+    var jx;
+    var jy;
+
+    for (y = margin; y <= config.height - margin; y += spacing) {
+        for (x = margin; x <= config.width - margin; x += spacing) {
+            jx = jitter ? ((rand() - 0.5) * jitter * 2) : 0;
+            jy = jitter ? ((rand() - 0.5) * jitter * 2) : 0;
+            points.push([x + jx, y + jy]);
+        }
+    }
+    return points;
+}
+
+function generateStreamlines(config) {
+    var width = config.width || 1920;
+    var height = config.height || 1080;
+    var density = Math.max(1, Math.floor(config.density || config.count || 120));
+    var scale = config.scale || 0.02;
+    var stepSize = config.stepSize || 3;
+    var maxSteps = Math.max(8, Math.floor(config.maxSteps || 120));
+    var separation = Math.max(2, config.separation || 10);
+    var margin = config.margin || 0;
+    var seed = config.seed || 1;
+    var grid = createOccupancyGrid(width, height, separation);
+    var rand = createFlowRandom(seed);
+    var candidates = generateSeedPoints({
+        width: width,
+        height: height,
+        separation: separation,
+        margin: margin,
+        seedSpacing: config.seedSpacing || separation * 1.6,
+        jitter: config.jitter || (separation * 0.35)
+    }, rand);
+    var ordered = shufflePoints(candidates, seed + 17);
+    var noiseGen = createPerlinNoise(seed);
+    var streamlines = [];
+    var i;
+    var points;
+    var point;
+
+    for (i = 0; i < ordered.length; i++) {
+        point = ordered[i];
+        if (!isFlowPointInside(point[0], point[1], width, height, margin)) {
+            continue;
+        }
+        if (isOccupied(grid, point[0], point[1])) {
+            continue;
+        }
+        points = traceStreamline(noiseGen, point[0], point[1], scale, stepSize, maxSteps, width, height, margin);
+        if (!points || points.length < 8) {
+            continue;
+        }
+        if (streamlineTouchesOccupied(grid, points)) {
+            continue;
+        }
+        markStreamline(grid, points);
+        streamlines.push(points);
+        if (streamlines.length >= density) {
+            break;
+        }
+    }
+
+    return streamlines;
+}
+
+function pointLineDistance(point, start, end) {
+    var dx = end[0] - start[0];
+    var dy = end[1] - start[1];
+    var denom = (dx * dx) + (dy * dy);
+    var t;
+    var projX;
+    var projY;
+    var offsetX;
+    var offsetY;
+
+    if (denom === 0) {
+        offsetX = point[0] - start[0];
+        offsetY = point[1] - start[1];
+        return Math.sqrt((offsetX * offsetX) + (offsetY * offsetY));
+    }
+
+    t = (((point[0] - start[0]) * dx) + ((point[1] - start[1]) * dy)) / denom;
+    t = flowClamp(t, 0, 1);
+    projX = start[0] + (dx * t);
+    projY = start[1] + (dy * t);
+    offsetX = point[0] - projX;
+    offsetY = point[1] - projY;
+    return Math.sqrt((offsetX * offsetX) + (offsetY * offsetY));
+}
+
+function simplifySegment(points, startIndex, endIndex, epsilon, output) {
+    var maxDistance = 0;
+    var index = startIndex;
+    var i;
+    var distance;
+
+    for (i = startIndex + 1; i < endIndex; i++) {
+        distance = pointLineDistance(points[i], points[startIndex], points[endIndex]);
+        if (distance > maxDistance) {
+            maxDistance = distance;
+            index = i;
+        }
+    }
+
+    if (maxDistance > epsilon) {
+        simplifySegment(points, startIndex, index, epsilon, output);
+        output.push(points[index]);
+        simplifySegment(points, index, endIndex, epsilon, output);
+    }
+}
+
+function simplifyPoints(points, epsilon) {
+    var threshold = (epsilon === undefined || epsilon === null) ? 1 : epsilon;
+    var result = [];
+    if (!points || points.length <= 2) {
+        return points || [];
+    }
+
+    result.push(points[0]);
+    simplifySegment(points, 0, points.length - 1, threshold, result);
+    result.push(points[points.length - 1]);
+    return result;
+}
+
+function pointsToBezierPath(points, tension) {
+    var effectiveTension = (tension === undefined || tension === null) ? 1 : tension;
+    var vertices = [];
+    var inTangents = [];
+    var outTangents = [];
+    var i;
+    var p0;
+    var p1;
+    var p2;
+    var p3;
+    var outX;
+    var outY;
+    var inX;
+    var inY;
+
+    if (!points || points.length === 0) {
+        return {
+            vertices: [],
+            inTangents: [],
+            outTangents: [],
+            closed: false
+        };
+    }
+
+    for (i = 0; i < points.length; i++) {
+        vertices[i] = [points[i][0], points[i][1]];
+        inTangents[i] = [0, 0];
+        outTangents[i] = [0, 0];
+    }
+
+    if (points.length === 1) {
+        return {
+            vertices: vertices,
+            inTangents: inTangents,
+            outTangents: outTangents,
+            closed: false
+        };
+    }
+
+    for (i = 0; i < points.length - 1; i++) {
+        p0 = points[(i === 0) ? i : i - 1];
+        p1 = points[i];
+        p2 = points[i + 1];
+        p3 = points[(i + 2 >= points.length) ? (points.length - 1) : (i + 2)];
+
+        outX = ((p2[0] - p0[0]) * effectiveTension) / 6;
+        outY = ((p2[1] - p0[1]) * effectiveTension) / 6;
+        inX = ((p3[0] - p1[0]) * effectiveTension) / -6;
+        inY = ((p3[1] - p1[1]) * effectiveTension) / -6;
+
+        outTangents[i] = [outX, outY];
+        inTangents[i + 1] = [inX, inY];
+    }
+
+    return {
+        vertices: vertices,
+        inTangents: inTangents,
+        outTangents: outTangents,
+        closed: false
+    };
+}

@@ -553,11 +553,11 @@ Only do this if there's genuine duplication. Don't create preemptively.
 
 ### Non-Functional Requirements
 
-- [ ] All code is ES3/ExtendScript compatible (no let, const, arrow functions, template literals)
+- [x] All code is ES3/ExtendScript compatible (no let, const, arrow functions, template literals)
 - [ ] Flow field generation completes in < 10 seconds at default settings
-- [ ] Both panels follow the existing IIFE + dockable panel pattern
-- [ ] All changes wrapped in `app.beginUndoGroup()` / `app.endUndoGroup()`
-- [ ] Expression effect names match between builder code and expression strings (single config object)
+- [x] Both panels follow the existing IIFE + dockable panel pattern
+- [x] All changes wrapped in `app.beginUndoGroup()` / `app.endUndoGroup()`
+- [x] Expression effect names match between builder code and expression strings (single config object)
 
 ### Quality Gates
 
