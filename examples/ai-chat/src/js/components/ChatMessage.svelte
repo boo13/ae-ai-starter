@@ -1,17 +1,19 @@
 <script lang="ts">
+  import DOMPurify from "dompurify";
   import { marked } from "marked";
 
   interface Props {
+    assistantName: string;
     role: "user" | "assistant" | "system";
     content: string;
     timestamp: number;
     duration_ms?: number;
   }
 
-  let { role, content, timestamp, duration_ms }: Props = $props();
+  let { assistantName, role, content, timestamp, duration_ms }: Props = $props();
 
   const roleLabel = $derived(
-    role === "user" ? "You" : role === "assistant" ? "Claude" : "System"
+    role === "user" ? "You" : role === "assistant" ? assistantName : "System"
   );
 
   const timeStr = $derived(() => {
@@ -23,9 +25,9 @@
 
   const renderedContent = $derived(() => {
     try {
-      return marked.parse(content, { async: false }) as string;
+      return DOMPurify.sanitize(marked.parse(content, { async: false }) as string);
     } catch {
-      return content;
+      return DOMPurify.sanitize(content);
     }
   });
 

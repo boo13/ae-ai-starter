@@ -23,8 +23,8 @@ export const quickActions: QuickAction[] = [
     handler: "fixLastError",
   },
   {
-    label: "Run Last Script",
-    icon: "\u25B6",
-    handler: "runLastScript",
+    label: "AI Action",
+    icon: "\u2699",
+    handler: "runAiAction",
   },
 ];

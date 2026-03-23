@@ -18,9 +18,15 @@ interface CompInfo {
   error?: string;
 }
 
-export async function buildContext(): Promise<string> {
+export interface ChatContext {
+  systemContext: string;
+  projectRoot?: string;
+}
+
+export async function buildContext(): Promise<ChatContext> {
   let projectInfo: ProjectInfo | null = null;
   let compInfo: CompInfo | null = null;
+  let projectRoot = "";
 
   try {
     const raw = await evalTS("getProjectInfo");
@@ -29,6 +35,15 @@ export async function buildContext(): Promise<string> {
     }
   } catch {
     // No project open
+  }
+
+  try {
+    const raw = await evalTS("getProjectRoot");
+    if (typeof raw === "string") {
+      projectRoot = raw;
+    }
+  } catch {
+    // No project root available
   }
 
   try {
@@ -79,6 +94,15 @@ export async function buildContext(): Promise<string> {
   lines.push("## Constraints");
   lines.push("- ES3/ExtendScript only (var, no arrow functions, no template literals)");
   lines.push("- Wrap changes in app.beginUndoGroup() / app.endUndoGroup()");
+  lines.push("");
+  lines.push("## AI Action Protocol");
+  lines.push("- When you want to prepare a temporary runnable action, append an <ai-action> block.");
+  lines.push('- Use exactly this format: <ai-action run="true">...ExtendScript ES3...</ai-action>');
+  lines.push("- Set run=\"true\" only when the user wants the temporary action executed immediately.");
+  lines.push("- The script should target the current project state and overwrite the previous AI Action.");
 
-  return lines.join("\n");
+  return {
+    systemContext: lines.join("\n"),
+    projectRoot: projectRoot || undefined,
+  };
 }

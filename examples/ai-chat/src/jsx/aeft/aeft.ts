@@ -117,3 +117,34 @@ export const getProjectRoot = () => {
   }
   return "";
 };
+
+export const takeScreenshot = (timestamp: string) => {
+  var comp = getActiveComp();
+  if (!comp) {
+    return { error: "No active composition found." };
+  }
+
+  var dir = getProjectDir();
+  if (!dir) {
+    return { error: "Save your project first." };
+  }
+
+  var screenshotsDir = new Folder(dir.fsName + "/screenshots");
+  if (!screenshotsDir.exists) {
+    screenshotsDir.create();
+  }
+
+  var fileName = "screenshot_" + timestamp + ".png";
+  var file = new File(screenshotsDir.fsName + "/" + fileName);
+
+  try {
+    comp.saveFrameToPng(comp.time, file);
+    return {
+      success: true,
+      path: file.fsName,
+      fileName: fileName,
+    };
+  } catch (e: any) {
+    return { error: "Failed to save screenshot: " + e.toString() };
+  }
+};

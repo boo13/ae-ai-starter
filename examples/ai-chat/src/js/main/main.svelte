@@ -1,17 +1,27 @@
 <script lang="ts">
   import { onMount, tick } from "svelte";
   import { evalTS } from "../lib/utils/bolt";
-  import { sendMessage, type ChatMessage } from "../lib/claude";
+  import { activeProvider } from "../lib/provider-config";
+  import {
+    clearAiAction,
+    parseAiActionResponse,
+    runAiAction,
+    saveAiAction,
+  } from "../lib/ai-action";
   import { buildContext } from "../lib/context";
   import ChatMessageComponent from "../components/ChatMessage.svelte";
   import ChatInput from "../components/ChatInput.svelte";
   import ActionBar from "../components/ActionBar.svelte";
+  import type { ChatMessage } from "../lib/providers/provider";
 
   let messages: ChatMessage[] = $state([]);
   let isLoading: boolean = $state(false);
-  let model: "sonnet" | "opus" = $state("sonnet");
+  let model: string = $state(activeProvider.models[0].value);
   let chatArea: HTMLDivElement | undefined = $state();
   let lastError: string = $state("");
+  let pendingScreenshot: { path: string; fileName: string } | null = $state(null);
+  let sessionProjectRoot: string | undefined = $state();
+  let didInitializeAiAction: boolean = $state(false);
 
   function addMessage(
     role: ChatMessage["role"],
@@ -35,20 +45,59 @@
   }
 
   async function handleSend(text: string) {
+    const history = messages.slice();
     addMessage("user", text);
     isLoading = true;
+    const imagePath = pendingScreenshot?.path;
+    pendingScreenshot = null;
 
     try {
       const context = await buildContext();
-      const result = await sendMessage(
+      sessionProjectRoot = context.projectRoot || sessionProjectRoot;
+
+      if (!didInitializeAiAction && sessionProjectRoot) {
+        clearAiAction(sessionProjectRoot);
+        didInitializeAiAction = true;
+      }
+
+      const result = await activeProvider.sendMessage(
         text,
-        { model, systemContext: context },
-        messages
+        {
+          model,
+          systemContext: context.systemContext,
+          imagePath,
+          projectRoot: context.projectRoot,
+        },
+        history
       );
 
-      addMessage("assistant", result.result, {
-        duration_ms: result.duration_ms,
-      });
+      if (result.is_error) {
+        addMessage("system", result.result, {
+          duration_ms: result.duration_ms,
+        });
+      } else {
+        const parsed = parseAiActionResponse(result.result);
+        const displayText = parsed.displayText || "AI Action updated.";
+
+        addMessage("assistant", displayText, {
+          duration_ms: result.duration_ms,
+        });
+
+        if (parsed.scriptContent) {
+          const saved = saveAiAction(context.projectRoot, parsed.scriptContent, displayText);
+          addMessage("system", "AI Action ready: " + saved.summary);
+
+          if (parsed.runImmediately) {
+            const runResult = await runAiAction(context.projectRoot);
+            if ((runResult as any).error) {
+              addMessage("system", "AI Action failed: " + (runResult as any).error);
+              lastError = (runResult as any).error;
+            } else {
+              addMessage("system", "AI Action executed successfully.");
+            }
+          }
+        }
+      }
 
       if (result.is_error) {
         lastError = result.result;
@@ -56,6 +105,31 @@
     } catch (err: any) {
       const errMsg = err?.message || String(err);
       addMessage("system", "Error: " + errMsg);
+      lastError = errMsg;
+    } finally {
+      isLoading = false;
+    }
+  }
+
+  async function handleScreenshot() {
+    isLoading = true;
+
+    try {
+      const timestamp = Date.now().toString();
+      const result = await evalTS("takeScreenshot", timestamp);
+
+      if ((result as any).error) {
+        addMessage("system", "Screenshot error: " + (result as any).error);
+      } else {
+        pendingScreenshot = {
+          path: (result as any).path,
+          fileName: (result as any).fileName,
+        };
+        addMessage("system", "Screenshot captured: " + pendingScreenshot.fileName);
+      }
+    } catch (err: any) {
+      const errMsg = err?.message || String(err);
+      addMessage("system", "Screenshot failed: " + errMsg);
       lastError = errMsg;
     } finally {
       isLoading = false;
@@ -102,8 +176,24 @@
       return;
     }
 
-    if (action.handler === "runLastScript") {
-      addMessage("system", "Run Last Script is not yet available in V1.");
+    if (action.handler === "runAiAction") {
+      try {
+        if (!sessionProjectRoot) {
+          const context = await buildContext();
+          sessionProjectRoot = context.projectRoot || sessionProjectRoot;
+        }
+
+        const runResult = await runAiAction(sessionProjectRoot);
+        if ((runResult as any).error) {
+          addMessage("system", "AI Action failed: " + (runResult as any).error);
+          lastError = (runResult as any).error;
+        } else {
+          addMessage("system", "AI Action executed successfully.");
+        }
+      } catch (err: any) {
+        const errMsg = err?.message || String(err);
+        addMessage("system", "AI Action unavailable: " + errMsg);
+      }
       return;
     }
 
@@ -113,10 +203,30 @@
   }
 
   onMount(() => {
+    let disposed = false;
+
+    buildContext()
+      .then((context) => {
+        if (disposed) return;
+        sessionProjectRoot = context.projectRoot || sessionProjectRoot;
+        if (!didInitializeAiAction && context.projectRoot) {
+          clearAiAction(context.projectRoot);
+          didInitializeAiAction = true;
+        }
+      })
+      .catch(() => {});
+
     addMessage(
       "system",
-      "AI Chat ready. Ask Claude about your After Effects project."
+      "AI Chat ready. Ask " + activeProvider.displayName + " about your After Effects project."
     );
+
+    return () => {
+      disposed = true;
+      if (sessionProjectRoot) {
+        clearAiAction(sessionProjectRoot);
+      }
+    };
   });
 </script>
 
@@ -124,9 +234,20 @@
   <header class="header">
     <span class="header__title">AI Chat</span>
     <div class="header__controls">
+      {#if activeProvider.supportsImages}
+        <button
+          class="screenshot-btn"
+          onclick={handleScreenshot}
+          disabled={isLoading}
+          title="Capture the current comp frame"
+        >
+          Shot
+        </button>
+      {/if}
       <select class="model-select" bind:value={model}>
-        <option value="sonnet">Sonnet</option>
-        <option value="opus">Opus</option>
+        {#each activeProvider.models as providerModel}
+          <option value={providerModel.value}>{providerModel.label}</option>
+        {/each}
       </select>
     </div>
   </header>
@@ -134,6 +255,7 @@
   <div class="chat-area" bind:this={chatArea}>
     {#each messages as msg}
       <ChatMessageComponent
+        assistantName={activeProvider.displayName}
         role={msg.role}
         content={msg.content}
         timestamp={msg.timestamp}
@@ -142,8 +264,21 @@
     {/each}
   </div>
 
+  {#if pendingScreenshot}
+    <div class="pending-screenshot">
+      <span class="pending-screenshot__label">Attached: {pendingScreenshot.fileName}</span>
+      <button class="pending-screenshot__clear" onclick={() => (pendingScreenshot = null)}>
+        Clear
+      </button>
+    </div>
+  {/if}
+
   <ActionBar disabled={isLoading} onclick={handleAction} />
-  <ChatInput disabled={isLoading} onsubmit={handleSend} />
+  <ChatInput
+    assistantName={activeProvider.displayName}
+    disabled={isLoading}
+    onsubmit={handleSend}
+  />
 </div>
 
 <style>
@@ -184,6 +319,23 @@
     align-items: center;
     gap: 8px;
   }
+  .screenshot-btn {
+    background: #2a2a2a;
+    border: 1px solid #444;
+    border-radius: 4px;
+    color: #ccc;
+    padding: 3px 8px;
+    font-size: 11px;
+    cursor: pointer;
+  }
+  .screenshot-btn:hover:not(:disabled) {
+    background: #3a3a3a;
+    border-color: #555;
+  }
+  .screenshot-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
   .model-select {
     background: #2a2a2a;
     border: 1px solid #444;
@@ -211,5 +363,26 @@
   .chat-area::-webkit-scrollbar-thumb {
     background: #444;
     border-radius: 3px;
+  }
+  .pending-screenshot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 4px 12px;
+    background: #2a2a2a;
+    border-top: 1px solid #333;
+    font-size: 11px;
+    color: #4a9eff;
+  }
+  .pending-screenshot__clear {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-size: 11px;
+    padding: 0;
+  }
+  .pending-screenshot__clear:hover {
+    color: #eee;
   }
 </style>
