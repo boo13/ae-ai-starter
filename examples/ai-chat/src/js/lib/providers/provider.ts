@@ -9,6 +9,7 @@ export interface ProviderResult {
   result: string;
   duration_ms: number;
   is_error: boolean;
+  cancelled?: boolean;
 }
 
 export interface SendMessageOptions {

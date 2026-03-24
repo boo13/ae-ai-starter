@@ -96,11 +96,9 @@ export function parseAiActionResponse(content: string): ParsedAiActionResponse {
   const scriptContent = first[2].trim();
 
   // Remove all ai-action blocks from the display text
-  let displayText = content;
-  for (let i = matches.length - 1; i >= 0; i--) {
-    displayText = displayText.replace(matches[i][0], "");
-  }
-  displayText = displayText.trim();
+  const displayText = content
+    .replace(/<ai-action(?:\s+run="(?:true|false)")?>([\s\S]*?)<\/ai-action>/gi, "")
+    .trim();
 
   return {
     displayText: displayText || "AI Action updated.",

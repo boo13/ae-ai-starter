@@ -166,7 +166,7 @@ async function sendClaudeMessage(
         cancelled = true;
         clearTimeout(timer);
         proc.kill();
-      });
+      }, { once: true });
     }
 
     proc.stdout.on("data", (chunk: Buffer) => {
@@ -193,6 +193,7 @@ async function sendClaudeMessage(
           result: "Request cancelled.",
           duration_ms,
           is_error: true,
+          cancelled: true,
         });
         return;
       }

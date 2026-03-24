@@ -108,7 +108,7 @@
         addMessage("system", result.result, {
           duration_ms: result.duration_ms,
         });
-        lastError = result.result;
+        if (!result.cancelled) lastError = result.result;
       } else {
         const parsed = parseAiActionResponse(result.result);
         const displayText = parsed.displayText || "AI Action updated.";

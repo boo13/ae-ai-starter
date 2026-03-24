@@ -109,7 +109,7 @@ async function sendCodexMessage(
         cancelled = true;
         clearTimeout(timer);
         proc.kill();
-      });
+      }, { once: true });
     }
 
     proc.stdout.on("data", (chunk: Buffer) => {
@@ -129,6 +129,7 @@ async function sendCodexMessage(
           result: "Request cancelled.",
           duration_ms,
           is_error: true,
+          cancelled: true,
         });
         return;
       }
