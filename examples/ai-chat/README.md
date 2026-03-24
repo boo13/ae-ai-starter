@@ -9,10 +9,14 @@ A CEP panel that provides a chat interface for communicating with Claude or Code
 - **Provider adapters** for Claude CLI or Codex CLI via Node.js `child_process`
 - **ExtendScript bridge** for querying AE project state
 
+## Platform
+
+**macOS only.** Binary discovery (`findClaudePath`, `findCodexPath`) searches macOS/Linux paths only. Windows is not supported.
+
 ## Prerequisites
 
 - After Effects 2023 or later
-- Node.js 18+
+- Node.js 18–24 (Node 25+ is not recommended due to CEP compatibility)
 - One AI CLI installed and authenticated:
   - [Claude CLI](https://docs.anthropic.com/en/docs/claude-code)
   - Codex CLI

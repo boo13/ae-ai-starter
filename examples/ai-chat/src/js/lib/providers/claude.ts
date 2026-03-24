@@ -76,6 +76,8 @@ function findPreferredNodeDir(): string | null {
       });
 
     for (const entry of versions) {
+      // Skip Node >= 25: CEP's embedded Chromium (v74 era) has known incompatibilities
+      // with native modules compiled against Node 25+ ABI. Conservative guard.
       if ((entry.major as number) >= 25) continue;
 
       const nodeDir = path.join(nvmBase, entry.versionDir, "bin");
@@ -112,8 +114,10 @@ function getCleanEnv(): Record<string, string> {
   return env;
 }
 
-function normalizeClaudeModel(model: string): "sonnet" | "opus" {
-  return model === "opus" ? "opus" : "sonnet";
+function normalizeClaudeModel(model: string): "haiku" | "sonnet" | "opus" {
+  if (model === "opus") return "opus";
+  if (model === "haiku") return "haiku";
+  return "sonnet";
 }
 
 async function sendClaudeMessage(
@@ -133,7 +137,7 @@ async function sendClaudeMessage(
 
     const model = normalizeClaudeModel(options.model);
     const fullPrompt = buildFullPrompt(options.systemContext, prompt, history);
-    const timeout = model === "opus" ? 300000 : 120000;
+    const timeout = model === "opus" ? 300000 : 120000; // haiku/sonnet: 2min, opus: 5min
     const startTime = Date.now();
 
     const proc = child_process.spawn(
@@ -149,14 +153,31 @@ async function sendClaudeMessage(
     let stdout = "";
     let stderr = "";
     let killed = false;
+    let cancelled = false;
 
     const timer = setTimeout(() => {
       killed = true;
       proc.kill();
     }, timeout);
 
+    // Wire AbortSignal for user-initiated cancel
+    if (options.signal) {
+      options.signal.addEventListener("abort", () => {
+        cancelled = true;
+        clearTimeout(timer);
+        proc.kill();
+      }, { once: true });
+    }
+
     proc.stdout.on("data", (chunk: Buffer) => {
-      stdout += chunk.toString();
+      const text = chunk.toString();
+      stdout += text;
+      // Forward chunks for streaming display — we keep --print for reliable
+      // termination, so chunks arrive as the OS delivers them (real-time enough).
+      // Note: --resume is intentionally not used here because the AE project
+      // context (comp state, layers) must be injected fresh on every call;
+      // a resumed session would only receive the system context once.
+      options.onChunk?.(text);
     });
 
     proc.stderr.on("data", (chunk: Buffer) => {
@@ -166,6 +187,16 @@ async function sendClaudeMessage(
     proc.on("close", (code: number | null) => {
       clearTimeout(timer);
       const duration_ms = Date.now() - startTime;
+
+      if (cancelled) {
+        resolve({
+          result: "Request cancelled.",
+          duration_ms,
+          is_error: true,
+          cancelled: true,
+        });
+        return;
+      }
 
       if (killed) {
         resolve({
@@ -228,6 +259,7 @@ export const claudeProvider: ProviderDefinition = {
   id: "claude",
   displayName: "Claude",
   models: [
+    { value: "haiku", label: "Haiku" },
     { value: "sonnet", label: "Sonnet" },
     { value: "opus", label: "Opus" },
   ],

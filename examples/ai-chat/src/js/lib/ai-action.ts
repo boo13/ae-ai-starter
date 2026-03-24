@@ -17,6 +17,7 @@ export interface ParsedAiActionResponse {
   displayText: string;
   scriptContent?: string;
   runImmediately: boolean;
+  multipleBlocks?: boolean;
 }
 
 function resolveRepoRoot(projectRoot?: string): string | null {
@@ -76,23 +77,34 @@ function toSummary(displayText: string): string {
 }
 
 export function parseAiActionResponse(content: string): ParsedAiActionResponse {
-  const match = content.match(/<ai-action(?:\s+run="(true|false)")?>([\s\S]*?)<\/ai-action>/i);
+  const AI_ACTION_REGEX = /<ai-action(?:\s+run="(true|false)")?>([\s\S]*?)<\/ai-action>/gi;
+  const matches: RegExpExecArray[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = AI_ACTION_REGEX.exec(content)) !== null) {
+    matches.push(m);
+  }
 
-  if (!match) {
+  if (matches.length === 0) {
     return {
       displayText: content.trim(),
       runImmediately: false,
     };
   }
 
-  const runImmediately = (match[1] || "").toLowerCase() === "true";
-  const scriptContent = match[2].trim();
-  const displayText = content.replace(match[0], "").trim();
+  const first = matches[0];
+  const runImmediately = (first[1] || "").toLowerCase() === "true";
+  const scriptContent = first[2].trim();
+
+  // Remove all ai-action blocks from the display text
+  const displayText = content
+    .replace(/<ai-action(?:\s+run="(?:true|false)")?>([\s\S]*?)<\/ai-action>/gi, "")
+    .trim();
 
   return {
     displayText: displayText || "AI Action updated.",
     scriptContent: scriptContent || undefined,
     runImmediately,
+    multipleBlocks: matches.length > 1,
   };
 }
 
@@ -145,6 +157,12 @@ export function saveAiAction(
   const scriptText = buildScriptHeader(summary) + scriptContent.trim() + "\n";
   const updatedAt = new Date().toISOString();
 
+  const preview = scriptContent.trim().substring(0, 500);
+  console.log(
+    "[AI Action] Writing script (" + scriptContent.trim().length + " chars):\n" +
+    preview + (scriptContent.trim().length > 500 ? "\n..." : "")
+  );
+
   fs.writeFileSync(paths.scriptPath, scriptText, "utf8");
   fs.writeFileSync(
     paths.metaPath,
@@ -168,6 +186,15 @@ export async function runAiAction(projectRoot?: string) {
   const paths = resolveAiActionPaths(projectRoot);
   if (!paths) {
     throw new Error("AI Action storage could not be resolved from the extension path.");
+  }
+
+  // Security guard: ensure the script path is inside the .session/ directory.
+  // resolveAiActionPaths always builds this path, but we validate explicitly as
+  // defense-in-depth in case the calling context changes in the future.
+  const resolvedScript = path.resolve(paths.scriptPath);
+  const resolvedDir = path.resolve(paths.actionDir);
+  if (!resolvedScript.startsWith(resolvedDir + path.sep)) {
+    throw new Error("AI Action path is outside the session directory.");
   }
 
   return await evalTS("runScriptFile", paths.scriptPath);

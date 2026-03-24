@@ -2,7 +2,7 @@ import { fs, path } from "../cep/node";
 import type { ChatMessage } from "./provider";
 
 const MAX_HISTORY = 10;
-const MAX_MSG_LENGTH = 500;
+const MAX_MSG_LENGTH = 4000; // raised from 500 — preserves most code blocks in history
 
 function buildConversationContext(history: ChatMessage[]): string {
   const recent = history

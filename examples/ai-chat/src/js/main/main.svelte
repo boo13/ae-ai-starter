@@ -22,12 +22,13 @@
   let pendingScreenshot: { path: string; fileName: string } | null = $state(null);
   let sessionProjectRoot: string | undefined = $state();
   let didInitializeAiAction: boolean = $state(false);
+  let activeAbortController: AbortController | null = $state(null);
 
   function addMessage(
     role: ChatMessage["role"],
     content: string,
     extra?: { duration_ms?: number }
-  ) {
+  ): number {
     messages.push({
       role,
       content,
@@ -35,6 +36,19 @@
       ...extra,
     });
     scrollToBottom();
+    return messages.length - 1;
+  }
+
+  function appendToMessage(index: number, chunk: string) {
+    if (index >= 0 && index < messages.length) {
+      messages[index].content += chunk;
+      scrollToBottom();
+    }
+  }
+
+  function handleCancel() {
+    activeAbortController?.abort();
+    activeAbortController = null;
   }
 
   async function scrollToBottom() {
@@ -50,6 +64,12 @@
     isLoading = true;
     const imagePath = pendingScreenshot?.path;
     pendingScreenshot = null;
+
+    const controller = new AbortController();
+    activeAbortController = controller;
+
+    // Index of the streaming assistant message slot (-1 = not yet created)
+    let streamingIdx = -1;
 
     try {
       const context = await buildContext();
@@ -67,21 +87,45 @@
           systemContext: context.systemContext,
           imagePath,
           projectRoot: context.projectRoot,
+          signal: controller.signal,
+          onChunk: (chunk) => {
+            if (streamingIdx === -1) {
+              streamingIdx = addMessage("assistant", chunk);
+            } else {
+              appendToMessage(streamingIdx, chunk);
+            }
+          },
         },
         history
       );
 
       if (result.is_error) {
+        // Remove the partial streaming message if we got an error
+        if (streamingIdx !== -1) {
+          messages.splice(streamingIdx, 1);
+          streamingIdx = -1;
+        }
         addMessage("system", result.result, {
           duration_ms: result.duration_ms,
         });
+        if (!result.cancelled) lastError = result.result;
       } else {
         const parsed = parseAiActionResponse(result.result);
         const displayText = parsed.displayText || "AI Action updated.";
 
-        addMessage("assistant", displayText, {
-          duration_ms: result.duration_ms,
-        });
+        if (streamingIdx !== -1) {
+          // Update the streamed message with the cleaned display text and duration
+          messages[streamingIdx].content = displayText;
+          messages[streamingIdx].duration_ms = result.duration_ms;
+        } else {
+          addMessage("assistant", displayText, {
+            duration_ms: result.duration_ms,
+          });
+        }
+
+        if (parsed.multipleBlocks) {
+          addMessage("system", "Multiple AI Action blocks found — only the first was applied.");
+        }
 
         if (parsed.scriptContent) {
           const saved = saveAiAction(context.projectRoot, parsed.scriptContent, displayText);
@@ -89,25 +133,25 @@
 
           if (parsed.runImmediately) {
             const runResult = await runAiAction(context.projectRoot);
-            if ((runResult as any).error) {
-              addMessage("system", "AI Action failed: " + (runResult as any).error);
-              lastError = (runResult as any).error;
+            if (runResult && "error" in runResult && runResult.error) {
+              addMessage("system", "AI Action failed: " + runResult.error);
+              lastError = String(runResult.error);
             } else {
               addMessage("system", "AI Action executed successfully.");
             }
           }
         }
       }
-
-      if (result.is_error) {
-        lastError = result.result;
-      }
     } catch (err: any) {
       const errMsg = err?.message || String(err);
+      if (streamingIdx !== -1) {
+        messages.splice(streamingIdx, 1);
+      }
       addMessage("system", "Error: " + errMsg);
       lastError = errMsg;
     } finally {
       isLoading = false;
+      activeAbortController = null;
     }
   }
 
@@ -118,12 +162,12 @@
       const timestamp = Date.now().toString();
       const result = await evalTS("takeScreenshot", timestamp);
 
-      if ((result as any).error) {
-        addMessage("system", "Screenshot error: " + (result as any).error);
-      } else {
+      if (result && "error" in result && result.error) {
+        addMessage("system", "Screenshot error: " + result.error);
+      } else if (result && "path" in result && "fileName" in result) {
         pendingScreenshot = {
-          path: (result as any).path,
-          fileName: (result as any).fileName,
+          path: result.path,
+          fileName: result.fileName,
         };
         addMessage("system", "Screenshot captured: " + pendingScreenshot.fileName);
       }
@@ -146,9 +190,9 @@
       isLoading = true;
       try {
         const result = await evalTS("runAnalysisScript");
-        if ((result as any).error) {
-          addMessage("system", "Analysis error: " + (result as any).error);
-          lastError = (result as any).error;
+        if (result && "error" in result && result.error) {
+          addMessage("system", "Analysis error: " + result.error);
+          lastError = String(result.error);
         } else {
           addMessage(
             "system",
@@ -184,9 +228,9 @@
         }
 
         const runResult = await runAiAction(sessionProjectRoot);
-        if ((runResult as any).error) {
-          addMessage("system", "AI Action failed: " + (runResult as any).error);
-          lastError = (runResult as any).error;
+        if (runResult && "error" in runResult && runResult.error) {
+          addMessage("system", "AI Action failed: " + runResult.error);
+          lastError = String(runResult.error);
         } else {
           addMessage("system", "AI Action executed successfully.");
         }
@@ -278,6 +322,7 @@
     assistantName={activeProvider.displayName}
     disabled={isLoading}
     onsubmit={handleSend}
+    oncancel={activeAbortController ? handleCancel : undefined}
   />
 </div>
 

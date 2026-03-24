@@ -3,9 +3,10 @@
     assistantName: string;
     disabled: boolean;
     onsubmit: (text: string) => void;
+    oncancel?: () => void;
   }
 
-  let { assistantName, disabled, onsubmit }: Props = $props();
+  let { assistantName, disabled, onsubmit, oncancel }: Props = $props();
   let text: string = $state("");
   let textareaEl: HTMLTextAreaElement | undefined = $state();
 
@@ -44,13 +45,17 @@
     rows="1"
     {disabled}
   ></textarea>
-  <button class="send-btn" onclick={submit} disabled={disabled || !text.trim()}>
-    {#if disabled}
-      <span class="spinner"></span>
-    {:else}
-      Send
-    {/if}
-  </button>
+  {#if disabled && oncancel}
+    <button class="cancel-btn" onclick={oncancel}>Cancel</button>
+  {:else}
+    <button class="send-btn" onclick={submit} disabled={disabled || !text.trim()}>
+      {#if disabled}
+        <span class="spinner"></span>
+      {:else}
+        Send
+      {/if}
+    </button>
+  {/if}
 </div>
 
 <style>
@@ -109,6 +114,23 @@
   .send-btn:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+  }
+  .cancel-btn {
+    background: #3a2a2a;
+    color: #ff7070;
+    border: 1px solid #5a3a3a;
+    border-radius: 4px;
+    padding: 8px 14px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+    min-width: 52px;
+    height: 36px;
+  }
+  .cancel-btn:hover {
+    background: #4a2a2a;
+    border-color: #7a4a4a;
   }
   .spinner {
     width: 14px;

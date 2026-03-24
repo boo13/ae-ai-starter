@@ -96,11 +96,21 @@ async function sendCodexMessage(
     let stdout = "";
     let stderr = "";
     let killed = false;
+    let cancelled = false;
 
     const timer = setTimeout(() => {
       killed = true;
       proc.kill();
     }, 300000);
+
+    // Wire AbortSignal for user-initiated cancel
+    if (options.signal) {
+      options.signal.addEventListener("abort", () => {
+        cancelled = true;
+        clearTimeout(timer);
+        proc.kill();
+      }, { once: true });
+    }
 
     proc.stdout.on("data", (chunk: Buffer) => {
       stdout += chunk.toString();
@@ -113,6 +123,16 @@ async function sendCodexMessage(
     proc.on("close", (code: number | null) => {
       clearTimeout(timer);
       const duration_ms = Date.now() - startTime;
+
+      if (cancelled) {
+        resolve({
+          result: "Request cancelled.",
+          duration_ms,
+          is_error: true,
+          cancelled: true,
+        });
+        return;
+      }
 
       if (killed) {
         resolve({

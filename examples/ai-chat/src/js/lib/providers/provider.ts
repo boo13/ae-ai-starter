@@ -9,6 +9,7 @@ export interface ProviderResult {
   result: string;
   duration_ms: number;
   is_error: boolean;
+  cancelled?: boolean;
 }
 
 export interface SendMessageOptions {
@@ -16,6 +17,8 @@ export interface SendMessageOptions {
   systemContext: string;
   imagePath?: string;
   projectRoot?: string;
+  signal?: AbortSignal;
+  onChunk?: (chunk: string) => void;
 }
 
 export interface ProviderModel {

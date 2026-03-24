@@ -16,14 +16,14 @@
     role === "user" ? "You" : role === "assistant" ? assistantName : "System"
   );
 
-  const timeStr = $derived(() => {
+  const timeStr = $derived.by(() => {
     const d = new Date(timestamp);
     const h = d.getHours().toString().padStart(2, "0");
     const m = d.getMinutes().toString().padStart(2, "0");
     return `${h}:${m}`;
   });
 
-  const renderedContent = $derived(() => {
+  const renderedContent = $derived.by(() => {
     try {
       return DOMPurify.sanitize(marked.parse(content, { async: false }) as string);
     } catch {
@@ -31,7 +31,7 @@
     }
   });
 
-  const metaStr = $derived(() => {
+  const metaStr = $derived.by(() => {
     const parts: string[] = [];
     if (duration_ms) {
       parts.push(`${(duration_ms / 1000).toFixed(1)}s`);
@@ -43,17 +43,17 @@
 <div class="message message--{role}">
   <div class="message__header">
     <span class="message__role">{roleLabel}</span>
-    <span class="message__time">{timeStr()}</span>
+    <span class="message__time">{timeStr}</span>
   </div>
   <div class="message__content">
     {#if role === "system"}
       <p class="message__system-text">{content}</p>
     {:else}
-      {@html renderedContent()}
+      {@html renderedContent}
     {/if}
   </div>
-  {#if metaStr()}
-    <div class="message__meta">{metaStr()}</div>
+  {#if metaStr}
+    <div class="message__meta">{metaStr}</div>
   {/if}
 </div>
 
