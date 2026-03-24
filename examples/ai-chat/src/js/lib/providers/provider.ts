@@ -16,6 +16,8 @@ export interface SendMessageOptions {
   systemContext: string;
   imagePath?: string;
   projectRoot?: string;
+  signal?: AbortSignal;
+  onChunk?: (chunk: string) => void;
 }
 
 export interface ProviderModel {
