@@ -55,6 +55,7 @@ export function runPreset(config: BuildConfig): BuildResult {
       compsCreated.push(chartComp.name);
 
     } else if (config.preset === "text-only") {
+      app.endUndoGroup();
       var result = scanAndPopulateTextBindings({
         dataFilePath: config.dataFilePath,
         bindings: data.bindings ?? {},

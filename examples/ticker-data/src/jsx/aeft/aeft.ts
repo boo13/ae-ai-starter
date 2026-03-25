@@ -14,7 +14,7 @@ export const getProjectInfo = () => {
     projectName = "(unsaved project)";
     projectPath = "";
   }
-  return { projectName, projectPath, numItems: app.project.numItems };
+  return { name: projectName, path: projectPath, hasProject: !!app.project.file };
 };
 
 export const getProjectRoot = () => {
@@ -25,7 +25,7 @@ export const getProjectRoot = () => {
 
 export const getActiveCompInfo = () => {
   var comp = getActiveComp();
-  if (!comp) return { error: "No active composition. Open a composition first." };
+  if (!comp) return { name: "", duration: 0, frameRate: 0, width: 0, height: 0, hasComp: false };
   var MAX_LAYERS = 30;
   function getLayerType(layer: Layer): string {
     if (layer instanceof TextLayer) return "text";
@@ -39,7 +39,7 @@ export const getActiveCompInfo = () => {
     var l = comp.layer(j);
     layers.push({ name: l.name, type: getLayerType(l), index: l.index });
   }
-  return { name: comp.name, width: comp.width, height: comp.height, fps: comp.frameRate, duration: comp.duration, numLayers: comp.numLayers, layers };
+  return { name: comp.name, width: comp.width, height: comp.height, frameRate: comp.frameRate, duration: comp.duration, numLayers: comp.numLayers, layers, hasComp: true };
 };
 
 export const buildFromPreset = (config: BuildConfig): BuildResult => {
