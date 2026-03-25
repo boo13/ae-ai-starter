@@ -1,5 +1,5 @@
 // src/jsx/lib/read-ticker-data.ts
-import { TickerData } from "../../shared/types";
+import type { TickerData } from "../../shared/types";
 
 export var readTickerData = function(filePath: string): TickerData | null {
   var file = new File(filePath);

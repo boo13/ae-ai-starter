@@ -22,15 +22,20 @@ export function runPreset(config: BuildConfig): BuildResult {
     return { success: false, message: "No stock data in file. Fetch data first." };
   }
 
-  var folder = ensureProjectFolder("Ticker Data");
-  var compsCreated: string[] = [];
-
   if (config.preset === "text-only") {
-    return scanAndPopulateTextBindings({
+    var bindResult = scanAndPopulateTextBindings({
       dataFilePath: config.dataFilePath,
       bindings: data.bindings ?? {},
     });
+    return { success: bindResult.success, message: bindResult.message };
   }
+
+  if (config.preset === "comparison" && data.stocks.length < 2) {
+    return { success: false, message: "Comparison chart needs at least 2 stocks in watchlist." };
+  }
+
+  var folder = ensureProjectFolder("Ticker Data");
+  var compsCreated: string[] = [];
 
   app.beginUndoGroup("Ticker Data: Build " + config.preset);
 
@@ -47,10 +52,6 @@ export function runPreset(config: BuildConfig): BuildResult {
       }
 
     } else if (config.preset === "comparison") {
-      if (data.stocks.length < 2) {
-        app.endUndoGroup();
-        return { success: false, message: "Comparison chart needs at least 2 stocks in watchlist." };
-      }
       var chartComp = buildComparisonChart(data.stocks, config.customization, folder);
       compsCreated.push(chartComp.name);
     }
