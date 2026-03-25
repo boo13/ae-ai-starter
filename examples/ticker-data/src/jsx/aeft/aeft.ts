@@ -1,4 +1,6 @@
 import { getActiveComp, getProjectDir } from "./aeft-utils";
+import { scanAndPopulateTextBindings } from "../builders/text-binder";
+import type { TextBindConfig, BuildConfig, BuildResult, BindResult } from "../../shared/types";
 
 export const getProjectInfo = () => {
   var projectName = "";
@@ -147,4 +149,13 @@ export const takeScreenshot = (timestamp: string) => {
   } catch (e: any) {
     return { error: "Failed to save screenshot: " + e.toString() };
   }
+};
+
+export const populateTextBindings = (config: TextBindConfig): BindResult => {
+  return scanAndPopulateTextBindings(config);
+};
+
+// Stub buildFromPreset — will be filled in Task 14
+export const buildFromPreset = (config: BuildConfig): BuildResult => {
+  return { success: false, message: "Builders not yet implemented" };
 };
