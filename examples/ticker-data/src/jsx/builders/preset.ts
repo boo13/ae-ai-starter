@@ -2,16 +2,8 @@
 import { buildStockCard } from "./card";
 import { buildComparisonChart } from "./chart";
 import { scanAndPopulateTextBindings } from "./text-binder";
-import type { BuildConfig, BuildResult, TickerData } from "../../shared/types";
-
-function readTickerData(filePath: string): TickerData | null {
-  var file = new File(filePath);
-  if (!file.exists) return null;
-  file.open("r");
-  var content = file.read();
-  file.close();
-  try { return JSON.parse(content) as TickerData; } catch (e) { return null; }
-}
+import type { BuildConfig, BuildResult } from "../../shared/types";
+import { readTickerData } from "../lib/read-ticker-data";
 
 function ensureProjectFolder(name: string): FolderItem {
   for (var i = 1; i <= app.project.numItems; i++) {
@@ -33,6 +25,13 @@ export function runPreset(config: BuildConfig): BuildResult {
   var folder = ensureProjectFolder("Ticker Data");
   var compsCreated: string[] = [];
 
+  if (config.preset === "text-only") {
+    return scanAndPopulateTextBindings({
+      dataFilePath: config.dataFilePath,
+      bindings: data.bindings ?? {},
+    });
+  }
+
   app.beginUndoGroup("Ticker Data: Build " + config.preset);
 
   try {
@@ -49,18 +48,11 @@ export function runPreset(config: BuildConfig): BuildResult {
 
     } else if (config.preset === "comparison") {
       if (data.stocks.length < 2) {
+        app.endUndoGroup();
         return { success: false, message: "Comparison chart needs at least 2 stocks in watchlist." };
       }
       var chartComp = buildComparisonChart(data.stocks, config.customization, folder);
       compsCreated.push(chartComp.name);
-
-    } else if (config.preset === "text-only") {
-      app.endUndoGroup();
-      var result = scanAndPopulateTextBindings({
-        dataFilePath: config.dataFilePath,
-        bindings: data.bindings ?? {},
-      });
-      return result;
     }
 
     app.endUndoGroup();

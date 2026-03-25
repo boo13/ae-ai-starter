@@ -1,21 +1,9 @@
 // src/jsx/builders/text-binder.ts
 import { formatPrice, formatPercent, formatChange, formatVolume, formatMarketCap, formatDate } from "../lib/format";
-import type { TickerData, TextBindConfig } from "../../shared/types";
+import type { TextBindConfig } from "../../shared/types";
+import { readTickerData } from "../lib/read-ticker-data";
 
 declare const $: any;
-
-function readTickerData(filePath: string): TickerData | null {
-  var file = new File(filePath);
-  if (!file.exists) return null;
-  file.open("r");
-  var content = file.read();
-  file.close();
-  try {
-    return JSON.parse(content) as TickerData;
-  } catch (e) {
-    return null;
-  }
-}
 
 function resolveField(stockData: any, field: string): string {
   switch (field) {
