@@ -25,6 +25,8 @@ npm install
 npm run symlink    # Symlinks panel into AE's CEP extensions folder
 ```
 
+Before packaging for distribution, change the `zxp.password` value in `cep.config.ts` to a secure value.
+
 Then in After Effects: Window → Extensions → Ticker Data
 
 ## Development

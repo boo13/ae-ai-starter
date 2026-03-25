@@ -1,11 +1,9 @@
 // src/jsx/builders/text-binder.ts
 import { formatPrice, formatPercent, formatChange, formatVolume, formatMarketCap, formatDate } from "../lib/format";
-import type { TextBindConfig } from "../../shared/types";
+import type { TextBindConfig, StockData } from "../../shared/types";
 import { readTickerData } from "../lib/read-ticker-data";
 
-declare const $: any;
-
-function resolveField(stockData: any, field: string): string {
+function resolveField(stockData: StockData, field: string): string {
   switch (field) {
     case "price": return formatPrice(stockData.current);
     case "change": return formatChange(stockData.change);
@@ -36,7 +34,7 @@ export function scanAndPopulateTextBindings(config: TextBindConfig): { success: 
   }
 
   // Build lookup: symbol → stockData
-  var stockMap: Record<string, any> = {};
+  var stockMap: Record<string, StockData> = {};
   for (var i = 0; i < data.stocks.length; i++) {
     stockMap[data.stocks[i].symbol] = data.stocks[i];
   }

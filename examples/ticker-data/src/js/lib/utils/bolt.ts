@@ -78,7 +78,9 @@ export const evalTS = <
   return new Promise(function (resolve, reject) {
     const formattedArgs = args
       .map((arg) => {
-        console.log(JSON.stringify(arg));
+        if (process.env.NODE_ENV !== "production") {
+          console.log(JSON.stringify(arg));
+        }
         return `${JSON.stringify(arg)}`;
       })
       .join(",");
@@ -115,11 +117,7 @@ export const evalTS = <
 
 export const evalFile = (file: string) => {
   return evalES(
-    "typeof $ !== 'undefined' ? $.evalFile(\"" +
-      file +
-      '") : fl.runScript(FLfile.platformPathToURI("' +
-      file +
-      '"));',
+    `typeof $ !== 'undefined' ? $.evalFile(${JSON.stringify(file)}) : fl.runScript(FLfile.platformPathToURI(${JSON.stringify(file)}));`,
     true
   );
 };

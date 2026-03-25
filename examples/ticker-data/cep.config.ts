@@ -11,7 +11,7 @@ const config: CEP_Config = {
   startingDebugPort: 8862,
   extensionManifestVersion: 6.0,
   requiredRuntimeVersion: 9.0,
-  hosts: [{ name: "AEFT", version: "[0.0,99.9]" }],
+  hosts: [{ name: "AEFT", version: "[22.0,99.9]" }],
   type: "Panel",
   iconDarkNormal: "./src/assets/light-icon.svg",
   iconNormal: "./src/assets/dark-icon.svg",

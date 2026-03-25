@@ -1,6 +1,17 @@
 import yahooFinance from "yahoo-finance2";
 import type { StockData, PriceBar, Period } from "@shared/types";
 
+export class PartialFetchError extends Error {
+  constructor(
+    message: string,
+    public readonly partialResults: StockData[],
+    public readonly errors: string[]
+  ) {
+    super(message);
+    this.name = "PartialFetchError";
+  }
+}
+
 // Suppress yahoo-finance2 validation noise in CEP console
 yahooFinance.setGlobalConfig({
   validation: { logErrors: false, logOptionsErrors: false },
@@ -12,6 +23,13 @@ function periodToDateRange(period: Period): { period1: Date; period2: Date } {
   const daysMap: Record<Period, number> = { "7d": 7, "30d": 30, "90d": 90, "1y": 365 };
   const start = new Date(now.getTime() - daysMap[period] * 24 * 60 * 60 * 1000);
   return { period1: start, period2: now };
+}
+
+const VALID_MARKET_STATES = ["REGULAR", "PRE", "POST", "CLOSED"] as const;
+function toMarketState(raw: string | undefined): StockData["marketState"] {
+  return (VALID_MARKET_STATES as readonly string[]).includes(raw ?? "")
+    ? (raw as StockData["marketState"])
+    : "CLOSED";
 }
 
 export async function fetchHistorical(symbol: string, period: Period): Promise<PriceBar[]> {
@@ -44,7 +62,7 @@ export async function fetchQuotes(symbols: string[], period: Period = "30d"): Pr
         high52w: quote.fiftyTwoWeekHigh ?? 0,
         low52w: quote.fiftyTwoWeekLow ?? 0,
         regularMarketTime: quote.regularMarketTime?.toISOString() ?? new Date().toISOString(),
-        marketState: (quote.marketState as StockData["marketState"]) ?? "CLOSED",
+        marketState: toMarketState(quote.marketState),
         history: bars,
       };
     })
@@ -62,10 +80,7 @@ export async function fetchQuotes(symbols: string[], period: Period = "30d"): Pr
 
   if (errors.length > 0) {
     // Partial success — throw with details so UI can report per-ticker failure
-    const e = new Error(`Failed to fetch: ${errors.join("; ")}`);
-    (e as any).partialResults = stocks;
-    (e as any).errors = errors;
-    throw e;
+    throw new PartialFetchError(`Failed to fetch: ${errors.join("; ")}`, stocks, errors);
   }
 
   return stocks;

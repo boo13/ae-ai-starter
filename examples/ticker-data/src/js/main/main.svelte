@@ -2,12 +2,12 @@
 <script lang="ts">
   import { onMount } from "svelte";
   import { evalTS } from "../lib/utils/bolt";
-  import { fetchQuotes } from "../lib/ticker-service";
+  import { fetchQuotes, PartialFetchError } from "../lib/ticker-service";
   // Sample data is bundled at build time via Vite's JSON import
   import sampleTickerData from "../../../Input/sample_ticker_data.json";
   import type { TickerData as TickerDataType } from "@shared/types";
   const SAMPLE_DATA = sampleTickerData as TickerDataType;
-  import { writeTickerData, readCachedData, isCacheStale } from "../lib/data-writer";
+  import { writeTickerData, readCachedData, isCacheStale, getDataFilePath } from "../lib/data-writer";
   import {
     loadWatchlist, saveWatchlist,
     loadBindings, saveBindings,
@@ -33,8 +33,8 @@
   });
   let projectRoot = $state("");
   let cachedData: TickerData | null = $state(null);
-  let dataIsOnDisk = $state(false);   // true only when ticker_data.json exists on disk
-  let showStaleWarning = $state(false);
+  let dataIsOnDisk = $derived(cachedData !== null && cachedData !== SAMPLE_DATA);
+  let showStaleWarning = $derived(dataIsOnDisk && isCacheStale(cachedData));
   let showUseCachedButton = $state(false);
 
   function log(level: LogEntry["level"], message: string) {
@@ -44,27 +44,23 @@
   onMount(async () => {
     watchlist = loadWatchlist();
     bindings = loadBindings();
-    selectedPreset = loadLastPreset() as Preset;
+    selectedPreset = loadLastPreset();
 
     try {
       projectRoot = await evalTS("getProjectRoot") ?? "";
       if (projectRoot) {
-        cachedData = readCachedData(projectRoot);
-        showStaleWarning = isCacheStale(cachedData);
-        if (cachedData) {
-          dataIsOnDisk = true;
-          showStaleWarning = isCacheStale(cachedData);
+        const fromDisk = readCachedData(projectRoot);
+        if (fromDisk) {
+          cachedData = fromDisk;
           log("info", "Loaded cached data from Input/ticker_data.json");
         } else {
           // Offline fallback: show sample data for preview only (Build is disabled until real fetch)
           cachedData = SAMPLE_DATA;
-          dataIsOnDisk = false;
           log("info", "No data file found — showing sample data. Click Fetch to get live prices and enable Build.");
         }
       } else {
         // No saved project — show sample data for preview only
         cachedData = SAMPLE_DATA;
-        dataIsOnDisk = false;
         log("info", "Sample data loaded (demo view). Save your AE project then Fetch to enable Build.");
       }
     } catch (e: any) {
@@ -72,7 +68,13 @@
     }
   });
 
+  const TICKER_RE = /^[A-Z]{1,5}(\.[A-Z]{1,2})?$/;
+
   function addTicker(symbol: string, _name: string) {
+    if (!TICKER_RE.test(symbol)) {
+      log("error", `Invalid ticker symbol: ${symbol}`);
+      return;
+    }
     if (!watchlist.includes(symbol)) {
       watchlist = [...watchlist, symbol];
       saveWatchlist(watchlist);
@@ -108,14 +110,13 @@
     let stocks;
     try {
       stocks = await fetchQuotes(watchlist, customization.period);
-    } catch (e: any) {
-      const partial = e.partialResults ?? [];
-      if (partial.length > 0) {
-        stocks = partial;
-        log("error", "Partial failure: " + (e.errors ?? []).join("; "));
+    } catch (err: unknown) {
+      if (err instanceof PartialFetchError && err.partialResults.length > 0) {
+        stocks = err.partialResults;
+        err.errors.forEach(e => log("error", e));
       } else {
         status = "error";
-        log("error", "Fetch failed: " + (e?.message ?? e));
+        log("error", "Fetch failed: " + (err instanceof Error ? err.message : String(err)));
         if (dataIsOnDisk) {
           showUseCachedButton = true;
           log("info", "Previous data still available — click 'Use Cached' to continue.");
@@ -133,8 +134,6 @@
     try {
       const filePath = await writeTickerData(data, projectRoot);
       cachedData = data;
-      dataIsOnDisk = true;
-      showStaleWarning = false;
       showUseCachedButton = false;
       log("success", `Fetched ${stocks.length} ticker(s) → ${filePath}`);
       status = "idle";
@@ -157,7 +156,7 @@
     status = "building";
     log("info", `Building preset "${selectedPreset}"...`);
 
-    const filePath = projectRoot + "/Input/ticker_data.json";
+    const filePath = getDataFilePath(projectRoot);
     try {
       const result = await evalTS("buildFromPreset", {
         preset: selectedPreset,
@@ -183,7 +182,7 @@
     status = "building";
     log("info", "Updating text bindings...");
 
-    const filePath = projectRoot + "/Input/ticker_data.json";
+    const filePath = getDataFilePath(projectRoot);
     try {
       const result = await evalTS("populateTextBindings", {
         dataFilePath: filePath,

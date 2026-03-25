@@ -2,16 +2,21 @@
 // Persists watchlist and bindings in CEP's localStorage.
 // Data survives panel reloads but is cleared on extension reinstall.
 
+import type { Preset } from "@shared/types";
+
 const WATCHLIST_KEY = "td_watchlist";
 const BINDINGS_KEY = "td_bindings";
 const LAST_PRESET_KEY = "td_last_preset";
 
+const VALID_PRESETS: Preset[] = ["single-card", "multi-card", "comparison", "text-only"];
+
 export function loadWatchlist(): string[] {
   try {
-    return JSON.parse(localStorage.getItem(WATCHLIST_KEY) ?? "[]");
-  } catch {
-    return [];
-  }
+    const raw = localStorage.getItem(WATCHLIST_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch { return []; }
 }
 
 export function saveWatchlist(symbols: string[]): void {
@@ -20,18 +25,20 @@ export function saveWatchlist(symbols: string[]): void {
 
 export function loadBindings(): Record<string, string> {
   try {
-    return JSON.parse(localStorage.getItem(BINDINGS_KEY) ?? "{}");
-  } catch {
-    return {};
-  }
+    const raw = localStorage.getItem(BINDINGS_KEY);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    return parsed !== null && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+  } catch { return {}; }
 }
 
 export function saveBindings(bindings: Record<string, string>): void {
   localStorage.setItem(BINDINGS_KEY, JSON.stringify(bindings));
 }
 
-export function loadLastPreset(): string {
-  return localStorage.getItem(LAST_PRESET_KEY) ?? "single-card";
+export function loadLastPreset(): Preset {
+  const raw = localStorage.getItem(LAST_PRESET_KEY) ?? "single-card";
+  return VALID_PRESETS.includes(raw as Preset) ? (raw as Preset) : "single-card";
 }
 
 export function saveLastPreset(preset: string): void {
