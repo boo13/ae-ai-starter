@@ -61,6 +61,7 @@ export default defineConfig({
     },
     rollupOptions: {
       input,
+      external: ["yahoo-finance2", "node-fetch", "url", "stream", "http", "https", "zlib"],
       output: {
         manualChunks: {},
         preserveModules: false,
