@@ -78,7 +78,9 @@ export const evalTS = <
   return new Promise(function (resolve, reject) {
     const formattedArgs = args
       .map((arg) => {
-        console.log(JSON.stringify(arg));
+        if (process.env.NODE_ENV !== "production") {
+          console.log(JSON.stringify(arg));
+        }
         return `${JSON.stringify(arg)}`;
       })
       .join(",");
