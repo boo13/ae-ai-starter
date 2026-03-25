@@ -3,8 +3,8 @@ import { version } from "./package.json";
 
 const config: CEP_Config = {
   version,
-  id: "com.ae-ai-starter.ai-claude",
-  displayName: "AI Claude",
+  id: "com.ae-ai-starter.ai-claude-api",
+  displayName: "AI Claude API",
   symlink: "local",
   port: 3001,
   servePort: 5001,
@@ -24,7 +24,7 @@ const config: CEP_Config = {
     {
       mainPath: "./main/index.html",
       name: "main",
-      panelDisplayName: "AI Claude",
+      panelDisplayName: "AI Claude API",
       autoVisible: true,
       width: 400,
       height: 600,

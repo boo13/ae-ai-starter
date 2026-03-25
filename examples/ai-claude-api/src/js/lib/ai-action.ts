@@ -38,7 +38,7 @@ function resolveExampleRoot(projectRoot?: string): string | null {
   const repoRoot = resolveRepoRoot(projectRoot);
   if (!repoRoot) return null;
 
-  return path.join(repoRoot, "examples", "ai-claude");
+  return path.join(repoRoot, "examples", "ai-claude-api");
 }
 
 function resolveAiActionPaths(projectRoot?: string) {

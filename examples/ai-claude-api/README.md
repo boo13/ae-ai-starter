@@ -1,4 +1,4 @@
-# AI Claude for After Effects
+# AI Claude API for After Effects
 
 A CEP panel that provides a chat interface for communicating with Claude directly inside After Effects via the Anthropic API. Send instructions, get scripts generated, run common actions, and attach comp screenshots without leaving AE.
 
@@ -13,13 +13,19 @@ A CEP panel that provides a chat interface for communicating with Claude directl
 
 - After Effects 2023 or later
 - Node.js 18–24 (Node 25+ is not recommended due to CEP compatibility)
-- An [Anthropic API key](https://console.anthropic.com/settings/keys)
+- An Anthropic **API key** — see note below
 - CEP debug mode enabled (use [ZXP Installer](https://aescripts.com/learn/zxp-installer/) > Settings > Enable Debugging)
+
+### Anthropic API key vs. Claude Pro
+
+**Claude Pro** (claude.ai subscription) and **Anthropic API access** are separate products with separate billing. A Claude Pro subscription does **not** give you API access.
+
+To use this panel you need an API key from [console.anthropic.com](https://console.anthropic.com/settings/keys). API usage is billed by token from a credit balance you add separately — it is not included in any Claude Pro plan.
 
 ## Setup
 
 ```bash
-cd examples/ai-claude
+cd examples/ai-claude-api
 npm install
 npm run build
 ```
