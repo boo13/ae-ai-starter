@@ -13,21 +13,38 @@ A CEP panel for After Effects that fetches live stock market data and builds mot
 
 ## Prerequisites
 
-- After Effects CC 2019 or later
+- After Effects CC 2022 or later
 - Node.js 18+
-- CEP debug mode enabled
 
-## Setup
+## Step 1: Enable CEP Debug Mode (required once per machine)
+
+Adobe blocks unsigned CEP extensions by default. **Without this step the panel opens as a blank white window.**
+
+Run in Terminal, then restart After Effects:
+
+```bash
+# AE 2022–2023 (CEP 11)
+defaults write com.adobe.CSXS.11 PlayerDebugMode 1
+# AE 2024+ (CEP 12)
+defaults write com.adobe.CSXS.12 PlayerDebugMode 1
+```
+
+You only need to do this once per machine. To verify: reopen the panel — you should see the Ticker Data UI instead of a blank window.
+
+> Alternatively, install [ZXP Installer](https://aescripts.com/learn/zxp-installer/) and enable debugging via Settings.
+
+## Step 2: Install, Build, and Symlink
 
 ```bash
 cd examples/ticker-data
 npm install
-npm run symlink    # Symlinks panel into AE's CEP extensions folder
+npm run build
+npm run symlink    # Links panel into AE's CEP extensions folder
 ```
 
-Before packaging for distribution, change the `zxp.password` value in `cep.config.ts` to a secure value.
+Then in After Effects: **Window → Extensions → Ticker Data**
 
-Then in After Effects: Window → Extensions → Ticker Data
+> Before packaging for distribution, change `zxp.password` in `cep.config.ts` to a real value.
 
 ## Development
 
