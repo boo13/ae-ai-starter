@@ -24,6 +24,8 @@
 // --- Shared libraries ---
 #include "../../Scripts/lib/helpers.jsxinc"
 #include "../../Scripts/lib/io.jsxinc"
+#include "../../Scripts/lib/prop-walker.jsxinc"
+#include "../../Scripts/lib/result-writer.jsxinc"
 
 // --- Recipes ---
 #include "../../Scripts/recipes/repeating-elements/registry.jsxinc"
@@ -36,6 +38,10 @@
 #include "config.jsxinc"
 
 (function () {
+    var step = "init";
+    var comp = app.project.activeItem instanceof CompItem ? app.project.activeItem : null;
+    beginScript("update_card.jsx", comp);
+
     // ------------------------------------------------------------------
     // 1. Load JSON data
     // ------------------------------------------------------------------
@@ -104,6 +110,9 @@
 
     app.beginUndoGroup("Update Social Cards");
 
+    try {
+
+    step = "update text properties";
     var populated = updateAllElements(registry, cards, propertyMap);
 
     // ------------------------------------------------------------------
@@ -112,6 +121,7 @@
     //    replace the layer source. Images are organized into a project
     //    folder to keep the AE Project panel tidy.
     // ------------------------------------------------------------------
+    step = "import images";
     var assetsFolder = ensureProjectFolder("Card Images");
 
     for (var i = 0; i < cards.length; i++) {
@@ -146,6 +156,7 @@
     //    Each card's display duration is based on the combined word count
     //    of its headline and body text.
     // ------------------------------------------------------------------
+    step = "apply timing";
     var currentTime = baseStart;
 
     for (var t = 0; t < cards.length; t++) {
@@ -171,7 +182,9 @@
         currentTime += duration;
     }
 
+    step = "complete";
     app.endUndoGroup();
+    writeResult("success", step, null, comp);
 
     // ------------------------------------------------------------------
     // Summary
@@ -182,4 +195,10 @@
         "Cards populated: " + populated + "\n" +
         "Total duration: " + totalDuration + "s"
     );
+
+    } catch (e) {
+        try { app.endUndoGroup(); } catch (_) {}
+        writeResult("error", step, e, comp);
+        alert("Update failed at step [" + step + "]:\n" + e.toString());
+    }
 })();

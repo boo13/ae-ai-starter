@@ -73,9 +73,9 @@ export function buildSparkline(
 
   var groupContents = shapeGroup.property("Contents") as PropertyGroup;
 
-  // Add path
+  // Add path — use ADBE match names for reliable property access across AE versions
   var pathProp = groupContents.addProperty("ADBE Vector Shape - Group") as PropertyGroup;
-  var shapePath = pathProp.property("Path") as Property;
+  var shapePath = pathProp.property("ADBE Vector Shape") as Property;
   var newPath = new Shape();
   newPath.vertices = vertices;
   newPath.inTangents = inTangents;
@@ -84,20 +84,20 @@ export function buildSparkline(
   (shapePath as any).setValue(newPath);
 
   // Add stroke
-  var stroke = groupContents.addProperty("ADBE Vector Graphic - Stroke") as PropertyGroup;
-  (stroke.property("Color") as Property).setValue(strokeColor);
   var strokeWidthPx = options.strokeWidth;
   if (options.customization.fontSize === "large") strokeWidthPx = options.strokeWidth * 1.5;
   if (options.customization.fontSize === "small") strokeWidthPx = options.strokeWidth * 0.75;
-  (stroke.property("Stroke Width") as Property).setValue(strokeWidthPx);
-  (stroke.property("Line Cap") as Property).setValue(2);    // Round cap
-  (stroke.property("Line Join") as Property).setValue(2);   // Round join
+  var stroke = groupContents.addProperty("ADBE Vector Graphic - Stroke") as PropertyGroup;
+  (stroke.property("ADBE Vector Stroke Color") as Property).setValue(strokeColor);
+  (stroke.property("ADBE Vector Stroke Width") as Property).setValue(strokeWidthPx);
+  (stroke.property("ADBE Vector Stroke Line Cap") as Property).setValue(2);   // Round cap
+  (stroke.property("ADBE Vector Stroke Line Join") as Property).setValue(2);  // Round join
 
   // Add trim path for draw-on animation
   if (options.customization.sparklineAnimation === "draw-on") {
     var trim = groupContents.addProperty("ADBE Vector Filter - Trim") as PropertyGroup;
-    (trim.property("Start") as Property).setValue(0);
-    var endProp = trim.property("End") as Property;
+    (trim.property("ADBE Vector Trim Start") as Property).setValue(0);
+    var endProp = trim.property("ADBE Vector Trim End") as Property;
     endProp.setValueAtTime(0, 0);
     endProp.setValueAtTime(hostComp.duration * 0.5, 100);
   }

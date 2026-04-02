@@ -110,3 +110,26 @@ function formatTimestamp() {
         pad(d.getMinutes()) +
         pad(d.getSeconds());
 }
+
+/**
+ * Returns a UTC ISO 8601 timestamp string (e.g. "2026-03-27T21:23:01.042Z").
+ * ES3-safe: Date.prototype.toISOString is ES5 and not available in ExtendScript.
+ *
+ * @param {Date} [d] - Optional Date object; defaults to now.
+ * @returns {string} ISO 8601 UTC timestamp.
+ */
+function formatTimestampISO(d) {
+    if (!d) d = new Date();
+    function pad(n, len) {
+        var s = String(n);
+        while (s.length < (len || 2)) s = "0" + s;
+        return s;
+    }
+    return d.getUTCFullYear() + "-" +
+        pad(d.getUTCMonth() + 1) + "-" +
+        pad(d.getUTCDate()) + "T" +
+        pad(d.getUTCHours()) + ":" +
+        pad(d.getUTCMinutes()) + ":" +
+        pad(d.getUTCSeconds()) + "." +
+        pad(d.getUTCMilliseconds(), 3) + "Z";
+}

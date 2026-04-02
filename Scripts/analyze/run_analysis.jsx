@@ -19,6 +19,7 @@
 #include "../lib/io.jsxinc"
 #include "../lib/helpers.jsxinc"
 #include "../lib/report_writer.jsxinc"
+#include "../lib/prop-walker.jsxinc"
 
 // --- Snapshot modules ---
 #include "lib/snapshot_project.jsxinc"
@@ -26,6 +27,7 @@
 #include "lib/snapshot_layers.jsxinc"
 #include "lib/snapshot_properties.jsxinc"
 #include "lib/snapshot_expressions.jsxinc"
+#include "lib/snapshot_property_paths.jsxinc"
 
 (function () {
     try {
@@ -144,6 +146,12 @@
         }
         if (resExpressions && resExpressions.expressionCount !== undefined) {
             expressionCount = resExpressions.expressionCount;
+        }
+
+        // 6. Property paths with ADBE match-names (Layer A enriched context)
+        var resPropertyPaths = SnapshotPropertyPaths.capture(context);
+        if (resPropertyPaths && resPropertyPaths.warnings) {
+            allWarnings = allWarnings.concat(resPropertyPaths.warnings);
         }
 
         // ------------------------------------------------------------------

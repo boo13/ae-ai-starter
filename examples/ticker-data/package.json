@@ -13,7 +13,7 @@
     "delsymlink": "cross-env BOLT_ACTION=delsymlink vite"
   },
   "dependencies": {
-    "yahoo-finance2": "^2.11.3"
+    "yahoo-finance2": "^3.13.2"
   },
   "devDependencies": {
     "@babel/core": "^7.19.0",

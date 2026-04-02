@@ -107,7 +107,7 @@ function populateChart(comp: CompItem, stocks: StockData[], customization: Custo
     for (var t = 0; t < vertices.length; t++) { inT.push([0,0]); outT.push([0,0]); }
 
     var pathPropGroup = grpContents.addProperty("ADBE Vector Shape - Group") as PropertyGroup;
-    var shapePath = pathPropGroup.property("Path") as Property;
+    var shapePath = pathPropGroup.property("ADBE Vector Shape") as Property;
     var newPath = new Shape();
     newPath.vertices = vertices;
     newPath.inTangents = inT;
@@ -116,21 +116,28 @@ function populateChart(comp: CompItem, stocks: StockData[], customization: Custo
     (shapePath as any).setValue(newPath);
 
     var stroke = grpContents.addProperty("ADBE Vector Graphic - Stroke") as PropertyGroup;
-    (stroke.property("Color") as Property).setValue(color);
-    (stroke.property("Stroke Width") as Property).setValue(2);
-    (stroke.property("Line Cap") as Property).setValue(2);
+    (stroke.property("ADBE Vector Stroke Color") as Property).setValue(color);
+    (stroke.property("ADBE Vector Stroke Width") as Property).setValue(2);
+    (stroke.property("ADBE Vector Stroke Line Cap") as Property).setValue(2);
 
-    // Legend label
+    // Legend label — get TextDocument from layer, set applyFill before fillColor,
+    // use full property paths for reliable cross-version AE compatibility
     var lastPct = pctChanges[pctChanges.length - 1];
     var sign = lastPct >= 0 ? "+" : "";
     var legendText = stock.symbol + "  " + sign + lastPct.toFixed(1) + "%";
-    var legendLayer = comp.layers.addText(legendText);
+    var legendLayer = comp.layers.addText(legendText) as TextLayer;
     legendLayer.name = stock.symbol + " Legend";
-    var legendDoc = new TextDocument(legendText);
+    var legendSrcProp = legendLayer.property("Text").property("Source Text") as Property;
+    var legendDoc = legendSrcProp.value as TextDocument;
+    legendDoc.text = legendText;
     legendDoc.fontSize = 22;
+    legendDoc.applyFill = true;
     legendDoc.fillColor = color;
-    (legendLayer.property("Source Text") as Property).setValue(legendDoc);
-    (legendLayer.property("Position") as Property).setValue([
+    legendDoc.justification = ParagraphJustification.LEFT_JUSTIFY;
+    legendSrcProp.setValue(legendDoc);
+    var legendTransform = legendLayer.property("Transform") as PropertyGroup;
+    (legendTransform.property("Anchor Point") as Property).setValue([0, 0]);
+    (legendTransform.property("Position") as Property).setValue([
       CHART_PADDING_X + si * 160,
       CHART_HEIGHT - 20,
     ]);

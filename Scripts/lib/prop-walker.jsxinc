@@ -1,0 +1,209 @@
+/**
+ * prop-walker.jsxinc
+ *
+ * Shared property tree walker for After Effects layers.
+ * Used by the reliability system (result-writer.jsxinc) and the
+ * enriched analysis module (snapshot_property_paths.jsxinc).
+ *
+ * Exports three bare global functions (no IIFE, no typeof guard —
+ * consistent with Scripts/lib/ conventions):
+ *
+ *   walkPropertyGroup(group, matchPrefix, displayPrefix, maxDepth, visitor)
+ *   getGroupMaxDepth(group)
+ *   serializePropertyValue(prop)
+ *
+ * All code is ES3/ExtendScript compatible.
+ * Requires After Effects CC 2019+ (PropertyType, PropertyValueType enums).
+ */
+
+/**
+ * Walks an AE PropertyGroup recursively, calling visitor for each leaf property.
+ *
+ * The visitor is also called when a group is truncated at the depth limit
+ * or is too wide (>20 properties), with prop=null to signal truncation.
+ *
+ * @param {PropertyGroup} group        - The PropertyGroup to walk.
+ * @param {string} matchPrefix         - Accumulated ADBE match-name path so far.
+ * @param {string} displayPrefix       - Accumulated display-name path so far.
+ * @param {number} maxDepth            - Max recursion depth (use getGroupMaxDepth for root groups).
+ * @param {Function} visitor           - Called as visitor(matchPath, displayPath, prop).
+ *                                       prop is an AE Property for leaf nodes;
+ *                                       null when a group was truncated (too deep or too wide).
+ */
+function walkPropertyGroup(group, matchPrefix, displayPrefix, maxDepth, visitor) {
+    var count;
+    try {
+        count = group.numProperties;
+    } catch (e) {
+        return;
+    }
+
+    // Per-group property count cap: prevents explosion on complex shape layers
+    if (count > 20) {
+        visitor(matchPrefix, displayPrefix, null);
+        return;
+    }
+
+    for (var i = 1; i <= count; i++) {
+        var child;
+        try {
+            child = group.property(i);
+        } catch (e) {
+            continue;
+        }
+        if (!child) continue;
+
+        var mn = child.matchName || child.name;
+        var dn = child.name;
+
+        // Skip the internal "Compositing Options" sub-group on every effect
+        if (mn === "ADBE Effect Built In Params") continue;
+
+        var childMatchPath = matchPrefix + " > " + mn;
+        var childDisplayPath = displayPrefix + " > " + dn;
+
+        var propType;
+        try {
+            propType = child.propertyType;
+        } catch (e) {
+            continue;
+        }
+
+        if (propType === PropertyType.PROPERTY) {
+            // Leaf node: has a value
+            visitor(childMatchPath, childDisplayPath, child);
+        } else {
+            // Group node: INDEXED_GROUP or NAMED_GROUP
+            if (maxDepth > 1) {
+                walkPropertyGroup(child, childMatchPath, childDisplayPath, maxDepth - 1, visitor);
+            } else {
+                // At depth limit — report if the group has children (truncated)
+                var childCount;
+                try {
+                    childCount = child.numProperties;
+                } catch (e) {
+                    childCount = 0;
+                }
+                if (childCount > 0) {
+                    visitor(childMatchPath, childDisplayPath, null);
+                }
+            }
+        }
+    }
+}
+
+/**
+ * Returns the recommended max depth for a root-level layer property group.
+ * Depth limits are calibrated per group type based on AE's property tree structure.
+ *
+ * @param {PropertyGroup} group - A root-level PropertyGroup from a layer.
+ * @returns {number} Recommended recursion depth for walkPropertyGroup.
+ */
+function getGroupMaxDepth(group) {
+    var mn;
+    try {
+        mn = group.matchName;
+    } catch (e) {
+        return 3;
+    }
+    // Transform: shallow (8 leaf properties, no nesting)
+    if (mn === "ADBE Transform Group") return 2;
+    // Shape contents: deeply nested (group > stroke/fill/path > params)
+    if (mn === "ADBE Root Vectors Group") return 6;
+    // Audio and material options: shallow
+    if (mn === "ADBE Audio Group") return 2;
+    if (mn === "ADBE Material Options Group") return 2;
+    // Effects, Masks, Text: moderate nesting
+    return 3;
+}
+
+/**
+ * Serializes an AE leaf property value to a JSON-safe representation.
+ *
+ * Handles the AE types that cannot be passed to JSON.stringify directly:
+ *   TEXT_DOCUMENT, SHAPE, MARKER, CUSTOM_VALUE.
+ *
+ * Color values (3-element or 4-element float arrays, range 0-1) are
+ * preserved as-is to avoid normalizing formats.
+ *
+ * AE array-like values (not true Array instances) are converted to
+ * native arrays before returning.
+ *
+ * @param {Property} prop - An AE leaf property (PropertyType.PROPERTY).
+ * @returns {*} A JSON-safe value, or null if the value cannot be read.
+ */
+function serializePropertyValue(prop) {
+    var pvt;
+    try {
+        pvt = prop.propertyValueType;
+    } catch (e) {
+        return null;
+    }
+
+    if (pvt === PropertyValueType.NO_VALUE) return null;
+
+    if (pvt === PropertyValueType.CUSTOM_VALUE) {
+        return "<type:CUSTOM_VALUE>";
+    }
+
+    var raw;
+    try {
+        raw = prop.value;
+    } catch (e) {
+        return null;
+    }
+    if (raw === undefined || raw === null) return null;
+
+    // TextDocument: extract the key fields; the object itself is not JSON-safe
+    if (pvt === PropertyValueType.TEXT_DOCUMENT) {
+        var td = { __type: "TEXT_DOCUMENT" };
+        try { td.text = raw.text; } catch (e) {}
+        try { td.fontSize = raw.fontSize; } catch (e) {}
+        try { td.font = raw.font; } catch (e) {}
+        try {
+            var fc = raw.fillColor;
+            td.fillColor = fc ? [fc[0], fc[1], fc[2]] : null;
+        } catch (e) {}
+        try { td.justification = raw.justification; } catch (e) {}
+        return td;
+    }
+
+    // Shape: extract vertices/tangents/closed; the Shape object itself is not JSON-safe
+    if (pvt === PropertyValueType.SHAPE) {
+        var sh = { __type: "SHAPE" };
+        try { sh.closed = raw.closed; } catch (e) {}
+        // vertices are plain arrays in AE CC 2019+
+        try {
+            var verts = raw.vertices;
+            var va = [];
+            for (var v = 0; v < verts.length; v++) va.push([verts[v][0], verts[v][1]]);
+            sh.vertices = va;
+        } catch (e) {}
+        return sh;
+    }
+
+    // MarkerValue: extract comment and duration
+    if (pvt === PropertyValueType.MARKER) {
+        var mk = { __type: "MARKER" };
+        try { mk.comment = raw.comment; } catch (e) {}
+        try { mk.duration = raw.duration; } catch (e) {}
+        return mk;
+    }
+
+    // Scalar types: number, boolean
+    if (typeof raw === "number" || typeof raw === "boolean" || typeof raw === "string") {
+        return raw;
+    }
+
+    // Array-like values (Position, Scale, Color, etc.)
+    // AE may return array-like objects that are not true Array instances
+    if (raw.length !== undefined) {
+        var arr = [];
+        for (var i = 0; i < raw.length; i++) {
+            arr.push(typeof raw[i] === "number" ? raw[i] : String(raw[i]));
+        }
+        return arr;
+    }
+
+    return null;
+}

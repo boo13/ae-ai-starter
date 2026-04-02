@@ -19,6 +19,9 @@ Scripts/panel/*_panel.jsx
 # Diagnostic output (transient, not committed)
 **/diagnose_results.txt
 
+# Script run output (ephemeral, overwritten each run — read by Claude for feedback loop)
+**/Scripts/runs/last_run.json
+
 # Working notes
 docs/brainstorms/
 

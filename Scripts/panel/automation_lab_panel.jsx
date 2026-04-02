@@ -7,6 +7,8 @@
 
 #include "../lib/helpers.jsxinc"
 #include "../lib/io.jsxinc"
+#include "../lib/prop-walker.jsxinc"
+#include "../lib/result-writer.jsxinc"
 
 (function (thisObj) {
     var PANEL_TITLE = "AE Automation Lab";
@@ -344,15 +346,37 @@
     }
 
     function runAction(label, fn) {
+        var step = label;
+        var compBefore = null;
+        try {
+            compBefore = (app.project && app.project.activeItem instanceof CompItem)
+                ? app.project.activeItem : null;
+        } catch (_) {}
+
+        // Write "started" immediately — detects crashes if writeResult never runs
+        beginScript(label, compBefore);
+
         try {
             app.beginUndoGroup(label);
             var result = fn();
             app.endUndoGroup();
+
+            // After create-comp actions the active item changes — snapshot the new comp
+            var compAfter = null;
+            try {
+                compAfter = (app.project && app.project.activeItem instanceof CompItem)
+                    ? app.project.activeItem : compBefore;
+            } catch (_) {
+                compAfter = compBefore;
+            }
+
+            writeResult("success", step, null, compAfter);
             setStatus(label + " complete", [0.2, 0.75, 0.35]);
             pushLog(label + " complete");
             return result;
         } catch (e) {
             try { app.endUndoGroup(); } catch (_) {}
+            writeResult("error", step, e, compBefore);
             setStatus(label + " failed: " + e.toString(), [0.85, 0.2, 0.2]);
             pushLog(label + " failed");
             alert(label + " failed.\n\n" + e.toString());

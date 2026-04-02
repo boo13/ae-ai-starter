@@ -48,7 +48,7 @@ export function scanAndPopulateTextBindings(config: TextBindConfig): { success: 
       var layer = comp.layer(li);
       if (!(layer instanceof TextLayer)) continue;
 
-      var textProp = layer.property("Source Text") as TextDocument & { value: TextDocument };
+      var textProp = layer.property("Text").property("Source Text") as Property;
       if (!textProp) continue;
 
       var srcText: string;
@@ -79,7 +79,7 @@ export function scanAndPopulateTextBindings(config: TextBindConfig): { success: 
 
       if (newText !== srcText) {
         try {
-          (layer.property("Source Text") as any).setValue(newText);
+          textProp.setValue(newText);
           layersUpdated++;
         } catch (e) {
           // Layer may be locked or have expressions — skip

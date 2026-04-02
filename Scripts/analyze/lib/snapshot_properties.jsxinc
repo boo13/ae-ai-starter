@@ -91,7 +91,7 @@ if (typeof SnapshotProperties === "undefined") {
          * For each effect, records its name and parameter names/values.
          *
          * @param {Layer} layer - AE layer to inspect.
-         * @returns {Array} Array of { name, params: [{ name, value }] } objects.
+         * @returns {Array} Array of { name, matchName, params: [{ name, matchName, value }] } objects.
          */
         function collectEffects(layer) {
             var result = [];
@@ -111,6 +111,7 @@ if (typeof SnapshotProperties === "undefined") {
                         if (param.name === "Compositing Options") continue;
                         params.push({
                             name: param.name,
+                            matchName: param.matchName || "",
                             value: safePropertyValue(param)
                         });
                     }
@@ -226,7 +227,10 @@ if (typeof SnapshotProperties === "undefined") {
                             writer.addMarkdown("- **" + eff.name + "** (" + eff.matchName + ")\n");
                             for (var pp = 0; pp < eff.params.length; pp++) {
                                 var param = eff.params[pp];
-                                writer.addMarkdown("  - " + param.name + ": " + param.value + "\n");
+                                var paramLine = "  - " + param.name;
+                                if (param.matchName) paramLine += " (" + param.matchName + ")";
+                                paramLine += ": " + param.value + "\n";
+                                writer.addMarkdown(paramLine);
                             }
                         }
                     }

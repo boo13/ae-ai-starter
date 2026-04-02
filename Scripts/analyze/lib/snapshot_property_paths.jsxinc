@@ -1,0 +1,371 @@
+/**
+ * snapshot_property_paths.jsxinc
+ *
+ * Layer A (Enriched Context): captures full ADBE match-name paths for all
+ * leaf properties across every layer in the project, annotated with
+ * 4-tag provenance so Claude knows how much to trust each path.
+ *
+ * Provenance tags:
+ *   [VERIFIED]      — match-name read directly from live AE runtime (empirical)
+ *   [DOCS]          — sourced from Adobe official documentation
+ *   [COMMUNITY]     — sourced from community forums / third-party scripting guides
+ *   [LLM-GENERATED] — unverified; Claude generated without empirical confirmation
+ *
+ * All match-names captured here come from the live property tree, so they are
+ * always tagged [VERIFIED]. The verified/ loading infrastructure supports
+ * future enrichment with [DOCS] / [COMMUNITY] annotations from
+ * Scripts/analyze/verified/<effectMatchName>.json files.
+ *
+ * Output:
+ *   analysis.md  — "### Property Paths" sections per comp
+ *   analysis.json — "propertyPaths" key with full structured data
+ *
+ * All code is ES3/ExtendScript compatible.
+ *
+ * @requires report_writer.jsxinc (createReportWriter)
+ * @requires prop-walker.jsxinc   (walkPropertyGroup, getGroupMaxDepth, serializePropertyValue)
+ */
+
+if (typeof SnapshotPropertyPaths === "undefined") {
+
+    var SnapshotPropertyPaths = (function () {
+
+        // -------------------------------------------------------------------
+        // Provenance cache — per-run, in-memory; keyed by effect matchName.
+        // Lazy-loaded from Scripts/analyze/verified/<matchName>.json on first
+        // access. Cache stores the parsed JSON or the sentinel value
+        // _NO_FILE_ = file doesn't exist (avoids repeated failed disk reads).
+        // -------------------------------------------------------------------
+        var _provenanceCache = {};
+        var _SENTINEL_NO_FILE = "__NO_FILE__";
+        var _verifiedDir = null;   // resolved once on first load attempt
+
+        /**
+         * Returns the Scripts/analyze/verified/ directory path, resolved from
+         * the entry-point script's $.fileName (walks up from Scripts/).
+         * Returns null if $.fileName is unavailable.
+         *
+         * @returns {string|null} Absolute path to verified/ directory, no trailing slash.
+         */
+        function getVerifiedDir() {
+            if (_verifiedDir !== null) return _verifiedDir;
+            var scriptFilePath = $.fileName || "";
+            if (!scriptFilePath) {
+                _verifiedDir = "";  // empty string = "unavailable, stop trying"
+                return null;
+            }
+            var scriptFile = new File(scriptFilePath);
+            // $.fileName = Scripts/analyze/run_analysis.jsx
+            // scriptFile.parent = Scripts/analyze/
+            // + /verified/ = Scripts/analyze/verified/
+            _verifiedDir = String(scriptFile.parent.fsName) + "/verified";
+            return _verifiedDir;
+        }
+
+        /**
+         * Lazily loads provenance data for an effect match-name.
+         * Returns the parsed JSON object from verified/<matchName>.json,
+         * or null if no file exists or the file is malformed.
+         *
+         * Results are cached in _provenanceCache for the lifetime of the run.
+         *
+         * @param {string} effectMatchName - e.g. "ADBE Gaussian Blur 2"
+         * @returns {Object|null}
+         */
+        function loadProvenance(effectMatchName) {
+            if (_provenanceCache.hasOwnProperty(effectMatchName)) {
+                var cached = _provenanceCache[effectMatchName];
+                return (cached === _SENTINEL_NO_FILE) ? null : cached;
+            }
+
+            var dir = getVerifiedDir();
+            if (!dir) {
+                _provenanceCache[effectMatchName] = _SENTINEL_NO_FILE;
+                return null;
+            }
+
+            // File name: replace spaces and slashes with underscores for safety
+            var safeName = effectMatchName.replace(/[\s\/\\:*?"<>|]/g, "_");
+            var filePath = dir + "/" + safeName + ".json";
+            var f = new File(filePath);
+
+            if (!f.exists) {
+                _provenanceCache[effectMatchName] = _SENTINEL_NO_FILE;
+                return null;
+            }
+
+            try {
+                f.encoding = "UTF-8";
+                f.open("r");
+                var raw = f.read();
+                f.close();
+                var parsed = JSON.parse(raw);
+                _provenanceCache[effectMatchName] = parsed;
+                return parsed;
+            } catch (e) {
+                _provenanceCache[effectMatchName] = _SENTINEL_NO_FILE;
+                return null;
+            }
+        }
+
+        /**
+         * Returns the provenance tag for a property path.
+         *
+         * If effectMatchName is provided, looks up the verified/ file for that
+         * effect and returns the tag from the file (field "source"), or
+         * [VERIFIED] if the file doesn't exist (live AE = empirical).
+         *
+         * @param {string|null} effectMatchName - Effect's matchName, or null for non-effect props.
+         * @returns {string} One of: "[VERIFIED]", "[DOCS]", "[COMMUNITY]", "[LLM-GENERATED]"
+         */
+        function getProvenanceTag(effectMatchName) {
+            if (!effectMatchName) return "[VERIFIED]";
+            var prov = loadProvenance(effectMatchName);
+            if (!prov || !prov.source) return "[VERIFIED]";
+            // Normalize to a known tag
+            var src = prov.source;
+            if (src === "DOCS") return "[DOCS]";
+            if (src === "COMMUNITY") return "[COMMUNITY]";
+            if (src === "LLM-GENERATED") return "[LLM-GENERATED]";
+            return "[VERIFIED]";
+        }
+
+        // -------------------------------------------------------------------
+        // Markdown sanitization — strips characters that would be interpreted
+        // as Markdown formatting or prompt-injection vectors in AI-consumed
+        // reports. Applied to all AE-sourced strings (layer names, values, etc.)
+        // -------------------------------------------------------------------
+
+        /**
+         * Strips characters that could be interpreted as Markdown formatting
+         * or prompt-injection vectors from an AE-sourced string.
+         *
+         * Characters removed: * ` # [ ]
+         * Characters escaped: \ (backslash, precedes escape sequences)
+         *
+         * @param {string} s - Raw string from AE (layer name, property value, etc.)
+         * @returns {string} Sanitized string safe for embedding in Markdown.
+         */
+        function sanitizeMd(s) {
+            if (!s) return "";
+            var str = String(s);
+            // Remove characters that enable Markdown formatting or injection
+            str = str.replace(/[*`#\[\]\\]/g, "");
+            return str;
+        }
+
+        // -------------------------------------------------------------------
+        // Core capture
+        // -------------------------------------------------------------------
+
+        /**
+         * Walks a single layer's property groups and collects all leaf paths.
+         * Returns an array of path entry objects.
+         *
+         * Each entry:
+         *   matchPath    {string}  — stable ADBE dot-path (for Claude to write)
+         *   displayPath  {string}  — human-readable path (for orientation)
+         *   value        {*}       — serialized current value (null = truncated/unreadable)
+         *   provenance   {string}  — "[VERIFIED]" etc.
+         *   truncated    {boolean} — true when a group was skipped (too deep or too wide)
+         *
+         * @param {Layer} layer     - AE layer to walk.
+         * @param {string} layerKey - Sanitized layer name for path prefixes.
+         * @returns {Array}
+         */
+        function walkLayer(layer, layerKey) {
+            var entries = [];
+            var groupCount;
+            try {
+                groupCount = layer.numProperties;
+            } catch (e) {
+                return entries;
+            }
+
+            for (var g = 1; g <= groupCount; g++) {
+                var group;
+                try {
+                    group = layer.property(g);
+                } catch (e) {
+                    continue;
+                }
+                if (!group) continue;
+
+                var groupMn = group.matchName || group.name || ("Group" + g);
+                var groupDn = group.name || groupMn;
+                var matchPrefix = layerKey + " > " + groupMn;
+                var displayPrefix = layerKey + " > " + sanitizeMd(groupDn);
+                var maxDepth = getGroupMaxDepth(group);
+
+                // Determine if this group is an effect group (for provenance lookup)
+                // Effects are inside "ADBE Effect Parade"; individual effects have
+                // property type INDEXED_GROUP at the second level.
+                var isEffectParade = (groupMn === "ADBE Effect Parade");
+
+                if (isEffectParade) {
+                    // Walk each effect individually so we can look up provenance per effect
+                    var effectCount;
+                    try {
+                        effectCount = group.numProperties;
+                    } catch (e) {
+                        effectCount = 0;
+                    }
+                    for (var ei = 1; ei <= effectCount; ei++) {
+                        var effect;
+                        try {
+                            effect = group.property(ei);
+                        } catch (e) {
+                            continue;
+                        }
+                        if (!effect) continue;
+                        var effMn = effect.matchName || effect.name;
+                        var effDn = sanitizeMd(effect.name);
+                        var effMatchPrefix = matchPrefix + " > " + effMn;
+                        var effDisplayPrefix = displayPrefix + " > " + effDn;
+                        var provTag = getProvenanceTag(effMn);
+
+                        walkPropertyGroup(effect, effMatchPrefix, effDisplayPrefix, 3, function (mp, dp, prop) {
+                            if (prop === null) {
+                                entries.push({ matchPath: mp, displayPath: dp, value: null, provenance: provTag, truncated: true });
+                            } else {
+                                entries.push({ matchPath: mp, displayPath: dp, value: serializePropertyValue(prop), provenance: provTag, truncated: false });
+                            }
+                        });
+                    }
+                } else {
+                    // Non-effect group: all paths are [VERIFIED] (live AE)
+                    var groupProvTag = "[VERIFIED]";
+                    walkPropertyGroup(group, matchPrefix, displayPrefix, maxDepth, function (mp, dp, prop) {
+                        if (prop === null) {
+                            entries.push({ matchPath: mp, displayPath: dp, value: null, provenance: groupProvTag, truncated: true });
+                        } else {
+                            entries.push({ matchPath: mp, displayPath: dp, value: serializePropertyValue(prop), provenance: groupProvTag, truncated: false });
+                        }
+                    });
+                }
+            }
+
+            return entries;
+        }
+
+        /**
+         * Formats a serialized value as a compact display string for Markdown.
+         * Arrays are shown as [x, y, z]; objects as {__type}; scalars as-is.
+         *
+         * @param {*} val
+         * @returns {string}
+         */
+        function formatValue(val) {
+            if (val === null || val === undefined) return "(truncated)";
+            if (typeof val === "boolean" || typeof val === "number") return String(val);
+            if (typeof val === "string") return sanitizeMd(val);
+            if (val instanceof Array || (typeof val === "object" && typeof val.length === "number")) {
+                var parts = [];
+                for (var i = 0; i < val.length; i++) {
+                    parts.push(typeof val[i] === "number" ? String(val[i]) : sanitizeMd(String(val[i])));
+                }
+                return "[" + parts.join(", ") + "]";
+            }
+            if (typeof val === "object" && val.__type) return "{" + val.__type + "}";
+            return "(complex)";
+        }
+
+        /**
+         * Captures property path data for all compositions and writes to the report.
+         *
+         * @param {Object} context
+         * @param {Object} context.project        - app.project reference
+         * @param {Object} context.writer          - Report writer instance
+         * @param {Function} context.isInOldFolder - z_OLD filter
+         * @returns {{ warnings: string[] }}
+         */
+        function capture(context) {
+            var project = context.project;
+            var writer = context.writer;
+            var isInOldFolder = context.isInOldFolder;
+            var warnings = [];
+
+            // Reset per-run provenance cache
+            _provenanceCache = {};
+
+            writer.addSection("Property Paths");
+            writer.addMarkdown(
+                "Full ADBE match-name paths for every layer property. " +
+                "Use these exact paths in scripts. " +
+                "Provenance: [VERIFIED]=live AE, [DOCS]=Adobe docs, [COMMUNITY]=forums, [LLM-GENERATED]=unverified.\n\n"
+            );
+
+            var jsonPropertyPaths = {};
+            var anyFound = false;
+
+            for (var i = 1; i <= project.items.length; i++) {
+                var item = project.items[i];
+                if (!(item instanceof CompItem)) continue;
+                if (isInOldFolder && isInOldFolder(item)) continue;
+
+                var compEntries = [];
+
+                for (var l = 1; l <= item.numLayers; l++) {
+                    var layer;
+                    try {
+                        layer = item.layer(l);
+                    } catch (e) {
+                        continue;
+                    }
+                    if (!layer) continue;
+
+                    var layerName = layer.name || ("Layer " + l);
+                    var layerKey = layerName;  // matchName path uses display name for layer (AE standard)
+                    var paths = walkLayer(layer, layerKey);
+
+                    if (paths.length === 0) continue;
+
+                    compEntries.push({
+                        layerName: layerName,
+                        layerIndex: l,
+                        paths: paths
+                    });
+                }
+
+                if (compEntries.length === 0) continue;
+
+                anyFound = true;
+                jsonPropertyPaths[item.name] = compEntries;
+
+                // Write Markdown section for this comp
+                writer.addSubsection(sanitizeMd(item.name));
+
+                for (var e = 0; e < compEntries.length; e++) {
+                    var layerEntry = compEntries[e];
+                    writer.addMarkdown("**Layer " + layerEntry.layerIndex + ": " + sanitizeMd(layerEntry.layerName) + "**\n\n");
+
+                    var pathLines = [];
+                    for (var p = 0; p < layerEntry.paths.length; p++) {
+                        var pe = layerEntry.paths[p];
+                        var line = pe.provenance + " `" + pe.matchPath + "`";
+                        if (!pe.truncated) {
+                            line += " = " + formatValue(pe.value);
+                        } else {
+                            line += " (truncated — group too deep or too wide)";
+                        }
+                        pathLines.push(line);
+                    }
+                    writer.addList(pathLines);
+                    writer.addMarkdown("\n");
+                }
+            }
+
+            if (!anyFound) {
+                writer.addMarkdown("(No layers found in any active composition)\n");
+            }
+
+            writer.setJson(["propertyPaths"], jsonPropertyPaths);
+
+            return { warnings: warnings };
+        }
+
+        return {
+            capture: capture
+        };
+    })();
+}

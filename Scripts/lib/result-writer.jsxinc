@@ -1,0 +1,354 @@
+/**
+ * result-writer.jsxinc
+ *
+ * Layer B+C: Structured result protocol and before/after diff for Claude's
+ * feedback loop. Every Claude-authored script includes this library to write
+ * a machine-readable result to Scripts/runs/last_run.json after each run.
+ *
+ * Claude reads last_run.json next turn to self-correct without requiring
+ * a verbal description of what happened.
+ *
+ * Usage in generated scripts:
+ *
+ *   #include "lib/io.jsxinc"
+ *   #include "lib/prop-walker.jsxinc"
+ *   #include "lib/result-writer.jsxinc"
+ *
+ *   var step = "init";
+ *   var comp = app.project.activeItem;
+ *   beginScript("my_script.jsx", comp);
+ *
+ *   app.beginUndoGroup("My Script");
+ *   try {
+ *       step = "set position";
+ *       // ... script logic ...
+ *       writeResult("success", step, null, comp);
+ *   } catch (e) {
+ *       writeResult("error", step, e.message, comp);
+ *   } finally {
+ *       app.endUndoGroup();
+ *   }
+ *
+ * Exports two bare global functions (no IIFE, no typeof guard —
+ * consistent with Scripts/lib/ conventions):
+ *
+ *   beginScript(scriptName, comp)
+ *   writeResult(status, step, error, comp)
+ *
+ * Requires: io.jsxinc (writeJsonFile, formatTimestampISO), prop-walker.jsxinc
+ * All code is ES3/ExtendScript compatible.
+ */
+
+// ---------------------------------------------------------------------------
+// Internal state — module-level vars, reset on each beginScript() call
+// ---------------------------------------------------------------------------
+
+var _rw_scriptName = "";
+var _rw_beforeSnapshot = null;   // flat map: matchPath -> serialized value
+var _rw_beforeMs = 0;
+var _rw_runsDir = null;          // resolved once in beginScript()
+
+// ---------------------------------------------------------------------------
+// Internal: snapshot helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Captures a flat property-value map for all leaf properties in a comp.
+ * Returns an object keyed by matchPath (the stable ADBE path).
+ *
+ * Returns {} if comp is null, not a CompItem, or has no layers.
+ *
+ * @param {CompItem|null} comp
+ * @returns {Object} Flat map: matchPath -> serialized value
+ */
+function _rw_captureSnapshot(comp) {
+    var snap = {};
+    if (!comp) return snap;
+
+    var layerCount;
+    try {
+        layerCount = comp.numLayers;
+    } catch (e) {
+        return snap;
+    }
+
+    for (var i = 1; i <= layerCount; i++) {
+        var layer;
+        try {
+            layer = comp.layer(i);
+        } catch (e) {
+            continue;
+        }
+        if (!layer) continue;
+
+        var layerName = layer.name || ("Layer " + i);
+        var groupCount;
+        try {
+            groupCount = layer.numProperties;
+        } catch (e) {
+            continue;
+        }
+
+        for (var g = 1; g <= groupCount; g++) {
+            var group;
+            try {
+                group = layer.property(g);
+            } catch (e) {
+                continue;
+            }
+            if (!group) continue;
+
+            var groupMn = group.matchName || group.name || ("Group" + g);
+            var matchPrefix = layerName + " > " + groupMn;
+            var maxDepth = getGroupMaxDepth(group);
+
+            walkPropertyGroup(group, matchPrefix, matchPrefix, maxDepth, function (matchPath, displayPath, prop) {
+                if (prop === null) return; // truncation signal — skip
+                var val = serializePropertyValue(prop);
+                snap[matchPath] = val;
+            });
+        }
+    }
+
+    return snap;
+}
+
+/**
+ * Computes a diff between two snapshots (before/after flat maps).
+ * Returns an array of changed-entry objects sorted by path.
+ *
+ * Each entry: { path, matchPath, before, after }
+ *   path      — display-friendly (same as matchPath in this implementation)
+ *   matchPath — ADBE stable key
+ *   before    — value before (null if property was absent)
+ *   after     — value after  (null if property is absent)
+ *
+ * @param {Object} before  Flat map from _rw_captureSnapshot()
+ * @param {Object} after   Flat map from _rw_captureSnapshot()
+ * @returns {Array}
+ */
+function _rw_computeDiff(before, after) {
+    var diff = [];
+    var seen = {};
+
+    // Properties that changed or disappeared
+    for (var key in before) {
+        if (!before.hasOwnProperty(key)) continue;
+        seen[key] = true;
+        var bVal = before[key];
+        var aVal = after.hasOwnProperty(key) ? after[key] : null;
+        if (!_rw_valuesEqual(bVal, aVal)) {
+            diff.push({ path: key, matchPath: key, before: bVal, after: aVal });
+        }
+    }
+
+    // Properties that appeared after
+    for (var key2 in after) {
+        if (!after.hasOwnProperty(key2)) continue;
+        if (seen[key2]) continue;
+        var bVal2 = null;
+        var aVal2 = after[key2];
+        if (!_rw_valuesEqual(bVal2, aVal2)) {
+            diff.push({ path: key2, matchPath: key2, before: bVal2, after: aVal2 });
+        }
+    }
+
+    // Sort by path for stable output
+    diff.sort(function (a, b) {
+        if (a.path < b.path) return -1;
+        if (a.path > b.path) return 1;
+        return 0;
+    });
+
+    return diff;
+}
+
+/**
+ * Deep equality check for JSON-safe values (scalar, array, or plain object).
+ * Used to determine whether a property value changed.
+ *
+ * @param {*} a
+ * @param {*} b
+ * @returns {boolean}
+ */
+function _rw_valuesEqual(a, b) {
+    if (a === b) return true;
+    if (a === null || b === null) return false;
+    if (typeof a !== typeof b) return false;
+
+    if (typeof a === "object") {
+        // Array check
+        var aIsArr = (a.constructor === Array);
+        var bIsArr = (b.constructor === Array);
+        if (aIsArr !== bIsArr) return false;
+
+        if (aIsArr) {
+            if (a.length !== b.length) return false;
+            for (var i = 0; i < a.length; i++) {
+                if (!_rw_valuesEqual(a[i], b[i])) return false;
+            }
+            return true;
+        }
+
+        // Plain object (TEXT_DOCUMENT, SHAPE, MARKER)
+        var aKeys = [];
+        for (var k in a) { if (a.hasOwnProperty(k)) aKeys.push(k); }
+        var bKeys = [];
+        for (var k2 in b) { if (b.hasOwnProperty(k2)) bKeys.push(k2); }
+        if (aKeys.length !== bKeys.length) return false;
+        for (var j = 0; j < aKeys.length; j++) {
+            var kj = aKeys[j];
+            if (!b.hasOwnProperty(kj)) return false;
+            if (!_rw_valuesEqual(a[kj], b[kj])) return false;
+        }
+        return true;
+    }
+
+    return false; // typeof mismatch already handled above
+}
+
+/**
+ * Resolves the Scripts/runs/ directory path from $.fileName.
+ * Returns a Folder object (created if necessary), or null on failure.
+ *
+ * @returns {Folder|null}
+ */
+function _rw_resolveRunsDir() {
+    var scriptFilePath = $.fileName || "";
+    if (!scriptFilePath) return null;
+    var scriptFile = new File(scriptFilePath);
+    // $.fileName points to the *entry* script (e.g. Scripts/my_script.jsx)
+    // We need: script's parent dir -> Scripts/ -> Scripts/runs/
+    // result-writer.jsxinc lives in Scripts/lib/, so we need to go up one more level.
+    // However $.fileName always refers to the *outermost* file being evaluated,
+    // not the #include. So scriptFile.parent = Scripts/ already.
+    var scriptsDir = scriptFile.parent;
+    var runsPath = String(scriptsDir.fsName) + "/runs";
+    var runsFolder = new Folder(runsPath);
+    if (!runsFolder.exists) {
+        runsFolder.create();
+    }
+    return runsFolder;
+}
+
+/**
+ * Writes data to Scripts/runs/last_run.json.
+ * Shows an alert on failure but does NOT throw — the script's own result
+ * should not be masked by a write failure.
+ *
+ * @param {Object} data
+ */
+function _rw_writeRunFile(data) {
+    try {
+        if (!_rw_runsDir) {
+            _rw_runsDir = _rw_resolveRunsDir();
+        }
+        if (!_rw_runsDir) {
+            alert("result-writer: Unable to resolve runs directory. last_run.json not written.");
+            return;
+        }
+        var outFile = new File(String(_rw_runsDir.fsName) + "/last_run.json");
+        writeJsonFile(outFile, data);
+    } catch (e) {
+        alert("result-writer: Failed to write last_run.json.\n" + e.toString());
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Public API
+// ---------------------------------------------------------------------------
+
+/**
+ * Call at the top of every generated script, before any AE changes.
+ * Writes an immediate "started" record so Claude can see the script ran
+ * even if it crashes before writeResult().
+ *
+ * Takes an eager before-snapshot of the comp's property state.
+ *
+ * @param {string}       scriptName - Filename of the calling script (e.g. "set_position.jsx")
+ * @param {CompItem|null} comp      - Active comp to snapshot; pass null if not applicable
+ */
+function beginScript(scriptName, comp) {
+    _rw_scriptName = scriptName || "unknown";
+    _rw_beforeMs = (new Date()).getTime();
+    _rw_runsDir = _rw_resolveRunsDir();
+
+    // Take before-snapshot (best effort — never throw)
+    try {
+        _rw_beforeSnapshot = _rw_captureSnapshot(comp);
+    } catch (e) {
+        _rw_beforeSnapshot = {};
+    }
+
+    // Write immediate "started" record
+    _rw_writeRunFile({
+        status: "started",
+        scriptName: _rw_scriptName,
+        timestamp: formatTimestampISO(new Date()),
+        userApproved: null,
+        step: null,
+        error: null,
+        warnings: [],
+        diff: [],
+        changeCount: 0,
+        snapshotMs: 0
+    });
+}
+
+/**
+ * Call once per script execution path (success or catch block).
+ * Computes the before/after diff and writes the final last_run.json.
+ *
+ * @param {string}        status - "success" | "error" | "partial"
+ * @param {string}        step   - Value of the step variable at call time
+ * @param {string|null}   error  - Error message, or null on success
+ *                                 Pass the ExtendScript Error object's .message,
+ *                                 or a full Error object — both are handled.
+ * @param {CompItem|null} comp   - Same comp passed to beginScript(), for after-snapshot
+ */
+function writeResult(status, step, error, comp) {
+    var snapshotMs = 0;
+    var diff = [];
+    var afterSnapshot = {};
+
+    // Take after-snapshot and compute diff
+    var t0 = (new Date()).getTime();
+    try {
+        afterSnapshot = _rw_captureSnapshot(comp);
+        diff = _rw_computeDiff(_rw_beforeSnapshot || {}, afterSnapshot);
+    } catch (e) {
+        diff = [];
+    }
+    snapshotMs = (new Date()).getTime() - t0;
+
+    // Normalize error argument — accept Error object or string
+    var errorMsg = null;
+    var errorLine = null;
+    var errorFile = null;
+    if (error !== null && error !== undefined) {
+        if (typeof error === "object") {
+            errorMsg = error.message || String(error);
+            errorLine = (error.line !== undefined) ? error.line : null;
+            errorFile = error.fileName || null;
+        } else {
+            errorMsg = String(error);
+        }
+    }
+
+    var record = {
+        status: status || "success",
+        scriptName: _rw_scriptName,
+        timestamp: formatTimestampISO(new Date()),
+        userApproved: null,
+        step: step || null,
+        error: errorMsg,
+        errorLine: errorLine,
+        errorFile: errorFile,
+        warnings: [],
+        diff: diff,
+        changeCount: diff.length,
+        snapshotMs: snapshotMs
+    };
+
+    _rw_writeRunFile(record);
+}

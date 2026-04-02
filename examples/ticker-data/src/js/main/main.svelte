@@ -8,6 +8,7 @@
   import type { TickerData as TickerDataType } from "@shared/types";
   const SAMPLE_DATA = sampleTickerData as TickerDataType;
   import { writeTickerData, readCachedData, isCacheStale, getDataFilePath } from "../lib/data-writer";
+  import { debugLog, clearDebugLog, setLogProjectRoot } from "../lib/debug-log";
   import {
     loadWatchlist, saveWatchlist,
     loadBindings, saveBindings,
@@ -42,29 +43,34 @@
   }
 
   onMount(async () => {
+    clearDebugLog();
     watchlist = loadWatchlist();
     bindings = loadBindings();
     selectedPreset = loadLastPreset();
 
     try {
       projectRoot = await evalTS("getProjectRoot") ?? "";
+      if (projectRoot) setLogProjectRoot(projectRoot);
+      debugLog("INFO", "projectRoot:", projectRoot || "(empty — no AE project saved)");
       if (projectRoot) {
         const fromDisk = readCachedData(projectRoot);
         if (fromDisk) {
           cachedData = fromDisk;
           log("info", "Loaded cached data from Input/ticker_data.json");
+          debugLog("INFO", "readCachedData: loaded", fromDisk.stocks?.length, "stocks");
         } else {
-          // Offline fallback: show sample data for preview only (Build is disabled until real fetch)
           cachedData = SAMPLE_DATA;
           log("info", "No data file found — showing sample data. Click Fetch to get live prices and enable Build.");
+          debugLog("INFO", "readCachedData: no file found, using sample data");
         }
       } else {
-        // No saved project — show sample data for preview only
         cachedData = SAMPLE_DATA;
         log("info", "Sample data loaded (demo view). Save your AE project then Fetch to enable Build.");
+        debugLog("INFO", "No AE project, using sample data");
       }
     } catch (e: any) {
       log("error", "Could not connect to AE: " + (e?.message ?? e));
+      debugLog("ERROR", "onMount evalTS error:", e?.message ?? e);
     }
   });
 
@@ -116,7 +122,9 @@
         err.errors.forEach(e => log("error", e));
       } else {
         status = "error";
-        log("error", "Fetch failed: " + (err instanceof Error ? err.message : String(err)));
+        const fetchErrMsg = err instanceof Error ? err.message : String(err);
+        log("error", "Fetch failed: " + fetchErrMsg);
+        debugLog("ERROR", "handleFetch failed:", fetchErrMsg);
         if (dataIsOnDisk) {
           showUseCachedButton = true;
           log("info", "Previous data still available — click 'Use Cached' to continue.");
@@ -151,18 +159,33 @@
 
   async function handleBuild() {
     if (!projectRoot) { log("error", "Save your AE project first"); return; }
-    if (!dataIsOnDisk) { log("error", "Click Fetch Data first — Build requires ticker_data.json on disk"); return; }
+    if (!cachedData) { log("error", "No data available — click Fetch Data first"); return; }
 
     status = "building";
     log("info", `Building preset "${selectedPreset}"...`);
 
+    // Always write data to disk before building so ExtendScript can read it
     const filePath = getDataFilePath(projectRoot);
+    debugLog("INFO", "handleBuild: writing data to", filePath);
+    try {
+      await writeTickerData(cachedData, projectRoot);
+      debugLog("INFO", "handleBuild: write succeeded");
+    } catch (e: any) {
+      status = "error";
+      const msg = "Could not write data file: " + (e?.message ?? e);
+      log("error", msg);
+      debugLog("ERROR", "handleBuild write failed:", e?.message ?? e);
+      return;
+    }
+
+    debugLog("INFO", "handleBuild: calling evalTS buildFromPreset, preset:", selectedPreset, "path:", filePath);
     try {
       const result = await evalTS("buildFromPreset", {
         preset: selectedPreset,
         dataFilePath: filePath,
         customization,
       });
+      debugLog("INFO", "handleBuild: evalTS result:", result);
       if (result.success) {
         log("success", result.message);
       } else {
@@ -170,6 +193,7 @@
       }
     } catch (e: any) {
       log("error", "Build failed: " + (e?.message ?? e));
+      debugLog("ERROR", "handleBuild evalTS threw:", e?.message ?? e);
     } finally {
       status = "idle";
     }

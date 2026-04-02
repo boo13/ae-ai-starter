@@ -32,66 +32,92 @@ export function buildStockCard(
   return populateCardComp(comp, stockData, customization);
 }
 
+function setTextLayer(
+  layer: TextLayer,
+  text: string,
+  fontSize: number,
+  fillColor: [number, number, number],
+  position: [number, number]
+): void {
+  // Get TextDocument from the layer (already associated) rather than creating standalone
+  var srcProp = layer.property("Text").property("Source Text") as Property;
+  var doc = srcProp.value as TextDocument;
+  doc.text = text;
+  doc.fontSize = fontSize;
+  doc.applyFill = true;
+  doc.fillColor = fillColor;
+  // Explicitly left-justify so the anchor is at the text's left edge, not center
+  doc.justification = ParagraphJustification.LEFT_JUSTIFY;
+  srcProp.setValue(doc);
+  var transform = layer.property("Transform") as PropertyGroup;
+  // Reset anchor to [0,0] (text baseline-left) so Position means top-left of text
+  (transform.property("Anchor Point") as Property).setValue([0, 0]);
+  (transform.property("Position") as Property).setValue(position);
+}
+
 function populateCardComp(comp: CompItem, stockData: StockData, customization: Customization): CompItem {
-  // Remove old layers
-  while (comp.numLayers > 0) {
-    comp.layer(1).remove();
+  var step = "init";
+  try {
+    // Remove old layers
+    step = "remove old layers";
+    while (comp.numLayers > 0) {
+      comp.layer(1).remove();
+    }
+
+    var isUp = stockData.changePercent >= 0;
+    var changeColor: [number, number, number];
+    if (customization.colorScheme === "monochrome") {
+      changeColor = [0.8, 0.8, 0.8];
+    } else {
+      changeColor = isUp ? [0.22, 0.78, 0.39] : [0.87, 0.21, 0.21];
+    }
+
+    var fsPx = fontSizePx(customization.fontSize);
+
+    // Background
+    step = "add background";
+    var bg = comp.layers.addSolid([0.08, 0.08, 0.12], "Background", CARD_WIDTH, CARD_HEIGHT, 1);
+    bg.moveToEnd();
+
+    // Symbol text
+    step = "add symbol layer";
+    var symLayer = comp.layers.addText(stockData.symbol) as TextLayer;
+    symLayer.name = "Symbol";
+    step = "set symbol text";
+    setTextLayer(symLayer, stockData.symbol, fsPx * 0.8, [1, 1, 1], [20, 30 + fsPx * 0.6]);
+
+    // Price text
+    step = "add price layer";
+    var priceLayer = comp.layers.addText(formatPrice(stockData.current)) as TextLayer;
+    priceLayer.name = "Price";
+    step = "set price text";
+    setTextLayer(priceLayer, formatPrice(stockData.current), fsPx, [1, 1, 1], [20, 30 + fsPx * 0.6 + fsPx + 8]);
+
+    // Change % text
+    step = "add change layer";
+    var changeText = formatChange(stockData.change) + "  " + formatPercent(stockData.changePercent);
+    var changeLayer = comp.layers.addText(changeText) as TextLayer;
+    changeLayer.name = "Change";
+    step = "set change text";
+    setTextLayer(changeLayer, changeText, fsPx * 0.55, changeColor, [20, 30 + fsPx * 0.6 + fsPx * 2 + 14]);
+
+    // Sparkline (right side)
+    if (stockData.history && stockData.history.length >= 2) {
+      step = "build sparkline";
+      var spark = buildSparkline(comp, stockData, {
+        width: 120,
+        height: 60,
+        paddingX: 4,
+        paddingY: 4,
+        strokeWidth: 2,
+        customization,
+      });
+      step = "set sparkline position";
+      (spark.property("Transform").property("Position") as Property).setValue([CARD_WIDTH - 70, CARD_HEIGHT - 40]);
+    }
+
+    return comp;
+  } catch (e: any) {
+    throw new Error("[step: " + step + "] " + (e?.message ?? String(e)));
   }
-
-  var isUp = stockData.changePercent >= 0;
-  var changeColor: [number, number, number];
-  if (customization.colorScheme === "monochrome") {
-    changeColor = [0.8, 0.8, 0.8];
-  } else {
-    changeColor = isUp ? [0.22, 0.78, 0.39] : [0.87, 0.21, 0.21];
-  }
-
-  var fsPx = fontSizePx(customization.fontSize);
-
-  // Background
-  var bg = comp.layers.addSolid([0.08, 0.08, 0.12], "Background", CARD_WIDTH, CARD_HEIGHT, 1);
-  bg.moveToEnd();
-
-  // Symbol text
-  var symLayer = comp.layers.addText(stockData.symbol);
-  symLayer.name = "Symbol";
-  var symDoc = new TextDocument(stockData.symbol);
-  symDoc.fontSize = fsPx * 0.8;
-  symDoc.fillColor = [1, 1, 1];
-  (symLayer.property("Source Text") as Property).setValue(symDoc);
-  (symLayer.property("Position") as Property).setValue([20, 30 + fsPx * 0.6]);
-
-  // Price text
-  var priceLayer = comp.layers.addText(formatPrice(stockData.current));
-  priceLayer.name = "Price";
-  var priceDoc = new TextDocument(formatPrice(stockData.current));
-  priceDoc.fontSize = fsPx;
-  priceDoc.fillColor = [1, 1, 1];
-  (priceLayer.property("Source Text") as Property).setValue(priceDoc);
-  (priceLayer.property("Position") as Property).setValue([20, 30 + fsPx * 0.6 + fsPx + 8]);
-
-  // Change % text
-  var changeText = formatChange(stockData.change) + "  " + formatPercent(stockData.changePercent);
-  var changeLayer = comp.layers.addText(changeText);
-  changeLayer.name = "Change";
-  var changeDoc = new TextDocument(changeText);
-  changeDoc.fontSize = fsPx * 0.55;
-  changeDoc.fillColor = changeColor;
-  (changeLayer.property("Source Text") as Property).setValue(changeDoc);
-  (changeLayer.property("Position") as Property).setValue([20, 30 + fsPx * 0.6 + fsPx * 2 + 14]);
-
-  // Sparkline (right side)
-  if (stockData.history && stockData.history.length >= 2) {
-    var spark = buildSparkline(comp, stockData, {
-      width: 120,
-      height: 60,
-      paddingX: 4,
-      paddingY: 4,
-      strokeWidth: 2,
-      customization,
-    });
-    (spark.property("Position") as Property).setValue([CARD_WIDTH - 70, CARD_HEIGHT - 40]);
-  }
-
-  return comp;
 }
