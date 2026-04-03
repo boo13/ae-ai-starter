@@ -22,11 +22,11 @@ The core development loop has four steps:
 
 Repeat this loop as your template evolves. When you change the AE template (add layers, rename things, restructure comps), re-run analysis so the report stays current.
 
-## Keeping CLAUDE.md Updated
+## Keeping AI Project Instructions Updated
 
-The `CLAUDE.md` file is populated by `Scripts/setup.jsx` during initial setup. It records your project name, main composition, and key structural details. AI assistants that support project-level context files (like Claude Code) read this file automatically.
+`Scripts/setup.jsx` updates the repo's AI instruction file during initial setup. In this template, `CLAUDE.md` is a symlink to `AGENTS.md`, so both names refer to the same project instructions. Claude Code and similar tools can use this file to pick up project name, main composition, and workflow details automatically.
 
-If your project evolves significantly -- new main compositions, changed structure, different workflows -- update `CLAUDE.md` to reflect the current state. You can re-run `setup.jsx` or edit the file directly.
+If your project evolves significantly -- new main compositions, changed structure, different workflows -- update that instruction file to reflect the current state. You can re-run `setup.jsx` or edit `AGENTS.md` directly.
 
 ## Symlink Development Pattern
 
@@ -36,14 +36,14 @@ For ScriptUI panels:
 
 ```bash
 # macOS
-ln -s "/path/to/repo/Scripts/panel/project_panel.jsx" \
-  "$HOME/Library/Preferences/Adobe/After Effects/<version>/Scripts/ScriptUI Panels/project_panel.jsx"
+ln -s "/path/to/repo/Scripts/panel/my_project_panel.jsx" \
+  "$HOME/Library/Preferences/Adobe/After Effects/<version>/Scripts/ScriptUI Panels/my_project_panel.jsx"
 
 # Windows
-mklink "C:\...\ScriptUI Panels\project_panel.jsx" "C:\path\to\repo\Scripts\panel\project_panel.jsx"
+mklink "C:\...\ScriptUI Panels\my_project_panel.jsx" "C:\path\to\repo\Scripts\panel\my_project_panel.jsx"
 ```
 
-The `setup.jsx` script offers to create this symlink automatically.
+`setup.jsx` generates a panel file named after your project (for example, `my_project_panel.jsx`) and offers to create this symlink automatically. If you want a checked-in example panel instead, use `Scripts/panel/automation_lab_panel.jsx`.
 
 For standalone scripts, you can run them directly via `File > Scripts > Run Script File...` without any symlink.
 

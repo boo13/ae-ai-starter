@@ -2,6 +2,8 @@
 
 A CEP panel for After Effects that fetches live stock market data and builds motion graphics compositions: stock cards, sparklines, and comparison charts.
 
+This example replaces the older `stock_ticker` ScriptUI demo that now lives in `Scripts/demos/_archive/stock_ticker/`.
+
 ## Features
 
 - Live data from Yahoo Finance (no API key required)

@@ -1,5 +1,7 @@
 # Stock Ticker + Sparkline
 
+This ScriptUI demo is archived. The supported stock-data example now lives in [`examples/ticker-data/`](/Users/randy/Git/ae-ai-starter/examples/ticker-data).
+
 Dockable ScriptUI panel that builds a scrolling market ticker and featured sparkline chart from bundled or live stock data.
 
 ## Files
@@ -10,7 +12,7 @@ Dockable ScriptUI panel that builds a scrolling market ticker and featured spark
 
 ## Install
 
-1. Symlink [`stock_ticker_panel.jsx`](/Users/randy/Git/ae-ai-starter/.worktrees/feat-demo-panels/Scripts/demos/stock_ticker/stock_ticker_panel.jsx) into After Effects' `Scripts/ScriptUI Panels` folder.
+1. Symlink [`stock_ticker_panel.jsx`](/Users/randy/Git/ae-ai-starter/Scripts/demos/_archive/stock_ticker/stock_ticker_panel.jsx) into After Effects' `Scripts/ScriptUI Panels` folder if you explicitly want to run the archived panel.
 2. Restart After Effects.
 3. Open it from **Window > Stock Ticker**.
 
@@ -24,7 +26,7 @@ Dockable ScriptUI panel that builds a scrolling market ticker and featured spark
 
 ## Data Format
 
-Bundled data lives in [`Input/sample_stock_data.json`](/Users/randy/Git/ae-ai-starter/.worktrees/feat-demo-panels/Input/sample_stock_data.json) with this structure:
+Bundled data lives in [`Input/sample_stock_data.json`](/Users/randy/Git/ae-ai-starter/Input/sample_stock_data.json) with this structure:
 
 ```json
 {

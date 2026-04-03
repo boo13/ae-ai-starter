@@ -22,13 +22,15 @@ The setup script can create a symlink from AE's ScriptUI Panels folder to this f
 
 **Manual symlink (macOS):**
 ```bash
-ln -s "/path/to/your/repo/Scripts/panel/project_panel.jsx" "/Applications/Adobe After Effects <version>/Scripts/ScriptUI Panels/project_panel.jsx"
+ln -s "/path/to/your/repo/Scripts/panel/my_project_panel.jsx" "/Applications/Adobe After Effects <version>/Scripts/ScriptUI Panels/my_project_panel.jsx"
 ```
 
 **Manual symlink (Windows):**
 ```cmd
-mklink "C:\Program Files\Adobe\After Effects <version>\Scripts\ScriptUI Panels\project_panel.jsx" "C:\path\to\repo\Scripts\panel\project_panel.jsx"
+mklink "C:\Program Files\Adobe\After Effects <version>\Scripts\ScriptUI Panels\my_project_panel.jsx" "C:\path\to\repo\Scripts\panel\my_project_panel.jsx"
 ```
+
+`setup.jsx` generates the panel filename from your project name, so replace `my_project_panel.jsx` with the actual file it created. If you want a fixed, ready-to-run example instead of a generated panel, symlink `automation_lab_panel.jsx`.
 
 ## Development
 

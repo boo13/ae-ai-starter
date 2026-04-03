@@ -10,7 +10,7 @@ Dockable ScriptUI panel that generates Perlin noise-driven flowing line art in a
 
 ## Install
 
-1. Symlink [`flow_field_panel.jsx`](~/Git/ae-ai-starter/.worktrees/feat-demo-panels/Scripts/demos/flow_field/flow_field_panel.jsx) into After Effects' `Scripts/ScriptUI Panels` ('/Applications/Adobe After Effects 2026/Scripts/ScriptUI Panels') folder.
+1. Symlink [`flow_field_panel.jsx`](/Users/randy/Git/ae-ai-starter/Scripts/demos/flow_field/flow_field_panel.jsx) into After Effects' `Scripts/ScriptUI Panels` folder, or use an equivalent path in your own clone such as `/path/to/repo/Scripts/demos/flow_field/flow_field_panel.jsx`.
 2. Restart After Effects.
 3. Open it from **Window > Flow Field Generator**.
 

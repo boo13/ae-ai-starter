@@ -15,7 +15,7 @@ If you haven't done these steps yet, go back to the README and follow the Quick 
 
 ### Claude Code (recommended)
 
-Claude Code reads your project files automatically. Open a terminal in your project directory and start Claude Code — it will read `CLAUDE.md` and already know about your project structure, ES3 constraints, and available libraries.
+Claude Code reads your project files automatically. Open a terminal in your project directory and start Claude Code — it will read the repo's AI instructions (`CLAUDE.md`, which in this template symlinks to `AGENTS.md`) and already know about your project structure, ES3 constraints, and available libraries.
 
 To give it full context about your AE project, ask:
 
