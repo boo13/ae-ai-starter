@@ -298,4 +298,4 @@ examples/ai-chat/
 - `examples/ai-chat/README.md` — setup, provider configuration, development workflow
 - `docs/ai-workflow.md` — how AI assistants integrate with the starter template
 - `docs/solutions/logic-errors/ae-plugin-plan-review-match-names.md` — example solution doc format
-- `examples/INSTALL_EXAMPLE.md` — generic example installation (build + symlink pattern)
+- `examples/README.md` — example overview and installation instructions
