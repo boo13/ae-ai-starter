@@ -1,12 +1,26 @@
-# ae-ai-starter
+# After Effects AI Starter Template
 
 A template for using AI to help with your After Effects projects.
 
 ## What This Does
 
-This template gives AI coding assistants (Claude, ChatGPT's Codex, Gemini) the context they need to write ExtendScript automation for your AE projects. You describe what you want in plain language, the AI writes the script, and you run it in After Effects. 
+This template gives AI coding assistants (Claude, ChatGPT's Codex, Gemini) the context they need to write ExtendScript automation for your AE projects. 
 
-It includes an analysis system that extracts your project structure into a report the AI can read, shared libraries for common scripting tasks, and reusable recipes for patterns like populating repeated layers or swapping images.
+**The Goal:** You describe what you want in plain language, the AI writes a script, and you run it in After Effects... and/or you build a plugin that does what you want in AE. 
+
+**What's included...**
+
+An analysis system gives the AI "eyes" into your project structure — delivering a report the AI can read.
+
+Also included are shared libraries for common scripting tasks, examples, and reusable recipes for patterns like populating repeated layers or swapping images.
+
+## What It Doesn't Do
+
+**It's still pretty dumb...** More context and clarity helps, but...
+
+**It's all a work in progress** but provided here to serve as an inspiration and resource for others looking to experiment.
+
+**It's still pretty slow...** See above, but also worth noting that the API is faster than the CLI.
 
 ## Quick Start
 
