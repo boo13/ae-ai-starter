@@ -6,8 +6,8 @@ Recipes are reusable automation patterns in `Scripts/recipes/`. Each recipe is a
 
 If you want fully built examples instead of copy-and-adapt recipes, start with these:
 
-- [`Scripts/demos/flow_field/flow_field_panel.jsx`](/Users/randy/Git/ae-ai-starter/Scripts/demos/flow_field/flow_field_panel.jsx) — generative shape-layer art driven by Perlin noise, path generation, and trim-path expressions.
-- [`examples/ticker-data/`](/Users/randy/Git/ae-ai-starter/examples/ticker-data) — the current stock-data example, with a CEP panel that fetches ticker data and builds cards, sparklines, and comparison charts in After Effects.
+- [`Scripts/demos/flow_field/flow_field_panel.jsx`](../Scripts/demos/flow_field/flow_field_panel.jsx) — generative shape-layer art driven by Perlin noise, path generation, and trim-path expressions.
+- [`examples/ticker-data/`](../examples/ticker-data) — the current stock-data example, with a CEP panel that fetches ticker data and builds cards, sparklines, and comparison charts in After Effects.
 
 The older `stock_ticker` ScriptUI demo is archived in `Scripts/demos/_archive/stock_ticker/` and should be treated as historical reference rather than the primary stock-data workflow.
 
