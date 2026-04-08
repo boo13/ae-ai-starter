@@ -1,11 +1,12 @@
 # ae-ai-starter
-## 🚧🚧 This repo is under heavy development 🚧🚧
 
-Use AI assistants to automate your After Effects projects.
+A template for using AI to help with your After Effects projects.
 
 ## What This Does
 
-This template gives AI coding assistants the context they need to write ExtendScript automation for your AE projects. You describe what you want in plain language, the AI writes the script, and you run it in After Effects. It includes an analysis system that extracts your project structure into a report the AI can read, shared libraries for common scripting tasks, and reusable recipes for patterns like populating repeated layers or swapping images.
+This template gives AI coding assistants (Claude, ChatGPT's Codex, Gemini) the context they need to write ExtendScript automation for your AE projects. You describe what you want in plain language, the AI writes the script, and you run it in After Effects. 
+
+It includes an analysis system that extracts your project structure into a report the AI can read, shared libraries for common scripting tasks, and reusable recipes for patterns like populating repeated layers or swapping images.
 
 ## Quick Start
 
@@ -21,7 +22,7 @@ The core workflow is a loop:
 
 - **Analyze** — `setup.jsx` scans your AE project and produces a plain-text report that the AI can read. Since AI assistants can't open After Effects directly, this report is their window into your project.
 - **Describe** — Tell the AI what you want to automate. It knows your compositions, layers, and properties from the report.
-- **Run** — The AI writes an ExtendScript. You run it in AE via **File > Scripts > Run Script File**.
+- **Run** — The AI writes an ExtendScript. You run it in AE via **File > Scripts > Run Script File** or a button on your custom UI panel.
 - **Iterate** — When your template changes, re-run analysis (`Scripts/analyze/run_analysis.jsx`) to keep the report current.
 
 ## What's Included
@@ -34,15 +35,7 @@ The core workflow is a loop:
 - `docs/` — Workflow guides and recipe reference
 - `examples/` — Standalone example projects (social-card, etc.)
 
-## Demo Panels
-
-The template includes one standalone ScriptUI demo under `Scripts/demos/`:
-
-- [`Scripts/demos/flow_field/flow_field_panel.jsx`](/Users/randy/Git/ae-ai-starter/Scripts/demos/flow_field/flow_field_panel.jsx) — a generative Flow Field panel that builds Perlin noise-driven streamline art with live speed and palette controls.
-
-For stock-data-driven motion graphics, use [`examples/ticker-data/`](/Users/randy/Git/ae-ai-starter/examples/ticker-data), which replaces the older `stock_ticker` demo. The legacy ScriptUI stock ticker files remain in `Scripts/demos/_archive/stock_ticker/` for reference only.
-
-Install `flow_field_panel.jsx` the same way as any ScriptUI panel in this repo: symlink the `.jsx` file into After Effects' `Scripts/ScriptUI Panels` folder, restart AE, then open the panel from the **Window** menu.
+## Example Panels
 
 ## Requirements
 
