@@ -1,0 +1,42 @@
+name: Bug Report
+description: Something isn't working as expected
+labels: ["bug"]
+body:
+  - type: dropdown
+    id: ae-version
+    attributes:
+      label: After Effects version
+      options:
+        - "2025"
+        - "2024"
+        - "2023"
+        - "2022"
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened?
+      description: Describe what went wrong. Include any error messages you saw.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open AE with...
+        2. Run script...
+        3. See error...
+    validations:
+      required: true
+
+  - type: textarea
+    id: last-run
+    attributes:
+      label: last_run.json output
+      description: Optional — paste the contents of `Scripts/runs/last_run.json` after the error occurred.
+      render: json
