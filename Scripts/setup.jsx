@@ -37,13 +37,6 @@
         return;
     }
 
-    if (app.project.numItems < 1) {
-        alert(
-            "The open project appears to be empty.\n\n" +
-            "Please open a project with at least one composition."
-        );
-        return;
-    }
 
     // ------------------------------------------------------------------
     // 2. Probe the project -- collect comp names
@@ -92,13 +85,6 @@
         return 0;
     });
 
-    if (compNames.length === 0) {
-        alert(
-            "No compositions found in the open project.\n\n" +
-            "Please open a project that contains at least one composition."
-        );
-        return;
-    }
 
     // ------------------------------------------------------------------
     // Derive default project name from AEP filename
@@ -131,13 +117,16 @@
     nameInput.characters = 30;
     nameInput.alignment = ["fill", "center"];
 
-    // -- Main Composition --
-    var compGroup = dlg.add("group");
-    compGroup.alignment = ["fill", "top"];
-    compGroup.add("statictext", undefined, "Main Composition:");
-    var compDropdown = compGroup.add("dropdownlist", undefined, compNames);
-    compDropdown.alignment = ["fill", "center"];
-    compDropdown.selection = 0;
+    // -- Main Composition (only shown when the project has comps) --
+    var compDropdown = null;
+    if (compNames.length > 0) {
+        var compGroup = dlg.add("group");
+        compGroup.alignment = ["fill", "top"];
+        compGroup.add("statictext", undefined, "Main Composition:");
+        compDropdown = compGroup.add("dropdownlist", undefined, compNames);
+        compDropdown.alignment = ["fill", "center"];
+        compDropdown.selection = 0;
+    }
 
     dlg.add("panel", undefined, "");  // visual separator
 
@@ -162,7 +151,7 @@
     // Gather dialog values
     // ------------------------------------------------------------------
     var projectName = nameInput.text;
-    var mainCompName = compDropdown.selection ? compDropdown.selection.text : compNames[0];
+    var mainCompName = (compDropdown && compDropdown.selection) ? compDropdown.selection.text : (compNames[0] || "");
     var createPanel = panelCheckbox.value;
 
     if (!projectName || projectName.replace(/\s/g, "").length === 0) {
@@ -242,7 +231,7 @@
     // ------------------------------------------------------------------
     var analysisScript = new File(scriptsDir.fsName + "/analyze/run_analysis.jsx");
     var analysisRan = false;
-    if (analysisScript.exists) {
+    if (analysisScript.exists && app.project.numItems > 0) {
         try {
             $.evalFile(analysisScript);
             analysisRan = true;
@@ -257,7 +246,7 @@
     var panelCreated = false;
     var panelFileName = "";
     if (createPanel) {
-        panelFileName = toFileName(projectName) + "_panel.jsx";
+        panelFileName = toFileName(projectName).replace(/_?panel$/i, "") + "_panel.jsx";
         var panelDir = ensureFolder(scriptsDir.fsName + "/panel");
         var panelFile = new File(panelDir.fsName + "/" + panelFileName);
         var panelContent = buildPanelScript(projectName, panelFileName);
@@ -332,30 +321,16 @@
         // Detect AE ScriptUI Panels path
         var aeScriptUIPath = "";
 
-        // Try user-level path on macOS first
-        if ($.os.indexOf("Mac") !== -1 || $.os.indexOf("mac") !== -1) {
-            var versionParts = app.version.split(".");
-            var majorVersion = versionParts[0];
-
-            // User preferences path
-            var userPath = Folder("~/Library/Preferences/Adobe/After Effects/" +
-                majorVersion + ".0/Scripts/ScriptUI Panels").fsName;
-
-            // App-level path
-            var appPath = Folder(app.path).fsName + "/Scripts/ScriptUI Panels";
-
-            // Prefer user path if the parent exists, otherwise app path
-            var userParent = new Folder(Folder("~/Library/Preferences/Adobe/After Effects/" +
-                majorVersion + ".0/Scripts").fsName);
-            if (userParent.exists) {
-                aeScriptUIPath = userPath;
-            } else {
-                aeScriptUIPath = appPath;
+        // Folder.appPackage is a standard ExtendScript static property that always
+        // returns the actual running application (.app bundle on Mac, .exe on Win).
+        // Its parent folder is the AE installation root — reliable across all versions.
+        try {
+            var appFolder = new Folder(Folder.appPackage).parent;
+            if (appFolder) {
+                var sep = ($.os.indexOf("Win") !== -1) ? "\\" : "/";
+                aeScriptUIPath = appFolder.fsName + sep + "Scripts" + sep + "ScriptUI Panels";
             }
-        } else {
-            // Windows -- app-level path
-            aeScriptUIPath = Folder(app.path).fsName + "\\Scripts\\ScriptUI Panels";
-        }
+        } catch (_) {}
 
         var symlinkDlg = new Window("dialog", "Install Panel", undefined, { resizeable: false });
 
@@ -395,7 +370,11 @@
 
         try {
             if ($.os.indexOf("Mac") !== -1 || $.os.indexOf("mac") !== -1) {
-                var cmd = 'ln -s "' + sourceFile.fsName + '" "' + linkDest + '"';
+                // Use osascript with administrator privileges so macOS prompts
+                // for a password — required because the ScriptUI Panels folder
+                // is owned by root and system.callSystem runs as the current user.
+                var shellCmd = 'ln -sf \\"' + sourceFile.fsName + '\\" \\"' + linkDest + '\\"';
+                var cmd = "osascript -e 'do shell script \"" + shellCmd + "\" with administrator privileges'";
                 system.callSystem(cmd);
                 alert("Symlink created!\n\n" + linkDest + "\n\nRestart After Effects to see the panel in the Window menu.");
             } else {

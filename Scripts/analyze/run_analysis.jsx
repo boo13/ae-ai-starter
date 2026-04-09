@@ -34,7 +34,7 @@
         // ------------------------------------------------------------------
         // Preflight: ensure a project is open
         // ------------------------------------------------------------------
-        if (!app.project || app.project.items.length < 1) {
+        if (!app.project) {
             alert("No After Effects project is open.\nPlease open a project and run this script again.");
             return;
         }
