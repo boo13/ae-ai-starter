@@ -2,6 +2,14 @@
 
 Automate After Effects with AI — describe what you want in plain language to an LLM and have it actually do stuff in AE.
 
+<p align="center">
+  <img
+    src="screenshots/AE_AI_SetupStarter.png"
+    alt="Example starter plugin"
+    width="900"
+  />
+</p>
+
 ## Quick Start
 
 **Requirements:** After Effects (any recent version) + an AI assistant ([Claude Code](https://claude.ai/download), ChatGPT, Cursor, Gemini, etc.)
