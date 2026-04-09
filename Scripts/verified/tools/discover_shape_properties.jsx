@@ -94,6 +94,45 @@
         // Stroke
         var stroke = grpContents.addProperty("ADBE Vector Graphic - Stroke");
 
+        // Polystar
+        var polystar = grpContents.addProperty("ADBE Vector Shape - Star");
+
+        // Path / Bezier
+        var path = grpContents.addProperty("ADBE Vector Shape - Group");
+
+        // Gradient Stroke
+        var gradientStroke = grpContents.addProperty("ADBE Vector Graphic - G-Stroke");
+
+        // Merge Paths
+        var mergePaths = grpContents.addProperty("ADBE Vector Filter - Merge");
+
+        // Trim Paths
+        var trimPaths = grpContents.addProperty("ADBE Vector Filter - Trim");
+
+        // Offset Paths
+        var offsetPaths = grpContents.addProperty("ADBE Vector Filter - Offset");
+
+        // Pucker & Bloat
+        var puckerBloat = grpContents.addProperty("ADBE Vector Filter - PB");
+
+        // Repeater
+        var repeater = grpContents.addProperty("ADBE Vector Filter - Repeater");
+
+        // Round Corners
+        var roundCorners = grpContents.addProperty("ADBE Vector Filter - RC");
+
+        // Twist
+        var twist = grpContents.addProperty("ADBE Vector Filter - Twist");
+
+        // Zig Zag
+        var zigZag = grpContents.addProperty("ADBE Vector Filter - Zigzag");
+
+        // Wiggle Paths
+        var wigglePaths = grpContents.addProperty("ADBE Vector Filter - Roughen");
+
+        // Wiggle Transform
+        var wiggleTransform = grpContents.addProperty("ADBE Vector Filter - Wiggler");
+
         // --- Walk the full tree ---
         var contentsTree = walkProperty(contents, 6);
         var transformTree = walkProperty(layer.property("ADBE Transform Group"), 4);

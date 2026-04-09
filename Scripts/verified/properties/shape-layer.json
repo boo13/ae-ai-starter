@@ -1,919 +1,1 @@
-{
-  "type": "Shape Layer Properties",
-  "verifiedDate": "2026-03-13",
-  "verifiedAEVersion": "26.0x67",
-  "contents": {
-    "name": "Contents",
-    "matchName": "ADBE Root Vectors Group",
-    "type": "group",
-    "numProperties": 1,
-    "children": [
-      {
-        "name": "Test Group",
-        "matchName": "ADBE Vector Group",
-        "type": "group",
-        "numProperties": 4,
-        "children": [
-          {
-            "name": "Blend Mode",
-            "matchName": "ADBE Vector Blend Mode",
-            "valueType": "OneD",
-            "defaultValue": 1
-          },
-          {
-            "name": "Contents",
-            "matchName": "ADBE Vectors Group",
-            "type": "group",
-            "numProperties": 5,
-            "children": [
-              {
-                "name": "Rectangle Path 1",
-                "matchName": "ADBE Vector Shape - Rect",
-                "type": "group",
-                "numProperties": 4,
-                "children": [
-                  {
-                    "name": "Shape Direction",
-                    "matchName": "ADBE Vector Shape Direction",
-                    "valueType": "OneD",
-                    "defaultValue": 1
-                  },
-                  {
-                    "name": "Size",
-                    "matchName": "ADBE Vector Rect Size",
-                    "valueType": "TwoD",
-                    "defaultValue": [
-                      100,
-                      200
-                    ]
-                  },
-                  {
-                    "name": "Position",
-                    "matchName": "ADBE Vector Rect Position",
-                    "valueType": "TwoD_SPATIAL",
-                    "defaultValue": [
-                      0,
-                      0
-                    ]
-                  },
-                  {
-                    "name": "Roundness",
-                    "matchName": "ADBE Vector Rect Roundness",
-                    "valueType": "OneD",
-                    "defaultValue": 0
-                  }
-                ]
-              },
-              {
-                "name": "Ellipse Path 1",
-                "matchName": "ADBE Vector Shape - Ellipse",
-                "type": "group",
-                "numProperties": 3,
-                "children": [
-                  {
-                    "name": "Shape Direction",
-                    "matchName": "ADBE Vector Shape Direction",
-                    "valueType": "OneD",
-                    "defaultValue": 1
-                  },
-                  {
-                    "name": "Size",
-                    "matchName": "ADBE Vector Ellipse Size",
-                    "valueType": "TwoD",
-                    "defaultValue": [
-                      100,
-                      100
-                    ]
-                  },
-                  {
-                    "name": "Position",
-                    "matchName": "ADBE Vector Ellipse Position",
-                    "valueType": "TwoD_SPATIAL",
-                    "defaultValue": [
-                      0,
-                      0
-                    ]
-                  }
-                ]
-              },
-              {
-                "name": "Fill 1",
-                "matchName": "ADBE Vector Graphic - Fill",
-                "type": "group",
-                "numProperties": 5,
-                "children": [
-                  {
-                    "name": "Blend Mode",
-                    "matchName": "ADBE Vector Blend Mode",
-                    "valueType": "OneD",
-                    "defaultValue": 1
-                  },
-                  {
-                    "name": "Composite",
-                    "matchName": "ADBE Vector Composite Order",
-                    "valueType": "OneD",
-                    "defaultValue": 1
-                  },
-                  {
-                    "name": "Fill Rule",
-                    "matchName": "ADBE Vector Fill Rule",
-                    "valueType": "OneD",
-                    "defaultValue": 1
-                  },
-                  {
-                    "name": "Color",
-                    "matchName": "ADBE Vector Fill Color",
-                    "valueType": "COLOR",
-                    "defaultValue": [
-                      1,
-                      0,
-                      0,
-                      1
-                    ]
-                  },
-                  {
-                    "name": "Opacity",
-                    "matchName": "ADBE Vector Fill Opacity",
-                    "valueType": "OneD",
-                    "defaultValue": 100
-                  }
-                ]
-              },
-              {
-                "name": "Gradient Fill 1",
-                "matchName": "ADBE Vector Graphic - G-Fill",
-                "type": "group",
-                "numProperties": 12,
-                "children": [
-                  {
-                    "name": "Blend Mode",
-                    "matchName": "ADBE Vector Blend Mode",
-                    "valueType": "OneD",
-                    "defaultValue": 1
-                  },
-                  {
-                    "name": "Composite",
-                    "matchName": "ADBE Vector Composite Order",
-                    "valueType": "OneD",
-                    "defaultValue": 1
-                  },
-                  {
-                    "name": "Fill Rule",
-                    "matchName": "ADBE Vector Fill Rule",
-                    "valueType": "OneD",
-                    "defaultValue": 1
-                  },
-                  {
-                    "name": "Type",
-                    "matchName": "ADBE Vector Grad Type",
-                    "valueType": "OneD",
-                    "defaultValue": 1
-                  },
-                  {
-                    "name": "Start Point",
-                    "matchName": "ADBE Vector Grad Start Pt",
-                    "valueType": "TwoD_SPATIAL",
-                    "defaultValue": [
-                      0,
-                      0
-                    ]
-                  },
-                  {
-                    "name": "End Point",
-                    "matchName": "ADBE Vector Grad End Pt",
-                    "valueType": "TwoD_SPATIAL",
-                    "defaultValue": [
-                      100,
-                      0
-                    ]
-                  },
-                  {
-                    "name": "Highlight Length",
-                    "matchName": "ADBE Vector Grad HiLite Length",
-                    "valueType": "OneD",
-                    "defaultValue": 0
-                  },
-                  {
-                    "name": "Highlight Angle",
-                    "matchName": "ADBE Vector Grad HiLite Angle",
-                    "valueType": "OneD",
-                    "defaultValue": 0
-                  },
-                  {
-                    "name": "Scale",
-                    "matchName": "ADBE Vector Grad Scale",
-                    "valueType": "TwoD",
-                    "defaultValue": [
-                      100,
-                      100
-                    ]
-                  },
-                  {
-                    "name": "Rotation",
-                    "matchName": "ADBE Vector Grad Rotation",
-                    "valueType": "OneD",
-                    "defaultValue": 0
-                  },
-                  {
-                    "name": "Colors",
-                    "matchName": "ADBE Vector Grad Colors",
-                    "valueType": "NO_VALUE",
-                    "defaultValue": null
-                  },
-                  {
-                    "name": "Opacity",
-                    "matchName": "ADBE Vector Fill Opacity",
-                    "valueType": "OneD",
-                    "defaultValue": 100
-                  }
-                ]
-              },
-              {
-                "name": "Stroke 1",
-                "matchName": "ADBE Vector Graphic - Stroke",
-                "type": "group",
-                "numProperties": 11,
-                "children": [
-                  {
-                    "name": "Blend Mode",
-                    "matchName": "ADBE Vector Blend Mode",
-                    "valueType": "OneD",
-                    "defaultValue": 1
-                  },
-                  {
-                    "name": "Composite",
-                    "matchName": "ADBE Vector Composite Order",
-                    "valueType": "OneD",
-                    "defaultValue": 1
-                  },
-                  {
-                    "name": "Color",
-                    "matchName": "ADBE Vector Stroke Color",
-                    "valueType": "COLOR",
-                    "defaultValue": [
-                      1,
-                      1,
-                      1,
-                      1
-                    ]
-                  },
-                  {
-                    "name": "Opacity",
-                    "matchName": "ADBE Vector Stroke Opacity",
-                    "valueType": "OneD",
-                    "defaultValue": 100
-                  },
-                  {
-                    "name": "Stroke Width",
-                    "matchName": "ADBE Vector Stroke Width",
-                    "valueType": "OneD",
-                    "defaultValue": 2
-                  },
-                  {
-                    "name": "Line Cap",
-                    "matchName": "ADBE Vector Stroke Line Cap",
-                    "valueType": "OneD",
-                    "defaultValue": 1
-                  },
-                  {
-                    "name": "Line Join",
-                    "matchName": "ADBE Vector Stroke Line Join",
-                    "valueType": "OneD",
-                    "defaultValue": 1
-                  },
-                  {
-                    "name": "Miter Limit",
-                    "matchName": "ADBE Vector Stroke Miter Limit",
-                    "valueType": "OneD",
-                    "defaultValue": 4
-                  },
-                  {
-                    "name": "Dashes",
-                    "matchName": "ADBE Vector Stroke Dashes",
-                    "type": "group",
-                    "numProperties": 7,
-                    "children": [
-                      {
-                        "name": "Dash",
-                        "matchName": "ADBE Vector Stroke Dash 1",
-                        "valueType": "OneD",
-                        "defaultValue": 10
-                      },
-                      {
-                        "name": "Gap",
-                        "matchName": "ADBE Vector Stroke Gap 1",
-                        "valueType": "OneD",
-                        "defaultValue": 10
-                      },
-                      {
-                        "name": "Dash 2",
-                        "matchName": "ADBE Vector Stroke Dash 2",
-                        "valueType": "OneD",
-                        "defaultValue": 10
-                      },
-                      {
-                        "name": "Gap 2",
-                        "matchName": "ADBE Vector Stroke Gap 2",
-                        "valueType": "OneD",
-                        "defaultValue": 10
-                      },
-                      {
-                        "name": "Dash 3",
-                        "matchName": "ADBE Vector Stroke Dash 3",
-                        "valueType": "OneD",
-                        "defaultValue": 10
-                      },
-                      {
-                        "name": "Gap 3",
-                        "matchName": "ADBE Vector Stroke Gap 3",
-                        "valueType": "OneD",
-                        "defaultValue": 10
-                      },
-                      {
-                        "name": "Offset",
-                        "matchName": "ADBE Vector Stroke Offset",
-                        "valueType": "OneD",
-                        "defaultValue": 0
-                      }
-                    ]
-                  },
-                  {
-                    "name": "Taper",
-                    "matchName": "ADBE Vector Stroke Taper",
-                    "type": "group",
-                    "numProperties": 9,
-                    "children": [
-                      {
-                        "name": "Length Units",
-                        "matchName": "ADBE Vector Taper Length Units",
-                        "valueType": "OneD",
-                        "defaultValue": 1
-                      },
-                      {
-                        "name": "Start Length",
-                        "matchName": "ADBE Vector Taper Start Length",
-                        "valueType": "OneD",
-                        "defaultValue": 0
-                      },
-                      {
-                        "name": "End Length",
-                        "matchName": "ADBE Vector Taper End Length",
-                        "valueType": "OneD",
-                        "defaultValue": 0
-                      },
-                      {
-                        "name": "Start Length",
-                        "matchName": "ADBE Vector Taper StartWidthPx",
-                        "valueType": "OneD",
-                        "defaultValue": 0
-                      },
-                      {
-                        "name": "End Length",
-                        "matchName": "ADBE Vector Taper EndWidthPx",
-                        "valueType": "OneD",
-                        "defaultValue": 0
-                      },
-                      {
-                        "name": "Start Width",
-                        "matchName": "ADBE Vector Taper Start Width",
-                        "valueType": "OneD",
-                        "defaultValue": 0
-                      },
-                      {
-                        "name": "End Width",
-                        "matchName": "ADBE Vector Taper End Width",
-                        "valueType": "OneD",
-                        "defaultValue": 0
-                      },
-                      {
-                        "name": "Start Ease",
-                        "matchName": "ADBE Vector Taper Start Ease",
-                        "valueType": "OneD",
-                        "defaultValue": 0
-                      },
-                      {
-                        "name": "End Ease",
-                        "matchName": "ADBE Vector Taper End Ease",
-                        "valueType": "OneD",
-                        "defaultValue": 0
-                      }
-                    ]
-                  },
-                  {
-                    "name": "Wave",
-                    "matchName": "ADBE Vector Stroke Wave",
-                    "type": "group",
-                    "numProperties": 5,
-                    "children": [
-                      {
-                        "name": "Amount",
-                        "matchName": "ADBE Vector Taper Wave Amount",
-                        "valueType": "OneD",
-                        "defaultValue": 0
-                      },
-                      {
-                        "name": "Units",
-                        "matchName": "ADBE Vector Taper Wave Units",
-                        "valueType": "OneD",
-                        "defaultValue": 1
-                      },
-                      {
-                        "name": "Wavelength",
-                        "matchName": "ADBE Vector Taper Wavelength",
-                        "valueType": "OneD",
-                        "defaultValue": 100
-                      },
-                      {
-                        "name": "Cycles",
-                        "matchName": "ADBE Vector Taper Wave Cycles",
-                        "valueType": "OneD",
-                        "defaultValue": 10
-                      },
-                      {
-                        "name": "Phase",
-                        "matchName": "ADBE Vector Taper Wave Phase",
-                        "valueType": "OneD",
-                        "defaultValue": 0
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          },
-          {
-            "name": "Transform",
-            "matchName": "ADBE Vector Transform Group",
-            "type": "group",
-            "numProperties": 7,
-            "children": [
-              {
-                "name": "Anchor Point",
-                "matchName": "ADBE Vector Anchor",
-                "valueType": "TwoD_SPATIAL",
-                "defaultValue": [
-                  0,
-                  0
-                ]
-              },
-              {
-                "name": "Position",
-                "matchName": "ADBE Vector Position",
-                "valueType": "TwoD_SPATIAL",
-                "defaultValue": [
-                  0,
-                  0
-                ]
-              },
-              {
-                "name": "Scale",
-                "matchName": "ADBE Vector Scale",
-                "valueType": "TwoD",
-                "defaultValue": [
-                  100,
-                  100
-                ]
-              },
-              {
-                "name": "Skew",
-                "matchName": "ADBE Vector Skew",
-                "valueType": "OneD",
-                "defaultValue": 0
-              },
-              {
-                "name": "Skew Axis",
-                "matchName": "ADBE Vector Skew Axis",
-                "valueType": "OneD",
-                "defaultValue": 0
-              },
-              {
-                "name": "Rotation",
-                "matchName": "ADBE Vector Rotation",
-                "valueType": "OneD",
-                "defaultValue": 0
-              },
-              {
-                "name": "Opacity",
-                "matchName": "ADBE Vector Group Opacity",
-                "valueType": "OneD",
-                "defaultValue": 100
-              }
-            ]
-          },
-          {
-            "name": "Material Options",
-            "matchName": "ADBE Vector Materials Group",
-            "type": "group",
-            "numProperties": 48,
-            "children": [
-              {
-                "name": "Front Color",
-                "matchName": "ADBE Vec3D Front RGB",
-                "valueType": "COLOR",
-                "defaultValue": [
-                  1,
-                  0,
-                  0,
-                  1
-                ]
-              },
-              {
-                "name": "Front Ambient",
-                "matchName": "ADBE Vec3D Front Ambient",
-                "valueType": "OneD",
-                "defaultValue": 100
-              },
-              {
-                "name": "Front Diffuse",
-                "matchName": "ADBE Vec3D Front Diffuse",
-                "valueType": "OneD",
-                "defaultValue": 50
-              },
-              {
-                "name": "Front Specular Intensity",
-                "matchName": "ADBE Vec3D Front Specular",
-                "valueType": "OneD",
-                "defaultValue": 50
-              },
-              {
-                "name": "Front Specular Shininess",
-                "matchName": "ADBE Vec3D Front Shininess",
-                "valueType": "OneD",
-                "defaultValue": 5
-              },
-              {
-                "name": "Front Metal",
-                "matchName": "ADBE Vec3D Front Metal",
-                "valueType": "OneD",
-                "defaultValue": 100
-              },
-              {
-                "name": "Front Reflection Intensity",
-                "matchName": "ADBE Vec3D Front Reflection",
-                "valueType": "OneD",
-                "defaultValue": 0
-              },
-              {
-                "name": "Front Reflection Sharpness",
-                "matchName": "ADBE Vec3D Front Gloss",
-                "valueType": "OneD",
-                "defaultValue": 100
-              },
-              {
-                "name": "Front Reflection Rolloff",
-                "matchName": "ADBE Vec3D Front Fresnel",
-                "valueType": "OneD",
-                "defaultValue": 0
-              },
-              {
-                "name": "Front Transparency",
-                "matchName": "ADBE Vec3D Front Xparency",
-                "valueType": "OneD",
-                "defaultValue": 0
-              },
-              {
-                "name": "Front Transparency Rolloff",
-                "matchName": "ADBE Vec3D Front XparRoll",
-                "valueType": "OneD",
-                "defaultValue": 0
-              },
-              {
-                "name": "Front Index of Refraction",
-                "matchName": "ADBE Vec3D Front IOR",
-                "valueType": "OneD",
-                "defaultValue": 1
-              },
-              {
-                "name": "Bevel Color",
-                "matchName": "ADBE Vec3D Bevel RGB",
-                "valueType": "COLOR",
-                "defaultValue": [
-                  1,
-                  0,
-                  0,
-                  1
-                ]
-              },
-              {
-                "name": "Bevel Ambient",
-                "matchName": "ADBE Vec3D Bevel Ambient",
-                "valueType": "OneD",
-                "defaultValue": 100
-              },
-              {
-                "name": "Bevel Diffuse",
-                "matchName": "ADBE Vec3D Bevel Diffuse",
-                "valueType": "OneD",
-                "defaultValue": 50
-              },
-              {
-                "name": "Bevel Specular Intensity",
-                "matchName": "ADBE Vec3D Bevel Specular",
-                "valueType": "OneD",
-                "defaultValue": 50
-              },
-              {
-                "name": "Bevel Specular Shininess",
-                "matchName": "ADBE Vec3D Bevel Shininess",
-                "valueType": "OneD",
-                "defaultValue": 5
-              },
-              {
-                "name": "Bevel Metal",
-                "matchName": "ADBE Vec3D Bevel Metal",
-                "valueType": "OneD",
-                "defaultValue": 100
-              },
-              {
-                "name": "Bevel Reflection Intensity",
-                "matchName": "ADBE Vec3D Bevel Reflection",
-                "valueType": "OneD",
-                "defaultValue": 0
-              },
-              {
-                "name": "Bevel Reflection Sharpness",
-                "matchName": "ADBE Vec3D Bevel Gloss",
-                "valueType": "OneD",
-                "defaultValue": 100
-              },
-              {
-                "name": "Bevel Reflection Rolloff",
-                "matchName": "ADBE Vec3D Bevel Fresnel",
-                "valueType": "OneD",
-                "defaultValue": 0
-              },
-              {
-                "name": "Bevel Transparency",
-                "matchName": "ADBE Vec3D Bevel Xparency",
-                "valueType": "OneD",
-                "defaultValue": 0
-              },
-              {
-                "name": "Bevel Transparency Rolloff",
-                "matchName": "ADBE Vec3D Bevel XparRoll",
-                "valueType": "OneD",
-                "defaultValue": 0
-              },
-              {
-                "name": "Bevel Index of Refraction",
-                "matchName": "ADBE Vec3D Bevel IOR",
-                "valueType": "OneD",
-                "defaultValue": 1
-              },
-              {
-                "name": "Side Color",
-                "matchName": "ADBE Vec3D Side RGB",
-                "valueType": "COLOR",
-                "defaultValue": [
-                  1,
-                  0,
-                  0,
-                  1
-                ]
-              },
-              {
-                "name": "Side Ambient",
-                "matchName": "ADBE Vec3D Side Ambient",
-                "valueType": "OneD",
-                "defaultValue": 100
-              },
-              {
-                "name": "Side Diffuse",
-                "matchName": "ADBE Vec3D Side Diffuse",
-                "valueType": "OneD",
-                "defaultValue": 50
-              },
-              {
-                "name": "Side Specular Intensity",
-                "matchName": "ADBE Vec3D Side Specular",
-                "valueType": "OneD",
-                "defaultValue": 50
-              },
-              {
-                "name": "Side Specular Shininess",
-                "matchName": "ADBE Vec3D Side Shininess",
-                "valueType": "OneD",
-                "defaultValue": 5
-              },
-              {
-                "name": "Side Metal",
-                "matchName": "ADBE Vec3D Side Metal",
-                "valueType": "OneD",
-                "defaultValue": 100
-              },
-              {
-                "name": "Side Reflection Intensity",
-                "matchName": "ADBE Vec3D Side Reflection",
-                "valueType": "OneD",
-                "defaultValue": 0
-              },
-              {
-                "name": "Side Reflection Sharpness",
-                "matchName": "ADBE Vec3D Side Gloss",
-                "valueType": "OneD",
-                "defaultValue": 100
-              },
-              {
-                "name": "Side Reflection Rolloff",
-                "matchName": "ADBE Vec3D Side Fresnel",
-                "valueType": "OneD",
-                "defaultValue": 0
-              },
-              {
-                "name": "Side Transparency",
-                "matchName": "ADBE Vec3D Side Xparency",
-                "valueType": "OneD",
-                "defaultValue": 0
-              },
-              {
-                "name": "Side Transparency Rolloff",
-                "matchName": "ADBE Vec3D Side XparRoll",
-                "valueType": "OneD",
-                "defaultValue": 0
-              },
-              {
-                "name": "Side Index of Refraction",
-                "matchName": "ADBE Vec3D Side IOR",
-                "valueType": "OneD",
-                "defaultValue": 1
-              },
-              {
-                "name": "Back Color",
-                "matchName": "ADBE Vec3D Back RGB",
-                "valueType": "COLOR",
-                "defaultValue": [
-                  1,
-                  0,
-                  0,
-                  1
-                ]
-              },
-              {
-                "name": "Back Ambient",
-                "matchName": "ADBE Vec3D Back Ambient",
-                "valueType": "OneD",
-                "defaultValue": 100
-              },
-              {
-                "name": "Back Diffuse",
-                "matchName": "ADBE Vec3D Back Diffuse",
-                "valueType": "OneD",
-                "defaultValue": 50
-              },
-              {
-                "name": "Back Specular Intensity",
-                "matchName": "ADBE Vec3D Back Specular",
-                "valueType": "OneD",
-                "defaultValue": 50
-              },
-              {
-                "name": "Back Specular Shininess",
-                "matchName": "ADBE Vec3D Back Shininess",
-                "valueType": "OneD",
-                "defaultValue": 5
-              },
-              {
-                "name": "Back Metal",
-                "matchName": "ADBE Vec3D Back Metal",
-                "valueType": "OneD",
-                "defaultValue": 100
-              },
-              {
-                "name": "Back Reflection Intensity",
-                "matchName": "ADBE Vec3D Back Reflection",
-                "valueType": "OneD",
-                "defaultValue": 0
-              },
-              {
-                "name": "Back Reflection Sharpness",
-                "matchName": "ADBE Vec3D Back Gloss",
-                "valueType": "OneD",
-                "defaultValue": 100
-              },
-              {
-                "name": "Back Reflection Rolloff",
-                "matchName": "ADBE Vec3D Back Fresnel",
-                "valueType": "OneD",
-                "defaultValue": 0
-              },
-              {
-                "name": "Back Transparency",
-                "matchName": "ADBE Vec3D Back Xparency",
-                "valueType": "OneD",
-                "defaultValue": 0
-              },
-              {
-                "name": "Back Transparency Rolloff",
-                "matchName": "ADBE Vec3D Back XparRoll",
-                "valueType": "OneD",
-                "defaultValue": 0
-              },
-              {
-                "name": "Back Index of Refraction",
-                "matchName": "ADBE Vec3D Back IOR",
-                "valueType": "OneD",
-                "defaultValue": 1
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  },
-  "transform": {
-    "name": "Transform",
-    "matchName": "ADBE Transform Group",
-    "type": "group",
-    "numProperties": 12,
-    "children": [
-      {
-        "name": "Anchor Point",
-        "matchName": "ADBE Anchor Point",
-        "valueType": "ThreeD_SPATIAL",
-        "defaultValue": [
-          0,
-          0,
-          0
-        ]
-      },
-      {
-        "name": "Position",
-        "matchName": "ADBE Position",
-        "valueType": "ThreeD_SPATIAL",
-        "defaultValue": [
-          540,
-          540,
-          0
-        ]
-      },
-      {
-        "name": "X Position",
-        "matchName": "ADBE Position_0",
-        "valueType": "OneD",
-        "defaultValue": 0
-      },
-      {
-        "name": "Y Position",
-        "matchName": "ADBE Position_1",
-        "valueType": "OneD",
-        "defaultValue": 0
-      },
-      {
-        "name": "Z Position",
-        "matchName": "ADBE Position_2",
-        "valueType": "OneD",
-        "defaultValue": 0
-      },
-      {
-        "name": "Scale",
-        "matchName": "ADBE Scale",
-        "valueType": "ThreeD",
-        "defaultValue": [
-          100,
-          100,
-          100
-        ]
-      },
-      {
-        "name": "Orientation",
-        "matchName": "ADBE Orientation",
-        "valueType": "ThreeD_SPATIAL",
-        "defaultValue": [
-          0,
-          0,
-          0
-        ]
-      },
-      {
-        "name": "X Rotation",
-        "matchName": "ADBE Rotate X",
-        "valueType": "OneD",
-        "defaultValue": 0
-      },
-      {
-        "name": "Y Rotation",
-        "matchName": "ADBE Rotate Y",
-        "valueType": "OneD",
-        "defaultValue": 0
-      },
-      {
-        "name": "Rotation",
-        "matchName": "ADBE Rotate Z",
-        "valueType": "OneD",
-        "defaultValue": 0
-      },
-      {
-        "name": "Opacity",
-        "matchName": "ADBE Opacity",
-        "valueType": "OneD",
-        "defaultValue": 100
-      },
-      {
-        "name": "Appears in Reflections",
-        "matchName": "ADBE Envir Appear in Reflect",
-        "valueType": "OneD",
-        "defaultValue": 1
-      }
-    ]
-  }
-}
+{  "type": "Shape Layer Properties",  "verifiedDate": "2026-04-03",  "verifiedAEVersion": "26.0x67",  "contents": {    "name": "Contents",    "matchName": "ADBE Root Vectors Group",    "type": "group",    "numProperties": 1,    "children": [      {        "name": "Test Group",        "matchName": "ADBE Vector Group",        "type": "group",        "numProperties": 4,        "children": [          {            "name": "Blend Mode",            "matchName": "ADBE Vector Blend Mode",            "valueType": "OneD",            "defaultValue": 1          },          {            "name": "Contents",            "matchName": "ADBE Vectors Group",            "type": "group",            "numProperties": 18,            "children": [              {                "name": "Rectangle Path 1",                "matchName": "ADBE Vector Shape - Rect",                "type": "group",                "numProperties": 4,                "children": [                  {                    "name": "Shape Direction",                    "matchName": "ADBE Vector Shape Direction",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Size",                    "matchName": "ADBE Vector Rect Size",                    "valueType": "TwoD",                    "defaultValue": [                      100,                      200                    ]                  },                  {                    "name": "Position",                    "matchName": "ADBE Vector Rect Position",                    "valueType": "TwoD_SPATIAL",                    "defaultValue": [                      0,                      0                    ]                  },                  {                    "name": "Roundness",                    "matchName": "ADBE Vector Rect Roundness",                    "valueType": "OneD",                    "defaultValue": 0                  }                ]              },              {                "name": "Ellipse Path 1",                "matchName": "ADBE Vector Shape - Ellipse",                "type": "group",                "numProperties": 3,                "children": [                  {                    "name": "Shape Direction",                    "matchName": "ADBE Vector Shape Direction",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Size",                    "matchName": "ADBE Vector Ellipse Size",                    "valueType": "TwoD",                    "defaultValue": [                      100,                      100                    ]                  },                  {                    "name": "Position",                    "matchName": "ADBE Vector Ellipse Position",                    "valueType": "TwoD_SPATIAL",                    "defaultValue": [                      0,                      0                    ]                  }                ]              },              {                "name": "Fill 1",                "matchName": "ADBE Vector Graphic - Fill",                "type": "group",                "numProperties": 5,                "children": [                  {                    "name": "Blend Mode",                    "matchName": "ADBE Vector Blend Mode",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Composite",                    "matchName": "ADBE Vector Composite Order",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Fill Rule",                    "matchName": "ADBE Vector Fill Rule",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Color",                    "matchName": "ADBE Vector Fill Color",                    "valueType": "COLOR",                    "defaultValue": [                      1,                      0,                      0,                      1                    ]                  },                  {                    "name": "Opacity",                    "matchName": "ADBE Vector Fill Opacity",                    "valueType": "OneD",                    "defaultValue": 100                  }                ]              },              {                "name": "Gradient Fill 1",                "matchName": "ADBE Vector Graphic - G-Fill",                "type": "group",                "numProperties": 12,                "children": [                  {                    "name": "Blend Mode",                    "matchName": "ADBE Vector Blend Mode",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Composite",                    "matchName": "ADBE Vector Composite Order",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Fill Rule",                    "matchName": "ADBE Vector Fill Rule",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Type",                    "matchName": "ADBE Vector Grad Type",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Start Point",                    "matchName": "ADBE Vector Grad Start Pt",                    "valueType": "TwoD_SPATIAL",                    "defaultValue": [                      0,                      0                    ]                  },                  {                    "name": "End Point",                    "matchName": "ADBE Vector Grad End Pt",                    "valueType": "TwoD_SPATIAL",                    "defaultValue": [                      100,                      0                    ]                  },                  {                    "name": "Highlight Length",                    "matchName": "ADBE Vector Grad HiLite Length",                    "valueType": "OneD",                    "defaultValue": 0                  },                  {                    "name": "Highlight Angle",                    "matchName": "ADBE Vector Grad HiLite Angle",                    "valueType": "OneD",                    "defaultValue": 0                  },                  {                    "name": "Scale",                    "matchName": "ADBE Vector Grad Scale",                    "valueType": "TwoD",                    "defaultValue": [                      100,                      100                    ]                  },                  {                    "name": "Rotation",                    "matchName": "ADBE Vector Grad Rotation",                    "valueType": "OneD",                    "defaultValue": 0                  },                  {                    "name": "Colors",                    "matchName": "ADBE Vector Grad Colors",                    "valueType": "NO_VALUE",                    "defaultValue": null                  },                  {                    "name": "Opacity",                    "matchName": "ADBE Vector Fill Opacity",                    "valueType": "OneD",                    "defaultValue": 100                  }                ]              },              {                "name": "Stroke 1",                "matchName": "ADBE Vector Graphic - Stroke",                "type": "group",                "numProperties": 11,                "children": [                  {                    "name": "Blend Mode",                    "matchName": "ADBE Vector Blend Mode",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Composite",                    "matchName": "ADBE Vector Composite Order",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Color",                    "matchName": "ADBE Vector Stroke Color",                    "valueType": "COLOR",                    "defaultValue": [                      1,                      1,                      1,                      1                    ]                  },                  {                    "name": "Opacity",                    "matchName": "ADBE Vector Stroke Opacity",                    "valueType": "OneD",                    "defaultValue": 100                  },                  {                    "name": "Stroke Width",                    "matchName": "ADBE Vector Stroke Width",                    "valueType": "OneD",                    "defaultValue": 2                  },                  {                    "name": "Line Cap",                    "matchName": "ADBE Vector Stroke Line Cap",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Line Join",                    "matchName": "ADBE Vector Stroke Line Join",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Miter Limit",                    "matchName": "ADBE Vector Stroke Miter Limit",                    "valueType": "OneD",                    "defaultValue": 4                  },                  {                    "name": "Dashes",                    "matchName": "ADBE Vector Stroke Dashes",                    "type": "group",                    "numProperties": 7,                    "children": [                      {                        "name": "Dash",                        "matchName": "ADBE Vector Stroke Dash 1",                        "valueType": "OneD",                        "defaultValue": 10                      },                      {                        "name": "Gap",                        "matchName": "ADBE Vector Stroke Gap 1",                        "valueType": "OneD",                        "defaultValue": 10                      },                      {                        "name": "Dash 2",                        "matchName": "ADBE Vector Stroke Dash 2",                        "valueType": "OneD",                        "defaultValue": 10                      },                      {                        "name": "Gap 2",                        "matchName": "ADBE Vector Stroke Gap 2",                        "valueType": "OneD",                        "defaultValue": 10                      },                      {                        "name": "Dash 3",                        "matchName": "ADBE Vector Stroke Dash 3",                        "valueType": "OneD",                        "defaultValue": 10                      },                      {                        "name": "Gap 3",                        "matchName": "ADBE Vector Stroke Gap 3",                        "valueType": "OneD",                        "defaultValue": 10                      },                      {                        "name": "Offset",                        "matchName": "ADBE Vector Stroke Offset",                        "valueType": "OneD",                        "defaultValue": 0                      }                    ]                  },                  {                    "name": "Taper",                    "matchName": "ADBE Vector Stroke Taper",                    "type": "group",                    "numProperties": 9,                    "children": [                      {                        "name": "Length Units",                        "matchName": "ADBE Vector Taper Length Units",                        "valueType": "OneD",                        "defaultValue": 1                      },                      {                        "name": "Start Length",                        "matchName": "ADBE Vector Taper Start Length",                        "valueType": "OneD",                        "defaultValue": 0                      },                      {                        "name": "End Length",                        "matchName": "ADBE Vector Taper End Length",                        "valueType": "OneD",                        "defaultValue": 0                      },                      {                        "name": "Start Length",                        "matchName": "ADBE Vector Taper StartWidthPx",                        "valueType": "OneD",                        "defaultValue": 0                      },                      {                        "name": "End Length",                        "matchName": "ADBE Vector Taper EndWidthPx",                        "valueType": "OneD",                        "defaultValue": 0                      },                      {                        "name": "Start Width",                        "matchName": "ADBE Vector Taper Start Width",                        "valueType": "OneD",                        "defaultValue": 0                      },                      {                        "name": "End Width",                        "matchName": "ADBE Vector Taper End Width",                        "valueType": "OneD",                        "defaultValue": 0                      },                      {                        "name": "Start Ease",                        "matchName": "ADBE Vector Taper Start Ease",                        "valueType": "OneD",                        "defaultValue": 0                      },                      {                        "name": "End Ease",                        "matchName": "ADBE Vector Taper End Ease",                        "valueType": "OneD",                        "defaultValue": 0                      }                    ]                  },                  {                    "name": "Wave",                    "matchName": "ADBE Vector Stroke Wave",                    "type": "group",                    "numProperties": 5,                    "children": [                      {                        "name": "Amount",                        "matchName": "ADBE Vector Taper Wave Amount",                        "valueType": "OneD",                        "defaultValue": 0                      },                      {                        "name": "Units",                        "matchName": "ADBE Vector Taper Wave Units",                        "valueType": "OneD",                        "defaultValue": 1                      },                      {                        "name": "Wavelength",                        "matchName": "ADBE Vector Taper Wavelength",                        "valueType": "OneD",                        "defaultValue": 100                      },                      {                        "name": "Cycles",                        "matchName": "ADBE Vector Taper Wave Cycles",                        "valueType": "OneD",                        "defaultValue": 10                      },                      {                        "name": "Phase",                        "matchName": "ADBE Vector Taper Wave Phase",                        "valueType": "OneD",                        "defaultValue": 0                      }                    ]                  }                ]              },              {                "name": "Polystar Path 1",                "matchName": "ADBE Vector Shape - Star",                "type": "group",                "numProperties": 9,                "children": [                  {                    "name": "Shape Direction",                    "matchName": "ADBE Vector Shape Direction",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Type",                    "matchName": "ADBE Vector Star Type",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Points",                    "matchName": "ADBE Vector Star Points",                    "valueType": "OneD",                    "defaultValue": 5                  },                  {                    "name": "Position",                    "matchName": "ADBE Vector Star Position",                    "valueType": "TwoD_SPATIAL",                    "defaultValue": [                      0,                      0                    ]                  },                  {                    "name": "Rotation",                    "matchName": "ADBE Vector Star Rotation",                    "valueType": "OneD",                    "defaultValue": 0                  },                  {                    "name": "Inner Radius",                    "matchName": "ADBE Vector Star Inner Radius",                    "valueType": "OneD",                    "defaultValue": 50                  },                  {                    "name": "Outer Radius",                    "matchName": "ADBE Vector Star Outer Radius",                    "valueType": "OneD",                    "defaultValue": 100                  },                  {                    "name": "Inner Roundness",                    "matchName": "ADBE Vector Star Inner Roundess",                    "valueType": "OneD",                    "defaultValue": 0                  },                  {                    "name": "Outer Roundness",                    "matchName": "ADBE Vector Star Outer Roundess",                    "valueType": "OneD",                    "defaultValue": 0                  }                ]              },              {                "name": "Path 1",                "matchName": "ADBE Vector Shape - Group",                "type": "group",                "numProperties": 2,                "children": [                  {                    "name": "Shape Direction",                    "matchName": "ADBE Vector Shape Direction",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Path",                    "matchName": "ADBE Vector Shape",                    "valueType": "SHAPE",                    "defaultValue": {                      "closed": false,                      "featherInterps": [                                              ],                      "featherRadii": [                                              ],                      "featherRelCornerAngles": [                                              ],                      "featherRelSegLocs": [                                              ],                      "featherSegLocs": [                                              ],                      "featherTensions": [                                              ],                      "featherTypes": [                                              ],                      "inTangents": [                                              ],                      "outTangents": [                                              ],                      "vertices": [                                              ]                    }                  }                ]              },              {                "name": "Gradient Stroke 1",                "matchName": "ADBE Vector Graphic - G-Stroke",                "type": "group",                "numProperties": 18,                "children": [                  {                    "name": "Blend Mode",                    "matchName": "ADBE Vector Blend Mode",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Composite",                    "matchName": "ADBE Vector Composite Order",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Type",                    "matchName": "ADBE Vector Grad Type",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Start Point",                    "matchName": "ADBE Vector Grad Start Pt",                    "valueType": "TwoD_SPATIAL",                    "defaultValue": [                      0,                      0                    ]                  },                  {                    "name": "End Point",                    "matchName": "ADBE Vector Grad End Pt",                    "valueType": "TwoD_SPATIAL",                    "defaultValue": [                      100,                      0                    ]                  },                  {                    "name": "Highlight Length",                    "matchName": "ADBE Vector Grad HiLite Length",                    "valueType": "OneD",                    "defaultValue": 0                  },                  {                    "name": "Highlight Angle",                    "matchName": "ADBE Vector Grad HiLite Angle",                    "valueType": "OneD",                    "defaultValue": 0                  },                  {                    "name": "Scale",                    "matchName": "ADBE Vector Grad Scale",                    "valueType": "TwoD",                    "defaultValue": [                      100,                      100                    ]                  },                  {                    "name": "Rotation",                    "matchName": "ADBE Vector Grad Rotation",                    "valueType": "OneD",                    "defaultValue": 0                  },                  {                    "name": "Colors",                    "matchName": "ADBE Vector Grad Colors",                    "valueType": "NO_VALUE",                    "defaultValue": null                  },                  {                    "name": "Opacity",                    "matchName": "ADBE Vector Stroke Opacity",                    "valueType": "OneD",                    "defaultValue": 100                  },                  {                    "name": "Stroke Width",                    "matchName": "ADBE Vector Stroke Width",                    "valueType": "OneD",                    "defaultValue": 2                  },                  {                    "name": "Line Cap",                    "matchName": "ADBE Vector Stroke Line Cap",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Line Join",                    "matchName": "ADBE Vector Stroke Line Join",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Miter Limit",                    "matchName": "ADBE Vector Stroke Miter Limit",                    "valueType": "OneD",                    "defaultValue": 4                  },                  {                    "name": "Dashes",                    "matchName": "ADBE Vector Stroke Dashes",                    "type": "group",                    "numProperties": 7,                    "children": [                      {                        "name": "Dash",                        "matchName": "ADBE Vector Stroke Dash 1",                        "valueType": "OneD",                        "defaultValue": 10                      },                      {                        "name": "Gap",                        "matchName": "ADBE Vector Stroke Gap 1",                        "valueType": "OneD",                        "defaultValue": 10                      },                      {                        "name": "Dash 2",                        "matchName": "ADBE Vector Stroke Dash 2",                        "valueType": "OneD",                        "defaultValue": 10                      },                      {                        "name": "Gap 2",                        "matchName": "ADBE Vector Stroke Gap 2",                        "valueType": "OneD",                        "defaultValue": 10                      },                      {                        "name": "Dash 3",                        "matchName": "ADBE Vector Stroke Dash 3",                        "valueType": "OneD",                        "defaultValue": 10                      },                      {                        "name": "Gap 3",                        "matchName": "ADBE Vector Stroke Gap 3",                        "valueType": "OneD",                        "defaultValue": 10                      },                      {                        "name": "Offset",                        "matchName": "ADBE Vector Stroke Offset",                        "valueType": "OneD",                        "defaultValue": 0                      }                    ]                  },                  {                    "name": "Taper",                    "matchName": "ADBE Vector Stroke Taper",                    "type": "group",                    "numProperties": 9,                    "children": [                      {                        "name": "Length Units",                        "matchName": "ADBE Vector Taper Length Units",                        "valueType": "OneD",                        "defaultValue": 1                      },                      {                        "name": "Start Length",                        "matchName": "ADBE Vector Taper Start Length",                        "valueType": "OneD",                        "defaultValue": 0                      },                      {                        "name": "End Length",                        "matchName": "ADBE Vector Taper End Length",                        "valueType": "OneD",                        "defaultValue": 0                      },                      {                        "name": "Start Length",                        "matchName": "ADBE Vector Taper StartWidthPx",                        "valueType": "OneD",                        "defaultValue": 0                      },                      {                        "name": "End Length",                        "matchName": "ADBE Vector Taper EndWidthPx",                        "valueType": "OneD",                        "defaultValue": 0                      },                      {                        "name": "Start Width",                        "matchName": "ADBE Vector Taper Start Width",                        "valueType": "OneD",                        "defaultValue": 0                      },                      {                        "name": "End Width",                        "matchName": "ADBE Vector Taper End Width",                        "valueType": "OneD",                        "defaultValue": 0                      },                      {                        "name": "Start Ease",                        "matchName": "ADBE Vector Taper Start Ease",                        "valueType": "OneD",                        "defaultValue": 0                      },                      {                        "name": "End Ease",                        "matchName": "ADBE Vector Taper End Ease",                        "valueType": "OneD",                        "defaultValue": 0                      }                    ]                  },                  {                    "name": "Wave",                    "matchName": "ADBE Vector Stroke Wave",                    "type": "group",                    "numProperties": 5,                    "children": [                      {                        "name": "Amount",                        "matchName": "ADBE Vector Taper Wave Amount",                        "valueType": "OneD",                        "defaultValue": 0                      },                      {                        "name": "Units",                        "matchName": "ADBE Vector Taper Wave Units",                        "valueType": "OneD",                        "defaultValue": 1                      },                      {                        "name": "Wavelength",                        "matchName": "ADBE Vector Taper Wavelength",                        "valueType": "OneD",                        "defaultValue": 100                      },                      {                        "name": "Cycles",                        "matchName": "ADBE Vector Taper Wave Cycles",                        "valueType": "OneD",                        "defaultValue": 10                      },                      {                        "name": "Phase",                        "matchName": "ADBE Vector Taper Wave Phase",                        "valueType": "OneD",                        "defaultValue": 0                      }                    ]                  }                ]              },              {                "name": "Merge Paths 1",                "matchName": "ADBE Vector Filter - Merge",                "type": "group",                "numProperties": 1,                "children": [                  {                    "name": "Mode",                    "matchName": "ADBE Vector Merge Type",                    "valueType": "OneD",                    "defaultValue": 1                  }                ]              },              {                "name": "Trim Paths 1",                "matchName": "ADBE Vector Filter - Trim",                "type": "group",                "numProperties": 4,                "children": [                  {                    "name": "Start",                    "matchName": "ADBE Vector Trim Start",                    "valueType": "OneD",                    "defaultValue": 0                  },                  {                    "name": "End",                    "matchName": "ADBE Vector Trim End",                    "valueType": "OneD",                    "defaultValue": 100                  },                  {                    "name": "Offset",                    "matchName": "ADBE Vector Trim Offset",                    "valueType": "OneD",                    "defaultValue": 0                  },                  {                    "name": "Trim Multiple Shapes",                    "matchName": "ADBE Vector Trim Type",                    "valueType": "OneD",                    "defaultValue": 1                  }                ]              },              {                "name": "Offset Paths 1",                "matchName": "ADBE Vector Filter - Offset",                "type": "group",                "numProperties": 5,                "children": [                  {                    "name": "Amount",                    "matchName": "ADBE Vector Offset Amount",                    "valueType": "OneD",                    "defaultValue": 10                  },                  {                    "name": "Line Join",                    "matchName": "ADBE Vector Offset Line Join",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Miter Limit",                    "matchName": "ADBE Vector Offset Miter Limit",                    "valueType": "OneD",                    "defaultValue": 4                  },                  {                    "name": "Copies",                    "matchName": "ADBE Vector Offset Copies",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Copy Offset",                    "matchName": "ADBE Vector Offset Copy Offset",                    "valueType": "OneD",                    "defaultValue": 1                  }                ]              },              {                "name": "Pucker & Bloat 1",                "matchName": "ADBE Vector Filter - PB",                "type": "group",                "numProperties": 1,                "children": [                  {                    "name": "Amount",                    "matchName": "ADBE Vector PuckerBloat Amount",                    "valueType": "OneD",                    "defaultValue": 10                  }                ]              },              {                "name": "Repeater 1",                "matchName": "ADBE Vector Filter - Repeater",                "type": "group",                "numProperties": 4,                "children": [                  {                    "name": "Copies",                    "matchName": "ADBE Vector Repeater Copies",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Offset",                    "matchName": "ADBE Vector Repeater Offset",                    "valueType": "OneD",                    "defaultValue": 0                  },                  {                    "name": "Composite",                    "matchName": "ADBE Vector Repeater Order",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Transform",                    "matchName": "ADBE Vector Repeater Transform",                    "type": "group",                    "numProperties": 6,                    "children": [                      {                        "name": "Anchor Point",                        "matchName": "ADBE Vector Repeater Anchor",                        "valueType": "TwoD_SPATIAL",                        "defaultValue": [                          0,                          0                        ]                      },                      {                        "name": "Position",                        "matchName": "ADBE Vector Repeater Position",                        "valueType": "TwoD_SPATIAL",                        "defaultValue": [                          0,                          0                        ]                      },                      {                        "name": "Scale",                        "matchName": "ADBE Vector Repeater Scale",                        "valueType": "TwoD",                        "defaultValue": [                          100,                          100                        ]                      },                      {                        "name": "Rotation",                        "matchName": "ADBE Vector Repeater Rotation",                        "valueType": "OneD",                        "defaultValue": 0                      },                      {                        "name": "Start Opacity",                        "matchName": "ADBE Vector Repeater Opacity 1",                        "valueType": "OneD",                        "defaultValue": 100                      },                      {                        "name": "End Opacity",                        "matchName": "ADBE Vector Repeater Opacity 2",                        "valueType": "OneD",                        "defaultValue": 100                      }                    ]                  }                ]              },              {                "name": "Round Corners 1",                "matchName": "ADBE Vector Filter - RC",                "type": "group",                "numProperties": 1,                "children": [                  {                    "name": "Radius",                    "matchName": "ADBE Vector RoundCorner Radius",                    "valueType": "OneD",                    "defaultValue": 10                  }                ]              },              {                "name": "Twist 1",                "matchName": "ADBE Vector Filter - Twist",                "type": "group",                "numProperties": 2,                "children": [                  {                    "name": "Angle",                    "matchName": "ADBE Vector Twist Angle",                    "valueType": "OneD",                    "defaultValue": 10                  },                  {                    "name": "Center",                    "matchName": "ADBE Vector Twist Center",                    "valueType": "TwoD_SPATIAL",                    "defaultValue": [                      0,                      0                    ]                  }                ]              },              {                "name": "Zig Zag 1",                "matchName": "ADBE Vector Filter - Zigzag",                "type": "group",                "numProperties": 3,                "children": [                  {                    "name": "Size",                    "matchName": "ADBE Vector Zigzag Size",                    "valueType": "OneD",                    "defaultValue": 5                  },                  {                    "name": "Ridges per segment",                    "matchName": "ADBE Vector Zigzag Detail",                    "valueType": "OneD",                    "defaultValue": 10                  },                  {                    "name": "Points",                    "matchName": "ADBE Vector Zigzag Points",                    "valueType": "OneD",                    "defaultValue": 1                  }                ]              },              {                "name": "Wiggle Paths 1",                "matchName": "ADBE Vector Filter - Roughen",                "type": "group",                "numProperties": 8,                "children": [                  {                    "name": "Size",                    "matchName": "ADBE Vector Roughen Size",                    "valueType": "OneD",                    "defaultValue": 10                  },                  {                    "name": "Detail",                    "matchName": "ADBE Vector Roughen Detail",                    "valueType": "OneD",                    "defaultValue": 10                  },                  {                    "name": "Points",                    "matchName": "ADBE Vector Roughen Points",                    "valueType": "OneD",                    "defaultValue": 1                  },                  {                    "name": "Wiggles/Second",                    "matchName": "ADBE Vector Temporal Freq",                    "valueType": "OneD",                    "defaultValue": 2                  },                  {                    "name": "Correlation",                    "matchName": "ADBE Vector Correlation",                    "valueType": "OneD",                    "defaultValue": 50                  },                  {                    "name": "Temporal Phase",                    "matchName": "ADBE Vector Temporal Phase",                    "valueType": "OneD",                    "defaultValue": 0                  },                  {                    "name": "Spatial Phase",                    "matchName": "ADBE Vector Spatial Phase",                    "valueType": "OneD",                    "defaultValue": 0                  },                  {                    "name": "Random Seed",                    "matchName": "ADBE Vector Random Seed",                    "valueType": "OneD",                    "defaultValue": 0                  }                ]              },              {                "name": "Wiggle Transform 1",                "matchName": "ADBE Vector Filter - Wiggler",                "type": "group",                "numProperties": 6,                "children": [                  {                    "name": "Wiggles/Second",                    "matchName": "ADBE Vector Xform Temporal Freq",                    "valueType": "OneD",                    "defaultValue": 2                  },                  {                    "name": "Correlation",                    "matchName": "ADBE Vector Correlation",                    "valueType": "OneD",                    "defaultValue": 50                  },                  {                    "name": "Temporal Phase",                    "matchName": "ADBE Vector Temporal Phase",                    "valueType": "OneD",                    "defaultValue": 0                  },                  {                    "name": "Spatial Phase",                    "matchName": "ADBE Vector Spatial Phase",                    "valueType": "OneD",                    "defaultValue": 0                  },                  {                    "name": "Random Seed",                    "matchName": "ADBE Vector Random Seed",                    "valueType": "OneD",                    "defaultValue": 0                  },                  {                    "name": "Transform",                    "matchName": "ADBE Vector Wiggler Transform",                    "type": "group",                    "numProperties": 4,                    "children": [                      {                        "name": "Anchor Point",                        "matchName": "ADBE Vector Wiggler Anchor",                        "valueType": "TwoD_SPATIAL",                        "defaultValue": [                          0,                          0                        ]                      },                      {                        "name": "Position",                        "matchName": "ADBE Vector Wiggler Position",                        "valueType": "TwoD_SPATIAL",                        "defaultValue": [                          0,                          0                        ]                      },                      {                        "name": "Scale",                        "matchName": "ADBE Vector Wiggler Scale",                        "valueType": "TwoD",                        "defaultValue": [                          0,                          0                        ]                      },                      {                        "name": "Rotation",                        "matchName": "ADBE Vector Wiggler Rotation",                        "valueType": "OneD",                        "defaultValue": 0                      }                    ]                  }                ]              }            ]          },          {            "name": "Transform",            "matchName": "ADBE Vector Transform Group",            "type": "group",            "numProperties": 7,            "children": [              {                "name": "Anchor Point",                "matchName": "ADBE Vector Anchor",                "valueType": "TwoD_SPATIAL",                "defaultValue": [                  0,                  0                ]              },              {                "name": "Position",                "matchName": "ADBE Vector Position",                "valueType": "TwoD_SPATIAL",                "defaultValue": [                  0,                  0                ]              },              {                "name": "Scale",                "matchName": "ADBE Vector Scale",                "valueType": "TwoD",                "defaultValue": [                  100,                  100                ]              },              {                "name": "Skew",                "matchName": "ADBE Vector Skew",                "valueType": "OneD",                "defaultValue": 0              },              {                "name": "Skew Axis",                "matchName": "ADBE Vector Skew Axis",                "valueType": "OneD",                "defaultValue": 0              },              {                "name": "Rotation",                "matchName": "ADBE Vector Rotation",                "valueType": "OneD",                "defaultValue": 0              },              {                "name": "Opacity",                "matchName": "ADBE Vector Group Opacity",                "valueType": "OneD",                "defaultValue": 100              }            ]          },          {            "name": "Material Options",            "matchName": "ADBE Vector Materials Group",            "type": "group",            "numProperties": 48,            "children": [              {                "name": "Front Color",                "matchName": "ADBE Vec3D Front RGB",                "valueType": "COLOR",                "defaultValue": [                  1,                  0,                  0,                  1                ]              },              {                "name": "Front Ambient",                "matchName": "ADBE Vec3D Front Ambient",                "valueType": "OneD",                "defaultValue": 100              },              {                "name": "Front Diffuse",                "matchName": "ADBE Vec3D Front Diffuse",                "valueType": "OneD",                "defaultValue": 50              },              {                "name": "Front Specular Intensity",                "matchName": "ADBE Vec3D Front Specular",                "valueType": "OneD",                "defaultValue": 50              },              {                "name": "Front Specular Shininess",                "matchName": "ADBE Vec3D Front Shininess",                "valueType": "OneD",                "defaultValue": 5              },              {                "name": "Front Metal",                "matchName": "ADBE Vec3D Front Metal",                "valueType": "OneD",                "defaultValue": 100              },              {                "name": "Front Reflection Intensity",                "matchName": "ADBE Vec3D Front Reflection",                "valueType": "OneD",                "defaultValue": 0              },              {                "name": "Front Reflection Sharpness",                "matchName": "ADBE Vec3D Front Gloss",                "valueType": "OneD",                "defaultValue": 100              },              {                "name": "Front Reflection Rolloff",                "matchName": "ADBE Vec3D Front Fresnel",                "valueType": "OneD",                "defaultValue": 0              },              {                "name": "Front Transparency",                "matchName": "ADBE Vec3D Front Xparency",                "valueType": "OneD",                "defaultValue": 0              },              {                "name": "Front Transparency Rolloff",                "matchName": "ADBE Vec3D Front XparRoll",                "valueType": "OneD",                "defaultValue": 0              },              {                "name": "Front Index of Refraction",                "matchName": "ADBE Vec3D Front IOR",                "valueType": "OneD",                "defaultValue": 1              },              {                "name": "Bevel Color",                "matchName": "ADBE Vec3D Bevel RGB",                "valueType": "COLOR",                "defaultValue": [                  1,                  0,                  0,                  1                ]              },              {                "name": "Bevel Ambient",                "matchName": "ADBE Vec3D Bevel Ambient",                "valueType": "OneD",                "defaultValue": 100              },              {                "name": "Bevel Diffuse",                "matchName": "ADBE Vec3D Bevel Diffuse",                "valueType": "OneD",                "defaultValue": 50              },              {                "name": "Bevel Specular Intensity",                "matchName": "ADBE Vec3D Bevel Specular",                "valueType": "OneD",                "defaultValue": 50              },              {                "name": "Bevel Specular Shininess",                "matchName": "ADBE Vec3D Bevel Shininess",                "valueType": "OneD",                "defaultValue": 5              },              {                "name": "Bevel Metal",                "matchName": "ADBE Vec3D Bevel Metal",                "valueType": "OneD",                "defaultValue": 100              },              {                "name": "Bevel Reflection Intensity",                "matchName": "ADBE Vec3D Bevel Reflection",                "valueType": "OneD",                "defaultValue": 0              },              {                "name": "Bevel Reflection Sharpness",                "matchName": "ADBE Vec3D Bevel Gloss",                "valueType": "OneD",                "defaultValue": 100              },              {                "name": "Bevel Reflection Rolloff",                "matchName": "ADBE Vec3D Bevel Fresnel",                "valueType": "OneD",                "defaultValue": 0              },              {                "name": "Bevel Transparency",                "matchName": "ADBE Vec3D Bevel Xparency",                "valueType": "OneD",                "defaultValue": 0              },              {                "name": "Bevel Transparency Rolloff",                "matchName": "ADBE Vec3D Bevel XparRoll",                "valueType": "OneD",                "defaultValue": 0              },              {                "name": "Bevel Index of Refraction",                "matchName": "ADBE Vec3D Bevel IOR",                "valueType": "OneD",                "defaultValue": 1              },              {                "name": "Side Color",                "matchName": "ADBE Vec3D Side RGB",                "valueType": "COLOR",                "defaultValue": [                  1,                  0,                  0,                  1                ]              },              {                "name": "Side Ambient",                "matchName": "ADBE Vec3D Side Ambient",                "valueType": "OneD",                "defaultValue": 100              },              {                "name": "Side Diffuse",                "matchName": "ADBE Vec3D Side Diffuse",                "valueType": "OneD",                "defaultValue": 50              },              {                "name": "Side Specular Intensity",                "matchName": "ADBE Vec3D Side Specular",                "valueType": "OneD",                "defaultValue": 50              },              {                "name": "Side Specular Shininess",                "matchName": "ADBE Vec3D Side Shininess",                "valueType": "OneD",                "defaultValue": 5              },              {                "name": "Side Metal",                "matchName": "ADBE Vec3D Side Metal",                "valueType": "OneD",                "defaultValue": 100              },              {                "name": "Side Reflection Intensity",                "matchName": "ADBE Vec3D Side Reflection",                "valueType": "OneD",                "defaultValue": 0              },              {                "name": "Side Reflection Sharpness",                "matchName": "ADBE Vec3D Side Gloss",                "valueType": "OneD",                "defaultValue": 100              },              {                "name": "Side Reflection Rolloff",                "matchName": "ADBE Vec3D Side Fresnel",                "valueType": "OneD",                "defaultValue": 0              },              {                "name": "Side Transparency",                "matchName": "ADBE Vec3D Side Xparency",                "valueType": "OneD",                "defaultValue": 0              },              {                "name": "Side Transparency Rolloff",                "matchName": "ADBE Vec3D Side XparRoll",                "valueType": "OneD",                "defaultValue": 0              },              {                "name": "Side Index of Refraction",                "matchName": "ADBE Vec3D Side IOR",                "valueType": "OneD",                "defaultValue": 1              },              {                "name": "Back Color",                "matchName": "ADBE Vec3D Back RGB",                "valueType": "COLOR",                "defaultValue": [                  1,                  0,                  0,                  1                ]              },              {                "name": "Back Ambient",                "matchName": "ADBE Vec3D Back Ambient",                "valueType": "OneD",                "defaultValue": 100              },              {                "name": "Back Diffuse",                "matchName": "ADBE Vec3D Back Diffuse",                "valueType": "OneD",                "defaultValue": 50              },              {                "name": "Back Specular Intensity",                "matchName": "ADBE Vec3D Back Specular",                "valueType": "OneD",                "defaultValue": 50              },              {                "name": "Back Specular Shininess",                "matchName": "ADBE Vec3D Back Shininess",                "valueType": "OneD",                "defaultValue": 5              },              {                "name": "Back Metal",                "matchName": "ADBE Vec3D Back Metal",                "valueType": "OneD",                "defaultValue": 100              },              {                "name": "Back Reflection Intensity",                "matchName": "ADBE Vec3D Back Reflection",                "valueType": "OneD",                "defaultValue": 0              },              {                "name": "Back Reflection Sharpness",                "matchName": "ADBE Vec3D Back Gloss",                "valueType": "OneD",                "defaultValue": 100              },              {                "name": "Back Reflection Rolloff",                "matchName": "ADBE Vec3D Back Fresnel",                "valueType": "OneD",                "defaultValue": 0              },              {                "name": "Back Transparency",                "matchName": "ADBE Vec3D Back Xparency",                "valueType": "OneD",                "defaultValue": 0              },              {                "name": "Back Transparency Rolloff",                "matchName": "ADBE Vec3D Back XparRoll",                "valueType": "OneD",                "defaultValue": 0              },              {                "name": "Back Index of Refraction",                "matchName": "ADBE Vec3D Back IOR",                "valueType": "OneD",                "defaultValue": 1              }            ]          }        ]      }    ]  },  "transform": {    "name": "Transform",    "matchName": "ADBE Transform Group",    "type": "group",    "numProperties": 12,    "children": [      {        "name": "Anchor Point",        "matchName": "ADBE Anchor Point",        "valueType": "ThreeD_SPATIAL",        "defaultValue": [          0,          0,          0        ]      },      {        "name": "Position",        "matchName": "ADBE Position",        "valueType": "ThreeD_SPATIAL",        "defaultValue": [          960,          540,          0        ]      },      {        "name": "X Position",        "matchName": "ADBE Position_0",        "valueType": "OneD",        "defaultValue": 0      },      {        "name": "Y Position",        "matchName": "ADBE Position_1",        "valueType": "OneD",        "defaultValue": 0      },      {        "name": "Z Position",        "matchName": "ADBE Position_2",        "valueType": "OneD",        "defaultValue": 0      },      {        "name": "Scale",        "matchName": "ADBE Scale",        "valueType": "ThreeD",        "defaultValue": [          100,          100,          100        ]      },      {        "name": "Orientation",        "matchName": "ADBE Orientation",        "valueType": "ThreeD_SPATIAL",        "defaultValue": [          0,          0,          0        ]      },      {        "name": "X Rotation",        "matchName": "ADBE Rotate X",        "valueType": "OneD",        "defaultValue": 0      },      {        "name": "Y Rotation",        "matchName": "ADBE Rotate Y",        "valueType": "OneD",        "defaultValue": 0      },      {        "name": "Rotation",        "matchName": "ADBE Rotate Z",        "valueType": "OneD",        "defaultValue": 0      },      {        "name": "Opacity",        "matchName": "ADBE Opacity",        "valueType": "OneD",        "defaultValue": 100      },      {        "name": "Appears in Reflections",        "matchName": "ADBE Envir Appear in Reflect",        "valueType": "OneD",        "defaultValue": 1      }    ]  }}
