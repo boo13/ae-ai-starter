@@ -32,10 +32,34 @@ When your AE template changes, re-run `Scripts/analyze/run_analysis.jsx` to keep
 | [social-card](examples/social-card/) | Data-driven social card with dynamic text and images |
 | [ticker-data](examples/ticker-data/) | Live stock data pulled into a lower-third panel |
 | [audio-spectrum](examples/audio-spectrum/) | Generative audio visualizer panel |
+| [ae-ai-chat](https://github.com/boo13/ae-ai-chat) | AI chat plugin (moved to own repo) |
 
 ## Screenshots
-[![Screen recording of AI Chat drawing a star](screenshots/Screenrecord_AIChat_Star.gif)](screenshots/Screenrecord_AIChat_Star.mp4)
-![Screenshot of Ticker Data Example](screenshots/TickerDataScreenshot.png)
+<p align="center">
+  <img
+    src="screenshots/AE_AI_upNEXT_Example_Cropped2.gif"
+    alt="Example plugin used for video automation"
+    width="900"
+  />
+</p>
+
+<p align="center">
+  <a href="screenshots/Screenrecord_AIChat_Star.mp4">
+    <img
+      src="screenshots/Screenrecord_AIChat_Star.gif"
+      alt="Screen recording of AI Chat drawing a star"
+      width="900"
+    />
+  </a>
+</p>
+
+<p align="center">
+  <img
+    src="screenshots/TickerDataScreenshot.png"
+    alt="Screenshot of Ticker Data Example"
+    width="900"
+  />
+</p>
 
 ## Learn More
 
