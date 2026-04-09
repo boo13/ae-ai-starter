@@ -33,6 +33,8 @@ When your AE template changes, re-run `Scripts/analyze/run_analysis.jsx` to keep
 | [ticker-data](examples/ticker-data/) | Live stock data pulled into a lower-third panel |
 | [audio-spectrum](examples/audio-spectrum/) | Generative audio visualizer panel |
 
+## Screenshots
+[![Screen recording of AI Chat drawing a star](screenshots/Screenrecord_AIChat_Star.gif)](screenshots/Screenrecord_AIChat_Star.mp4)
 ![Screenshot of Ticker Data Example](screenshots/TickerDataScreenshot.png)
 
 ## Learn More
