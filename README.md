@@ -44,13 +44,11 @@ When your AE template changes, re-run `Scripts/analyze/run_analysis.jsx` to keep
 </p>
 
 <p align="center">
-  <a href="screenshots/Screenrecord_AIChat_Star.mp4">
-    <img
-      src="screenshots/Screenrecord_AIChat_Star.gif"
-      alt="Screen recording of AI Chat drawing a star"
-      width="900"
-    />
-  </a>
+  <img
+    src="screenshots/Screenrecord_AIChat_Star.gif"
+    alt="Screen recording of AI Chat drawing a star"
+    width="900"
+  />
 </p>
 
 <p align="center">

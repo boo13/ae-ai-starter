@@ -46,7 +46,13 @@ npm run symlink    # Links panel into AE's CEP extensions folder
 
 Then in After Effects: **Window → Extensions → Ticker Data**
 
-> Before packaging for distribution, change `zxp.password` in `cep.config.ts` to a real value.
+If you want to package the panel for distribution, set a signing password first:
+
+```bash
+export ZXP_PASSWORD="your-strong-packaging-password"
+```
+
+`cep.config.ts` reads this from `process.env.ZXP_PASSWORD`. Development builds and local symlinking do not require it, but packaging should never rely on a checked-in default.
 
 ## Development
 

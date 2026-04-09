@@ -1,6 +1,8 @@
 import { CEP_Config } from "vite-cep-plugin";
 import { version } from "./package.json";
 
+var zxpPassword = process.env.ZXP_PASSWORD || "";
+
 const config: CEP_Config = {
   version,
   id: "com.ae-ai-starter.ticker-data",
@@ -35,7 +37,7 @@ const config: CEP_Config = {
     country: "US",
     province: "CA",
     org: "ae-ai-starter",
-    password: "password",
+    password: zxpPassword,
     tsa: ["http://timestamp.digicert.com/", "http://timestamp.apple.com/ts01"],
     allowSkipTSA: false,
     sourceMap: false,
