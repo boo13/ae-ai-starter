@@ -21,6 +21,7 @@ Scripts/panel/*_panel.jsx
 
 # Script run output (ephemeral, overwritten each run — read by Claude for feedback loop)
 **/Scripts/runs/last_run.json
+Scripts/lib/runs/
 
 # Working notes
 docs/brainstorms/
