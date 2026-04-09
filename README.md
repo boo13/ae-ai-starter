@@ -1,64 +1,42 @@
-# After Effects AI Starter Template
+# After Effects AI Starter
 
-A template for using AI to help with your After Effects projects.
-
-## What This Does
-
-This template gives AI coding assistants (Claude, ChatGPT's Codex, Gemini) the context they need to write ExtendScript automation for your AE projects. 
-
-**The Goal:** You describe what you want in plain language, the AI writes a script, and you run it in After Effects... and/or you build a plugin that does what you want in AE. 
-
-**What's included...**
-
-An analysis system gives the AI "eyes" into your project structure — delivering a report the AI can read.
-
-Also included are shared libraries for common scripting tasks, examples, and reusable recipes for patterns like populating repeated layers or swapping images.
-
-## What It Doesn't Do
-
-**It's still pretty dumb...** More context and clarity helps, but...
-
-**It's all a work in progress** but provided here to serve as an inspiration and resource for others looking to experiment.
-
-**It's still pretty slow...** See above, but also worth noting that the API is faster than the CLI.
+Automate After Effects with AI — describe what you want in plain language to an LLM and have it actually do stuff in AE.
 
 ## Quick Start
 
-1. Clone this repo (or click **Use this template** on GitHub)
+**Requirements:** After Effects (any recent version) + an AI assistant ([Claude Code](https://claude.ai/download), ChatGPT, Cursor, Gemini, etc.)
+
+1. Clone this repo or click **Use this template** on GitHub
 2. Open your After Effects project (`.aep`)
 3. Run `Scripts/setup.jsx` via **File > Scripts > Run Script File**
-4. Follow the setup dialog to configure your project name, main composition, and optional UI panel
-5. Open your AI assistant and follow **[Your First Automation](docs/first-automation.md)**
+   - The setup dialog will ask for your project name, main composition, and whether to create a UI panel
+4. Open your AI assistant and follow **[Your First Automation](docs/first-automation.md)**
+
+That's it. Your AI now knows your compositions, layers, and properties — ask it to automate anything.
+
+> **Try:** *"Change all text layers in my main comp to use the font Helvetica Neue"*
 
 ## How It Works
 
-The core workflow is a loop:
+1. **Setup scans your project** — generates a report so the AI knows exactly what's in your AE file (compositions, layers, properties)
+2. **You describe what you want** — in plain language, no scripting knowledge required
+3. **AI writes a script** — using your project's actual layer names and property paths
+4. **You run it in AE** — via File > Scripts, or a button on your custom panel
 
-- **Analyze** — `setup.jsx` scans your AE project and produces a plain-text report that the AI can read. Since AI assistants can't open After Effects directly, this report is their window into your project.
-- **Describe** — Tell the AI what you want to automate. It knows your compositions, layers, and properties from the report.
-- **Run** — The AI writes an ExtendScript. You run it in AE via **File > Scripts > Run Script File** or a button on your custom UI panel.
-- **Iterate** — When your template changes, re-run analysis (`Scripts/analyze/run_analysis.jsx`) to keep the report current.
+When your AE template changes, re-run `Scripts/analyze/run_analysis.jsx` to keep the report current.
 
-## What's Included
+## Examples
 
-- `Scripts/analyze/` — Project analysis system (generates structure reports)
-- `Scripts/lib/` — Shared ES3 utilities for AI-generated scripts
-- `Scripts/recipes/` — Copy-and-adapt patterns for common automation tasks
-- `Scripts/panel/` — Optional ScriptUI panel with utility actions (configured during setup)
-- `Scripts/demos/` — Advanced demo panels that showcase generative art and data-driven motion graphics
-- `docs/` — Workflow guides and recipe reference
-- `examples/` — Standalone example projects (social-card, etc.)
+| Example | What It Shows |
+|---------|---------------|
+| [social-card](examples/social-card/) | Data-driven social card with dynamic text and images |
+| [ticker-data](examples/ticker-data/) | Live stock data pulled into a lower-third panel |
+| [audio-spectrum](examples/audio-spectrum/) | Generative audio visualizer panel |
 
-## Example Panels
-
-## Requirements
-
-- After Effects (any recent version)
-- An AI assistant ([Claude Code](https://claude.ai/download), ChatGPT, Cursor, Gemini, etc.)
+![Screenshot of Ticker Data Example](screenshots/TickerDataScreenshot.png)
 
 ## Learn More
 
 - **[Your First Automation](docs/first-automation.md)** — Step-by-step walkthrough from setup to first script
 - **[AI Workflow Guide](docs/ai-workflow.md)** — Advanced tips, symlink patterns, and development practices
 - **[Recipes Reference](docs/recipes.md)** — When to use each recipe and how to customize them
-- **[Examples](examples/)** — Standalone projects showing what you can build
