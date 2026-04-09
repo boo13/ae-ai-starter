@@ -1,0 +1,35 @@
+name: Feature Request
+description: Suggest an idea or improvement
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What are you trying to do? What's the pain point?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe what you'd like to see added or changed.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: ae-versions
+    attributes:
+      label: After Effects version(s) this affects
+      options:
+        - label: "2025"
+        - label: "2024"
+        - label: "2023"
+        - label: "2022"
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Screenshots, links, examples — anything else that helps.
