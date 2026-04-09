@@ -1,10 +1,10 @@
 # After Effects AI Starter
 
-Automate After Effects with AI — describe what you want in plain language to an LLM and have it actually do stuff in AE.
+Automate After Effects with AI — describe what you want in plain language to an LLM and have it actually do stuff in AE via custom scripts and UI plugins. 
 
 <p align="center">
   <img
-    src="screenshots/AE_AI_SetupStarter.png"
+    src="screenshots/AE_AI_SetupStarter2.png"
     alt="Example starter plugin"
     width="900"
   />
