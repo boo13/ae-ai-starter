@@ -1,6 +1,7 @@
 # OS files
 .DS_Store
 Thumbs.db
+.env.production
 
 # After Effects
 *.aep
