@@ -17,8 +17,8 @@ symptoms:
   - Audio Layer property set with name string instead of integer index
   - No distinction between ExtendScript engine (.jsx) and JavaScript expression engine
   - Missing explicit property paths for Scale expression and Fill Color expression injection
-root_cause: "Plan authored by LLM from pattern knowledge without empirical AE validation; match-name index numbers, API calling conventions, and engine distinctions require runtime verification"
-status: partially-verified
+root_cause: "Plan authored by LLM from pattern knowledge before the repo had a committed verified-data workflow; match-names, API calling conventions, and engine distinctions needed empirical AE validation"
+status: historically-useful-partially-outdated
 ---
 
 ## Problem
@@ -33,13 +33,13 @@ Any single match-name index error would cause the script to **silently set the w
 
 ## Investigation
 
-Each of the 8 flagged categories was researched against Adobe documentation, NLM notebook sources, and known AE scripting patterns. Where authoritative documentation was unavailable, empirical verification tests were designed.
+Each of the 8 flagged categories was researched against Adobe documentation, NLM notebook sources, and known AE scripting patterns. At the time, several items still required empirical AE verification. Since then, this repo has added committed verified effect/property data under `Scripts/verified/`, so parts of this write-up are now historical rather than current process guidance.
 
 ### Items Investigated
 
 | # | Item | Verdict |
 |---|------|---------|
-| 1 | Match-name index numbers | **Uncertain** — convention is correct, indices unverifiable from docs |
+| 1 | Match-name index numbers | **Now verified in repo** — see `Scripts/verified/effects/` and `Scripts/verified/properties/` |
 | 2 | Frequency band distribution | **Uncertain** — likely linear (FFT), needs empirical test |
 | 3 | sampleImage() radius parameter | **Fixed** — `[1, 1]` is sufficient for Mosaic blocks |
 | 4 | Thickness property & Digital mode | **Fixed** — added match-name, documented gap caveat |
@@ -82,9 +82,9 @@ Each of the 8 flagged categories was researched against Adobe documentation, NLM
 
 ## Still Unverified (Requires AE Testing)
 
-1. **All match-name index numbers** — Must run a verification script that applies each effect and logs `effect.property(i).matchName` for every property.
-2. **Frequency band distribution** — Apply Audio Spectrum with 8 bands, play known-frequency tones, observe which band lights up to confirm linear distribution.
-3. **Digital mode gap pixels** — Check visually whether Thickness exactly fills each band or leaves small gaps.
+1. **Frequency band distribution** — Apply Audio Spectrum with 8 bands, play known-frequency tones, observe which band lights up to confirm linear distribution.
+2. **Digital mode gap pixels** — Check visually whether Thickness exactly fills each band or leaves small gaps.
+3. **Gradient fill write format** — Shape-layer gradient match-names are now verified in `Scripts/verified/properties/shape-layer.json`, but this note still does not prove the exact scripting payload needed for multi-stop gradient colors.
 
 ## Prevention Strategies
 
@@ -92,9 +92,15 @@ Each of the 8 flagged categories was researched against Adobe documentation, NLM
 
 LLM-generated After Effects technical details (especially match-name strings) are **plausible but unreliable**. They follow the right conventions but specific index numbers are frequently wrong. The failure mode is silent — wrong property set, no error thrown.
 
-### Mandatory Verification Script
+### Current Repo Workflow
 
-Every AE recipe plan should include a verification script as its **first implementation task**. Template:
+This repo now has a better default workflow than the ad hoc verification script below:
+
+- Check `Scripts/verified/` first for committed effect/property JSON.
+- Use `Scripts/reports/analysis.json` and its `propertyPaths` entries for project-specific property paths and provenance tags.
+- Only write a new discovery script when the effect/property is missing from `Scripts/verified/` or when runtime behavior still needs confirmation.
+
+The older one-off verification script pattern is still useful as a fallback:
 
 ```jsx
 (function verifyMatchNames() {
@@ -150,7 +156,8 @@ Every match-name in a plan should be tagged:
 Before any AE plan is implementation-ready:
 
 - [ ] All match-names enumerated in a reference table with provenance tags
-- [ ] Verification script written and executed in target AE version
+- [ ] `Scripts/verified/` checked first for the effect/property in question
+- [ ] Verification script written and executed only for gaps in `Scripts/verified/` or unresolved runtime behavior
 - [ ] Discrepancies resolved — plan updated with empirical values
 - [ ] Expression engine explicitly specified (Legacy ExtendScript vs JavaScript)
 - [ ] ExtendScript vs Expression boundary documented
@@ -161,5 +168,6 @@ Before any AE plan is implementation-ready:
 - **Plan file:** `ae-ai-starter/docs/plans/2026-03-12-feat-audio-spectrum-plugin.md`
 - **Shape layer patterns:** `ae-ai-starter/docs/plans/2026-03-04-feat-demo-panels-implementation-plan.md`
 - **Existing recipe patterns:** `ae-ai-starter/docs/recipes.md` (repeating-elements, image-swap, data-timing)
+- **Verified effect/property data:** `ae-ai-starter/Scripts/verified/README.md`
 - **ES3 constraints:** `ae-ai-starter/AGENTS.md`
 - **Existing solution:** `ae-ai-starter/docs/solutions/integration-issues/extracting-ae-automation-starter-kit-from-project-codebase.md`
