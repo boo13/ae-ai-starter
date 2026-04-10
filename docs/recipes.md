@@ -1,6 +1,8 @@
 # Recipes Guide
 
-Recipes are reusable automation patterns in `Scripts/recipes/`. Each recipe is a self-contained folder with its own README, configuration template, and library modules. Copy what you need into your project and customize.
+Recipes are reusable automation patterns in `Scripts/recipes/`. Most are self-contained folders with their own README, configuration template, and library modules. A few are standalone `.jsx` scripts that act more like examples or one-off building blocks.
+
+For new generated scripts, start with `Scripts/recipes/reliability-template/`. It provides the required `beginScript()` / `writeResult()` pattern so each run writes `Scripts/runs/last_run.json`.
 
 ## Advanced demos
 
@@ -10,6 +12,19 @@ If you want fully built examples instead of copy-and-adapt recipes, start with t
 - [`examples/ticker-data/`](../examples/ticker-data) — the current stock-data example, with a CEP panel that fetches ticker data and builds cards, sparklines, and comparison charts in After Effects.
 
 The older `stock_ticker` ScriptUI demo is archived in `Scripts/demos/_archive/stock_ticker/` and should be treated as historical reference rather than the primary stock-data workflow.
+
+## reliability-template
+
+**When to use:** Always, for new headless scripts. This is the default starting point for generated AE scripts.
+
+This recipe adds the reliability layer used by the current AI workflow: write `"started"` before AE work begins, then write a final result with `status`, `step`, `error`, and `diff` to `Scripts/runs/last_run.json`.
+
+**Key files:**
+
+- `template.jsx` -- Starter script with `beginScript()`, `writeResult()`, undo-group handling, and step-based error reporting.
+- `README.md` -- Usage details, output format, feedback protocol, and the pre-comp diff limitation.
+
+**What to customize:** Copy `template.jsx` into your working `Scripts/` directory, rename it, then fill in the action steps. Keep the three includes at the top and keep the `beginScript()` call before `app.beginUndoGroup()`.
 
 ## repeating-elements
 
@@ -52,3 +67,12 @@ This calculates how long each element should be visible based on a seconds-per-w
 - `example_config.jsxinc` -- Default timing parameters (base start, seconds per word, minimum duration).
 
 **What to customize:** Adjust `DEFAULT_SECONDS_PER_WORD` for reading pace and `DEFAULT_MIN_DURATION` to prevent short items from flashing by. Supply a custom `lineParser` function to `convertSimpleTextFile` if you need to import plain text files.
+
+## Standalone recipe scripts
+
+`Scripts/recipes/` also contains standalone `.jsx` files that are better treated as examples or direct-use scripts than reusable module bundles:
+
+- `star-trim-animation.jsx` -- shape-layer animation example
+- `filmDamageTreatment.jsx` -- effect-treatment example
+
+These do not follow the same folder + README structure as the main recipes above.
