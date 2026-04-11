@@ -29,6 +29,7 @@ The panel pattern hooks into the `runAction` wrapper that every panel should hav
 #include "../lib/io.jsxinc"
 #include "../lib/prop-walker.jsxinc"
 #include "../lib/result-writer.jsxinc"
+// #include "../lib/actions/action_name.jsxinc"  // add per action used
 
 // runAction — wrap every button's onClick with this
 function runAction(label, fn) {
@@ -191,11 +192,11 @@ Each action file exposes one function following this contract:
 ### Using an action in a headless script
 
 ```javascript
-#include "lib/helpers.jsxinc"
+#include "lib/helpers.jsxinc"         // required by actions that use setTextDocValue (e.g. title_stack)
 #include "lib/io.jsxinc"
 #include "lib/prop-walker.jsxinc"
 #include "lib/result-writer.jsxinc"
-#include "lib/actions/backdrop.jsxinc"
+#include "lib/actions/backdrop.jsxinc"  // check @requires tag — some actions need helpers.jsxinc
 
 (function () {
     var step = "init";
@@ -221,9 +222,7 @@ Each action file exposes one function following this contract:
 2. Run `Scripts/analyze/build_actions_index.jsx` (or `run_analysis.jsx`) to regenerate `index.json`.
 3. Commit both the new `.jsxinc` and updated `index.json`.
 
-See `Scripts/lib/actions/README.md` for the full cheatsheet.
-
-Available actions (read `index.json` for current list): Add Backdrop, Add Beat Markers, Add Camera Rig, Add Film Damage Treatment, Add Guide Preset, Add Star Trim Animation, Add Title Stack, Build Demo Scene, Create Comp, Data Timing, Image Swap, Queue Comp.
+See `Scripts/lib/actions/README.md` for the full cheatsheet. Read `index.json` for the current action list.
 
 ## Recipes (`Scripts/recipes/`)
 
