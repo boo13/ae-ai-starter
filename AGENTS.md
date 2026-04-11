@@ -223,7 +223,7 @@ Each action file exposes one function following this contract:
 
 See `Scripts/lib/actions/README.md` for the full cheatsheet.
 
-Available actions (read `index.json` for current list): Add Backdrop, Add Beat Markers, Add Camera Rig, Add Film Damage Treatment, Add Guide Preset, Add Star Trim Animation, Add Title Stack, Build Demo Scene, Create Comp, Queue Comp.
+Available actions (read `index.json` for current list): Add Backdrop, Add Beat Markers, Add Camera Rig, Add Film Damage Treatment, Add Guide Preset, Add Star Trim Animation, Add Title Stack, Build Demo Scene, Create Comp, Data Timing, Image Swap, Queue Comp.
 
 ## Recipes (`Scripts/recipes/`)
 

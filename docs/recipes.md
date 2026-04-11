@@ -4,7 +4,7 @@ Recipes are reusable automation patterns in `Scripts/recipes/`. Most are self-co
 
 For new generated scripts, start with `Scripts/recipes/reliability-template/`. It provides the required `beginScript()` / `writeResult()` pattern so each run writes `Scripts/runs/last_run.json`.
 
-**Before reaching for a recipe, check `Scripts/lib/actions/index.json`.** Several common automation tasks (backdrop, title stack, camera rig, beat markers, guides, comp creation, etc.) are already implemented as callable action functions in `Scripts/lib/actions/`. Actions are single `#include` calls — faster to use than copy-adapting a recipe. Recipes remain the right choice for multi-file patterns like `repeating-elements` (which requires a full registry + updater) or when you need the copy-and-adapt flexibility. When in doubt: actions for single operations, recipes for orchestrated multi-step patterns.
+**Before reaching for a recipe, check `Scripts/lib/actions/index.json`.** Several common automation tasks (backdrop, title stack, camera rig, beat markers, guides, comp creation, image swapping, display timing, etc.) are already implemented as callable action functions in `Scripts/lib/actions/`. Actions are single `#include` calls — faster to use than copy-adapting a recipe. Recipes remain the right choice for multi-file patterns like `repeating-elements` (which requires a full registry + updater) or when you need the copy-and-adapt flexibility. When in doubt: actions for single operations, recipes for orchestrated multi-step patterns.
 
 ## Advanced demos
 
@@ -44,6 +44,8 @@ This is the most common pattern in data-driven After Effects work. It covers sco
 
 ## image-swap
 
+> **Graduated to action.** The core functions (`replaceLayerSource`, `fitLayerToComp`, `getOrImportFootage`, `importFolderAssets`, `ensureProjectFolder`) are now available as a single `#include` via `Scripts/lib/actions/image_swap.jsxinc`. Use the action for one-off layer replacement. Use this recipe when you need the full multi-file pattern with folder configuration.
+
 **When to use:** Your template has placeholder image layers that need to be replaced with specific images from disk, scaled to fit or fill the composition.
 
 This handles hero images, thumbnails, logos, backgrounds -- any layer whose footage source should come from an external file. It also supports batch-importing an entire folder of images into the AE Project panel.
@@ -57,6 +59,8 @@ This handles hero images, thumbnails, logos, backgrounds -- any layer whose foot
 **What to customize:** Set `ASSETS_FOLDER_NAME` for your AE Project panel folder and `INPUT_FOLDER_NAME` for the filesystem folder containing source images. Choose `"fit"` or `"fill"` mode when calling `replaceLayerSource`.
 
 ## data-timing
+
+> **Graduated to action.** The core functions (`computeDurationFromText`, `resolveElementDuration`, `recalculateDurationsOnJson`) are now available as a single `#include` via `Scripts/lib/actions/data_timing.jsxinc`. Use the action for direct duration computation. Use this recipe when you need the full pattern with transcript loading, settings overrides, and a configurable text file converter.
 
 **When to use:** Your data includes text elements that need screen time proportional to their word count, with configurable pacing parameters.
 

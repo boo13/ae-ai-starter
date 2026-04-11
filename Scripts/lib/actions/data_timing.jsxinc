@@ -1,0 +1,188 @@
+/**
+ * @name Data Timing
+ * @description Calculates and recalculates display durations for data-driven text elements using a words-per-second model. Exposes three primary functions: computeDurationFromText, resolveElementDuration, recalculateDurationsOnJson.
+ * @category other
+ * @inputs data: Object (with elements/messages array); targetSecondsPerWord: number; targetMinDuration: number
+ * @outputs boolean — true if any durations were changed
+ * @whenToUse Display duration should vary based on text length (subtitle timing, auto-paced slideshows, narration sync).
+ * @example var changed = recalculateDurationsOnJson(data, 0.38, 1.5);
+ * @requires helpers.jsxinc — for countWords
+ */
+
+// Default timing values (mirrors data-timing recipe Config defaults)
+var _dt_DEFAULT_SECONDS_PER_WORD = 0.38;
+var _dt_DEFAULT_MIN_DURATION     = 1.5;
+
+/**
+ * Computes a display duration based on word count.
+ * Duration = wordCount * secondsPerWord, clamped to minDuration.
+ *
+ * @param {string} text           - Text content to measure.
+ * @param {number} secondsPerWord - Seconds per word (default 0.38).
+ * @param {number} minDuration    - Minimum duration floor in seconds (default 1.5).
+ * @returns {number} Computed duration in seconds.
+ */
+function computeDurationFromText(text, secondsPerWord, minDuration) {
+    var spw = parseFloat(secondsPerWord);
+    if (isNaN(spw) || spw <= 0) { spw = _dt_DEFAULT_SECONDS_PER_WORD; }
+    var minDur = parseFloat(minDuration);
+    if (isNaN(minDur) || minDur < 0) { minDur = _dt_DEFAULT_MIN_DURATION; }
+    var duration = countWords(text) * spw;
+    return (duration < minDur) ? minDur : duration;
+}
+
+/**
+ * Resolves the duration for a single data element.
+ * If the element has an explicit `duration` field that is a valid number >= 0, that is used.
+ * Otherwise the duration is computed from the element's `text` field.
+ *
+ * @param {Object} element        - Data object with optional `duration` and `text` fields.
+ * @param {number} secondsPerWord - Seconds per word for computed durations.
+ * @param {number} minDuration    - Minimum duration floor in seconds.
+ * @returns {number}
+ */
+function resolveElementDuration(element, secondsPerWord, minDuration) {
+    if (element && element.duration !== undefined && element.duration !== null) {
+        var explicit = parseFloat(element.duration);
+        if (!isNaN(explicit) && explicit >= 0) { return explicit; }
+    }
+    var textValue = element && typeof element.text !== "undefined" ? element.text : "";
+    return computeDurationFromText(textValue, secondsPerWord, minDuration);
+}
+
+// --- Supporting functions (used internally by recalculateDurationsOnJson) ---
+
+function _dt_roundDuration(value) {
+    var num = parseFloat(value);
+    if (isNaN(num)) return null;
+    return Math.round(num * 100) / 100;
+}
+
+function _dt_approxEqual(a, b) {
+    if (isNaN(a) || isNaN(b)) return false;
+    return Math.abs(a - b) < 0.01;
+}
+
+function _dt_estimateMinDuration(elements, fallback) {
+    var repeatedMin = null;
+    var observedMin = null;
+    var observedKeyCount = {};
+    if (elements) {
+        for (var i = 0; i < elements.length; i++) {
+            var el = elements[i];
+            if (!el || el.duration === undefined || el.duration === null) continue;
+            var val = parseFloat(el.duration);
+            if (isNaN(val)) continue;
+            if (observedMin === null || val < observedMin) { observedMin = val; }
+            var key = val.toFixed(2);
+            observedKeyCount[key] = (observedKeyCount[key] || 0) + 1;
+        }
+    }
+    for (var k in observedKeyCount) {
+        if (!observedKeyCount.hasOwnProperty(k)) continue;
+        if (observedKeyCount[k] < 2) continue;
+        var num = parseFloat(k);
+        if (!isNaN(num) && (repeatedMin === null || num < repeatedMin)) { repeatedMin = num; }
+    }
+    var fallbackNum = parseFloat(fallback);
+    if (isNaN(fallbackNum)) { fallbackNum = _dt_DEFAULT_MIN_DURATION; }
+    if (repeatedMin !== null) { return repeatedMin; }
+    if (observedMin !== null && (observedMin + 0.01) < fallbackNum) { return observedMin; }
+    return fallbackNum;
+}
+
+function _dt_estimateSecondsPerWord(elements, minDuration) {
+    if (!elements || !elements.length) return null;
+    var ratios = [];
+    for (var i = 0; i < elements.length; i++) {
+        var el = elements[i];
+        if (!el || el.duration === undefined || el.duration === null) continue;
+        var duration = parseFloat(el.duration);
+        if (isNaN(duration) || duration <= minDuration + 0.01) continue;
+        var words = countWords(el.text || "");
+        if (!words || words <= 0) continue;
+        ratios.push(duration / words);
+    }
+    if (!ratios.length) return null;
+    ratios.sort(function (a, b) { return a - b; });
+    var median = ratios[Math.floor(ratios.length / 2)];
+    return (isNaN(median) || !isFinite(median) || median <= 0) ? null : median;
+}
+
+function _dt_analyzeExistingDurations(elements, settings) {
+    if (!elements || !elements.length) { return { canAuto: false }; }
+    var fallbackMin = _dt_DEFAULT_MIN_DURATION;
+    if (settings && settings.min_duration !== undefined) {
+        var parsedMin = parseFloat(settings.min_duration);
+        if (!isNaN(parsedMin)) { fallbackMin = parsedMin; }
+    }
+    var prevMin = _dt_estimateMinDuration(elements, fallbackMin);
+    var prevSpw = _dt_estimateSecondsPerWord(elements, prevMin);
+    if (prevSpw === null) { return { canAuto: false }; }
+    var comparable = 0;
+    var matches = 0;
+    for (var i = 0; i < elements.length; i++) {
+        var el = elements[i];
+        if (!el || el.duration === undefined || el.duration === null) continue;
+        var numeric = parseFloat(el.duration);
+        if (isNaN(numeric)) continue;
+        comparable++;
+        if (_dt_approxEqual(numeric, computeDurationFromText(el.text || "", prevSpw, prevMin))) { matches++; }
+    }
+    if (!comparable) { return { canAuto: false }; }
+    var confidence = matches / comparable;
+    return { canAuto: confidence >= 0.5, prevMin: prevMin, prevSpw: prevSpw, confidence: confidence };
+}
+
+/**
+ * Recalculates auto-generated durations when timing parameters change.
+ * Analyzes existing durations to detect the previous model, then recomputes
+ * only elements that match it (respecting manual lock flags).
+ *
+ * Lock flags: `duration_locked`, `durationLocked`, or `manualDuration` = true.
+ *
+ * @param {Object} data                 - Data object with an `elements` or `messages` array.
+ * @param {number} targetSecondsPerWord - New seconds-per-word value.
+ * @param {number} targetMinDuration    - New minimum duration value.
+ * @param {Object} [analysisSettings]   - Optional settings override (falls back to data.settings).
+ * @returns {boolean} True if any durations were changed.
+ */
+function recalculateDurationsOnJson(data, targetSecondsPerWord, targetMinDuration, analysisSettings) {
+    if (!data) return false;
+    var items = data.elements || data.messages;
+    if (!items || !items.length) return false;
+
+    var analysis = _dt_analyzeExistingDurations(items, analysisSettings || data.settings || {});
+    if (!analysis.canAuto || !analysis.prevSpw) { return false; }
+
+    var changed = false;
+    for (var i = 0; i < items.length; i++) {
+        var el = items[i];
+        if (!el) continue;
+        if (el.duration_locked === true || el.durationLocked === true || el.manualDuration === true) { continue; }
+
+        var treatAsAuto = true;
+        var current = (el.duration !== undefined && el.duration !== null) ? parseFloat(el.duration) : NaN;
+        if (!isNaN(current)) {
+            var expectedPrev = computeDurationFromText(el.text || "", analysis.prevSpw, analysis.prevMin);
+            if (!_dt_approxEqual(current, expectedPrev)) { treatAsAuto = false; }
+        }
+        if (!treatAsAuto) { continue; }
+
+        var newDuration = computeDurationFromText(el.text || "", targetSecondsPerWord, targetMinDuration);
+        var rounded = _dt_roundDuration(newDuration);
+        if (rounded === null) continue;
+
+        if (el.duration === undefined || el.duration === null) {
+            el.duration = rounded;
+            changed = true;
+        } else {
+            var numericCurrent = parseFloat(el.duration);
+            if (isNaN(numericCurrent) || !_dt_approxEqual(numericCurrent, rounded) || el.duration !== rounded) {
+                el.duration = rounded;
+                changed = true;
+            }
+        }
+    }
+    return changed;
+}

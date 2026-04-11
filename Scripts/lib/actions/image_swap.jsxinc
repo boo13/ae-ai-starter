@@ -1,0 +1,206 @@
+/**
+ * @name Image Swap
+ * @description Imports footage files, replaces layer sources, and scales layers to fit or fill a comp. Exposes five functions: replaceLayerSource, fitLayerToComp, getOrImportFootage, importFolderAssets, ensureProjectFolder.
+ * @category layer
+ * @inputs comp: CompItem; opts: { layerNameOrIndex: string|number, footageFile: File, fitMode: "fit"|"fill" }
+ * @outputs boolean — true if the source was successfully replaced
+ * @whenToUse You need to import external images and swap layer sources with proper fit/fill scaling.
+ * @example replaceLayerSource(comp, { layerNameOrIndex: "Photo", footageFile: new File("/path/img.jpg"), fitMode: "fill" });
+ * @requires helpers.jsxinc — for isSupportedImageExtension
+ */
+
+/**
+ * Normalizes a filesystem path for reliable comparison.
+ * @private
+ */
+function _normalizeAssetPath(path) {
+    if (!path) return "";
+    return decodeURI(path).replace(/\\/g, "/").toLowerCase();
+}
+
+/**
+ * Searches the AE project for an existing footage item whose source
+ * file matches the given File reference (compared by filesystem path).
+ *
+ * @param {File} sourceFile - ExtendScript File to look for.
+ * @returns {FootageItem|null}
+ */
+function findFootageByPath(sourceFile) {
+    if (!sourceFile || !sourceFile.fsName || !app.project) return null;
+    var targetPath = _normalizeAssetPath(sourceFile.fsName);
+    for (var i = 1; i <= app.project.numItems; i++) {
+        var item = app.project.item(i);
+        if (!(item instanceof FootageItem)) continue;
+        if (!item.mainSource || !item.mainSource.file) continue;
+        if (_normalizeAssetPath(item.mainSource.file.fsName) === targetPath) {
+            return item;
+        }
+    }
+    return null;
+}
+
+/**
+ * Imports a file as footage into the AE project, or returns the existing
+ * footage item if it has already been imported. Duplicate imports are
+ * detected by comparing filesystem paths.
+ *
+ * @param {File} file - ExtendScript File object pointing to the image/video.
+ * @returns {FootageItem|null}
+ */
+function getOrImportFootage(file) {
+    if (!file || !file.exists || !app.project) return null;
+    var project = app.project;
+    for (var i = 1; i <= project.numItems; i++) {
+        var item = project.item(i);
+        if (item instanceof FootageItem &&
+            item.mainSource && item.mainSource.file &&
+            item.mainSource.file.fsName === file.fsName) {
+            return item;
+        }
+    }
+    var importOpts = new ImportOptions(file);
+    try {
+        return project.importFile(importOpts);
+    } catch (err) {
+        return null;
+    }
+}
+
+/**
+ * Scales a layer so that it fits within or fills the given dimensions.
+ * Sets the layer's anchor point and position to [0, 0] before scaling.
+ *
+ * @param {Layer}  layer      - The layer to scale.
+ * @param {number} compWidth  - Target width in pixels.
+ * @param {number} compHeight - Target height in pixels.
+ * @param {string} mode       - "fit" (letterbox) or "fill" (crop).
+ */
+function fitLayerToComp(layer, compWidth, compHeight, mode) {
+    if (!layer || !layer.transform) return;
+    try { layer.transform.anchorPoint.setValue([0, 0]); } catch (_) {}
+    try { layer.transform.position.setValue([0, 0]); } catch (_) {}
+    var footage = layer.source;
+    if (!footage || !footage.width || !footage.height) return;
+    var ratioX = compWidth / footage.width;
+    var ratioY = compHeight / footage.height;
+    var scaleFactor = (mode === "fit")
+        ? Math.min(ratioX, ratioY) * 100
+        : Math.max(ratioX, ratioY) * 100;
+    try { layer.transform.scale.setValue([scaleFactor, scaleFactor]); } catch (_) {}
+}
+
+/**
+ * Finds or creates a folder at the root level of the AE Project panel.
+ *
+ * @param {string} folderName - Name of the folder to find or create.
+ * @returns {FolderItem}
+ */
+function ensureProjectFolder(folderName) {
+    if (!app.project || !app.project.rootFolder) {
+        throw new Error("Ensure Project Folder: no active AE project.");
+    }
+    var root = app.project.rootFolder;
+    for (var i = 1; i <= root.numItems; i++) {
+        var item = root.item(i);
+        if (item instanceof FolderItem && item.name === folderName) {
+            return item;
+        }
+    }
+    return root.items.addFolder(folderName);
+}
+
+/**
+ * Imports all supported image files from a filesystem folder into an
+ * AE Project panel folder. Already-imported files are skipped.
+ *
+ * @param {Folder}     sourceFolder      - ExtendScript Folder containing the images.
+ * @param {FolderItem} destinationFolder - AE Project panel folder to import into.
+ * @returns {FootageItem[]} Array of newly imported footage items.
+ */
+function importFolderAssets(sourceFolder, destinationFolder) {
+    var imported = [];
+    if (!sourceFolder || !sourceFolder.exists) return imported;
+    if (!destinationFolder) return imported;
+
+    var isSupported = (typeof isSupportedImageExtension === "function")
+        ? isSupportedImageExtension
+        : function (ext) {
+            var list = ["png", "jpg", "jpeg", "gif", "bmp", "tif", "tiff", "psd", "webp"];
+            if (!ext) return false;
+            var lower = String(ext).toLowerCase();
+            for (var k = 0; k < list.length; k++) {
+                if (list[k] === lower) return true;
+            }
+            return false;
+        };
+
+    var files = sourceFolder.getFiles(function (f) {
+        if (!(f instanceof File)) return false;
+        var parts = f.name.split(".");
+        var ext = parts.length > 1 ? parts.pop() : "";
+        return isSupported(ext);
+    });
+
+    for (var i = 0; i < files.length; i++) {
+        var file = files[i];
+        var existing = findFootageByPath(file);
+        if (existing) {
+            if (existing.parentFolder !== destinationFolder) {
+                try { existing.parentFolder = destinationFolder; } catch (_) {}
+            }
+            continue;
+        }
+        var importOpts = new ImportOptions(file);
+        try {
+            var footageItem = app.project.importFile(importOpts);
+            if (footageItem) {
+                try { footageItem.parentFolder = destinationFolder; } catch (_) {}
+                imported.push(footageItem);
+            }
+        } catch (importErr) {}
+    }
+    return imported;
+}
+
+/**
+ * Imports (or finds) footage for a file, replaces a layer's source, and
+ * scales it to fit or fill the comp. If no layer is found by name/index,
+ * a new layer is added.
+ *
+ * @param {CompItem}      comp              - The target composition.
+ * @param {string|number} layerNameOrIndex  - Layer name (string) or 1-based index (number).
+ * @param {File}          footageFile       - ExtendScript File object for the image/video.
+ * @param {string}        fitMode           - "fit" or "fill".
+ * @returns {boolean} True if the source was successfully replaced and scaled.
+ */
+function replaceLayerSource(comp, layerNameOrIndex, footageFile, fitMode) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Replace Layer Source: comp must be a CompItem.");
+    }
+    if (!footageFile || !footageFile.exists) {
+        throw new Error("Replace Layer Source: footageFile does not exist.");
+    }
+
+    var footage = getOrImportFootage(footageFile);
+    if (!footage) return false;
+
+    var targetLayer = null;
+    try { targetLayer = comp.layer(layerNameOrIndex); } catch (_) {}
+
+    if (targetLayer) {
+        try {
+            targetLayer.replaceSource(footage, false);
+        } catch (replaceErr) {
+            return false;
+        }
+    } else {
+        try {
+            targetLayer = comp.layers.add(footage);
+        } catch (addErr) {
+            return false;
+        }
+    }
+
+    fitLayerToComp(targetLayer, comp.width, comp.height, fitMode || "fill");
+    return true;
+}
