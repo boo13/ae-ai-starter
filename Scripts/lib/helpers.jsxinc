@@ -113,6 +113,40 @@ function getNumericValue(prop) {
 }
 
 /**
+ * Sets text content and styling on a text layer using its TextDocument.
+ * Handles the required AE pattern: get doc from prop, mutate, setValue.
+ *
+ * @param {AVLayer} layer       - Text layer to update.
+ * @param {string}  text        - Text content to assign.
+ * @param {number}  [fontSize]  - Optional font size in pixels.
+ * @param {Array}   [colorValue] - Optional RGB color array, e.g. [1, 0.5, 0].
+ */
+function setTextDocValue(layer, text, fontSize, colorValue) {
+    if (!layer) return;
+    var prop = null;
+    try {
+        prop = layer.property("Source Text");
+    } catch (_) {}
+    if (!prop) return;
+
+    try {
+        var doc = prop.value;
+        doc.text = text;
+        if (fontSize) {
+            try { doc.fontSize = fontSize; } catch (_) {}
+        }
+        if (colorValue) {
+            try { doc.fillColor = colorValue; } catch (_) {}
+        }
+        try { doc.applyFill = true; } catch (_) {}
+        try { doc.justification = ParagraphJustification.CENTER_JUSTIFY; } catch (_) {}
+        prop.setValue(doc);
+    } catch (_) {
+        setTextPropertyValue(prop, text);
+    }
+}
+
+/**
  * Recursively walks a property group to find a property with the given name.
  * Useful for locating Essential Properties or effect controls buried inside
  * nested property groups.

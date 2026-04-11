@@ -21,6 +21,9 @@
 #include "../lib/report_writer.jsxinc"
 #include "../lib/prop-walker.jsxinc"
 
+// --- Action catalog builder ---
+#include "lib/actions_indexer.jsxinc"
+
 // --- Snapshot modules ---
 #include "lib/snapshot_project.jsxinc"
 #include "lib/snapshot_comps.jsxinc"
@@ -200,5 +203,17 @@
     } catch (err) {
         alert("Analysis error:\n" + err.toString());
         $.writeln("Analysis error: " + err.toString());
+    }
+
+    // Rebuild the action catalog as a side effect of every analysis run.
+    // Resolve paths here where $.fileName is reliable (we are the entry script).
+    // Runs independently so a broken project analysis doesn't prevent indexing.
+    try {
+        var _ra_scriptsDir = new File($.fileName).parent.parent;  // Scripts/analyze/ -> Scripts/
+        var _ra_actionsDir = new Folder(_ra_scriptsDir.fsName + "/lib/actions");
+        var _ra_outFile    = new File(_ra_scriptsDir.fsName + "/lib/actions/index.json");
+        buildActionsIndex(_ra_actionsDir, _ra_outFile);
+    } catch (indexErr) {
+        $.writeln("Action index warning: " + indexErr.toString());
     }
 })();

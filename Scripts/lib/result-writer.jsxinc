@@ -47,6 +47,7 @@ var _rw_scriptName = "";
 var _rw_beforeSnapshot = null;   // flat map: matchPath -> serialized value
 var _rw_beforeMs = 0;
 var _rw_runsDir = null;          // resolved once in beginScript()
+var _rw_currentStep = null;      // last value set by setStep(); used by writeResult
 
 // ---------------------------------------------------------------------------
 // Internal: snapshot helpers
@@ -270,6 +271,7 @@ function _rw_writeRunFile(data) {
  */
 function beginScript(scriptName, comp) {
     _rw_scriptName = scriptName || "unknown";
+    _rw_currentStep = null;
     _rw_beforeMs = (new Date()).getTime();
     _rw_runsDir = _rw_resolveRunsDir();
 
@@ -340,7 +342,7 @@ function writeResult(status, step, error, comp) {
         scriptName: _rw_scriptName,
         timestamp: formatTimestampISO(new Date()),
         userApproved: null,
-        step: step || null,
+        step: (_rw_currentStep !== null ? _rw_currentStep : (step || null)),
         error: errorMsg,
         errorLine: errorLine,
         errorFile: errorFile,
@@ -351,4 +353,18 @@ function writeResult(status, step, error, comp) {
     };
 
     _rw_writeRunFile(record);
+}
+
+/**
+ * Updates the current diagnostic step label.
+ * Call inside action functions at significant sub-operations so that if
+ * writeResult() is later called with a generic outer label, the more
+ * specific inner step is preserved in last_run.json instead.
+ *
+ * Resets to null at the start of each beginScript() call.
+ *
+ * @param {string} label - Human-readable description of the current sub-step.
+ */
+function setStep(label) {
+    _rw_currentStep = label || null;
 }

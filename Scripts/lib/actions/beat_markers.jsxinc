@@ -1,0 +1,40 @@
+/**
+ * @name Add Beat Markers
+ * @description Places evenly-spaced comp markers from t=0 through comp.duration, labeled "Beat 1", "Beat 2", etc.
+ * @category marker
+ * @inputs comp: CompItem; opts: { spacingSeconds: number (default 1.0, minimum 0.25) }
+ * @outputs number — count of markers added
+ * @whenToUse You want a regular beat grid on the timeline for timing reference or music sync.
+ * @example var count = addBeatMarkers(comp, { spacingSeconds: 0.5 });
+ */
+
+function _bm_parseNum(val, fallback) {
+    var n = parseFloat(val);
+    return isNaN(n) ? fallback : n;
+}
+
+function _bm_addMarkerAtTime(comp, timeValue, label) {
+    var markerProp = null;
+    try {
+        markerProp = comp.markerProperty;
+    } catch (_) {}
+    if (!markerProp) {
+        throw new Error("Add Beat Markers: comp markers unavailable in this AE version.");
+    }
+    markerProp.setValueAtTime(timeValue, new MarkerValue(label));
+}
+
+function addBeatMarkers(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Beat Markers: comp must be a CompItem.");
+    }
+    var spacing = Math.max(0.25, _bm_parseNum(opts && opts.spacingSeconds, 1));
+    var count = 0;
+    var t = 0;
+    while (t <= comp.duration + 0.0001) {
+        _bm_addMarkerAtTime(comp, t, "Beat " + (count + 1));
+        count++;
+        t += spacing;
+    }
+    return count;
+}

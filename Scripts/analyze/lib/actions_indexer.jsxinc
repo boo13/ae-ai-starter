@@ -1,0 +1,162 @@
+/**
+ * actions_indexer.jsxinc
+ *
+ * Parses JSDoc headers from Scripts/lib/actions/*.jsxinc and writes
+ * Scripts/lib/actions/index.json — the machine-readable catalog of
+ * all available vetted actions.
+ *
+ * Exposes one public function: buildActionsIndex()
+ *
+ * Called by:
+ *   Scripts/analyze/build_actions_index.jsx  (standalone run from File > Scripts)
+ *   Scripts/analyze/run_analysis.jsx         (runs automatically after analysis)
+ *
+ * Requires: io.jsxinc (writeJsonFile, formatTimestampISO)
+ * All code is ES3/ExtendScript compatible.
+ */
+
+/**
+ * Extracts a JSDoc tag value from a block comment string.
+ * Matches the first occurrence of "@tagName rest-of-line".
+ *
+ * @param {string} block - The JSDoc comment text (between /** and * /).
+ * @param {string} tag   - Tag name without leading @.
+ * @returns {string} Trimmed tag value, or empty string if absent.
+ */
+function _ai_extractTag(block, tag) {
+    var re = new RegExp("@" + tag + "\\s+([^\\n\\r*]+)");
+    var m = block.match(re);
+    if (!m) return "";
+    return m[1].replace(/^\s+|\s+$/g, "");
+}
+
+/**
+ * Reads the head of a .jsxinc file and returns the first JSDoc block
+ * (everything between the opening /** and the first * /).
+ * Returns empty string if no JSDoc block is found or if reading fails.
+ *
+ * @param {File} file - File object to read.
+ * @returns {string} The JSDoc block content, or empty string.
+ */
+function _ai_readJsDocBlock(file) {
+    var text = "";
+    try {
+        if (!file.open("r")) return "";
+        // Read up to 4000 chars — enough to capture any reasonable header
+        var chunk = file.read(4000);
+        file.close();
+        text = chunk || "";
+    } catch (e) {
+        try { file.close(); } catch (_) {}
+        return "";
+    }
+    var start = text.indexOf("/**");
+    if (start < 0) return "";
+    var end = text.indexOf("*/", start + 3);
+    if (end < 0) return "";
+    return text.substring(start, end + 2);
+}
+
+/**
+ * Derives the exported function name from a .jsxinc file.
+ * Finds the first top-level function declaration whose name does not
+ * start with an underscore (convention: private/local helpers are prefixed _).
+ *
+ * @param {File} file - File object to read.
+ * @returns {string} Function name, or empty string if not found.
+ */
+function _ai_extractFunctionName(file) {
+    var text = "";
+    try {
+        if (!file.open("r")) return "";
+        text = file.read(8000);
+        file.close();
+    } catch (e) {
+        try { file.close(); } catch (_) {}
+        return "";
+    }
+    // Match: "function NAME(" where NAME starts with a letter (not underscore)
+    var m = text.match(/function\s+([A-Za-z][A-Za-z0-9_]*)\s*\(/);
+    return m ? m[1] : "";
+}
+
+/**
+ * Walks Scripts/lib/actions/, parses every *.jsxinc JSDoc header,
+ * and writes Scripts/lib/actions/index.json.
+ *
+ * Callers MUST resolve actionsDir and outFile themselves using $.fileName
+ * (which is reliable in the entry .jsx but not in #include'd files).
+ *
+ * Skips files where @name or @description is missing (logs a warning).
+ * Returns a summary object: { actionCount, warnings }.
+ *
+ * @param {Folder} actionsDir - Folder object for Scripts/lib/actions/
+ * @param {File}   outFile    - File object for Scripts/lib/actions/index.json
+ * @returns {{ actionCount: number, warnings: string[] }}
+ */
+function buildActionsIndex(actionsDir, outFile) {
+    if (!actionsDir || !actionsDir.exists) {
+        throw new Error("buildActionsIndex: actions folder not found at " + (actionsDir ? actionsDir.fsName : "undefined"));
+    }
+
+    var warnings = [];
+    var actions = [];
+
+    var files = actionsDir.getFiles ? actionsDir.getFiles("*.jsxinc") : [];
+    // Sort for stable output
+    files.sort(function (a, b) {
+        var na = String(a.name).toLowerCase();
+        var nb = String(b.name).toLowerCase();
+        if (na < nb) return -1;
+        if (na > nb) return 1;
+        return 0;
+    });
+
+    for (var i = 0; i < files.length; i++) {
+        var f = files[i];
+        var block = _ai_readJsDocBlock(f);
+        if (!block) {
+            warnings.push(f.name + ": no JSDoc block found — skipped");
+            continue;
+        }
+
+        var name = _ai_extractTag(block, "name");
+        var description = _ai_extractTag(block, "description");
+
+        if (!name || !description) {
+            warnings.push(f.name + ": missing @name or @description — skipped");
+            continue;
+        }
+
+        // Build relative file path: "Scripts/lib/actions/filename.jsxinc"
+        var relPath = "Scripts/lib/actions/" + f.name;
+        actions.push({
+            name:        name,
+            "function":  _ai_extractFunctionName(f) || "",
+            file:        relPath,
+            description: description,
+            category:    _ai_extractTag(block, "category") || "other",
+            inputs:      _ai_extractTag(block, "inputs") || "",
+            outputs:     _ai_extractTag(block, "outputs") || "",
+            whenToUse:   _ai_extractTag(block, "whenToUse") || "",
+            example:     _ai_extractTag(block, "example") || ""
+        });
+    }
+
+    // Sort by name for stable, readable output
+    actions.sort(function (a, b) {
+        var na = (a.name || "").toLowerCase();
+        var nb = (b.name || "").toLowerCase();
+        if (na < nb) return -1;
+        if (na > nb) return 1;
+        return 0;
+    });
+
+    writeJsonFile(outFile, {
+        generatedAt:  formatTimestampISO(new Date()),
+        actionCount:  actions.length,
+        actions:      actions
+    });
+
+    return { actionCount: actions.length, warnings: warnings };
+}

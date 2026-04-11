@@ -1,0 +1,31 @@
+/**
+ * @name Add Camera Rig
+ * @description Adds an orbit camera rig: a 3D camera parented to a null controller with a gentle Y-rotation animation.
+ * @category scene
+ * @inputs comp: CompItem; opts: { } (no opts for v1)
+ * @outputs Array<AVLayer> — [camera, controller]
+ * @whenToUse You want a 3D camera that slowly orbits the scene over the comp's duration.
+ * @example var layers = addCameraRig(comp);
+ */
+function addCameraRig(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Camera Rig: comp must be a CompItem.");
+    }
+
+    var camera = comp.layers.addCamera("Orbit Camera", [comp.width / 2, comp.height / 2]);
+    var controller = comp.layers.addNull();
+
+    controller.name = "Camera Orbit CTRL";
+    controller.threeDLayer = true;
+
+    camera.parent = controller;
+    camera.property("Transform").property("Position").setValue([comp.width / 2, comp.height / 2, -1800]);
+    controller.property("Transform").property("Position").setValue([comp.width / 2, comp.height / 2, 0]);
+
+    try {
+        controller.property("Transform").property("Y Rotation").setValueAtTime(0, 0);
+        controller.property("Transform").property("Y Rotation").setValueAtTime(comp.duration, 45);
+    } catch (_) {}
+
+    return [camera, controller];
+}

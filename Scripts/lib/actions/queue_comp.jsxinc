@@ -1,0 +1,18 @@
+/**
+ * @name Queue Comp
+ * @description Adds a comp to the After Effects render queue.
+ * @category render
+ * @inputs comp: CompItem
+ * @outputs undefined
+ * @whenToUse You want to programmatically send a comp to the render queue without touching the UI.
+ * @example queueComp(comp);
+ */
+function queueComp(comp) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Queue Comp: comp must be a CompItem.");
+    }
+    if (!app.project) {
+        throw new Error("Queue Comp: no project is open.");
+    }
+    app.project.renderQueue.items.add(comp);
+}

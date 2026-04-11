@@ -1,0 +1,87 @@
+/**
+ * @name Add Star Trim Animation
+ * @description Adds an animated 5-point star shape layer with a trim-paths draw-on animation over 1 second.
+ * @category layer
+ * @inputs comp: CompItem; opts: { points: number, innerRadius: number, outerRadius: number } (all optional)
+ * @outputs ShapeLayer — the newly created star layer
+ * @whenToUse You want a shape-layer star with a trim-paths reveal animation as a motion design element.
+ * @example var layer = addStarTrimAnimation(comp);
+ */
+
+function _sta_ensure(value, message) {
+    if (!value) { throw new Error(message); }
+    return value;
+}
+
+function addStarTrimAnimation(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Star Trim Animation: comp must be a CompItem.");
+    }
+    var o = opts || {};
+
+    setStep("add shape layer");
+    var starLayer = comp.layers.addShape();
+    starLayer.name = "Animated Star Trim";
+    starLayer.property("Transform").property("Position").setValue([comp.width / 2, comp.height / 2]);
+
+    setStep("build star path");
+    var contents = _sta_ensure(
+        starLayer.property("ADBE Root Vectors Group"),
+        "Add Star Trim Animation: failed to get root contents"
+    );
+    var starGroup = _sta_ensure(
+        contents.addProperty("ADBE Vector Group"),
+        "Add Star Trim Animation: failed to add star group"
+    );
+    starGroup.name = "Star";
+
+    var vectors = _sta_ensure(
+        starGroup.property("ADBE Vectors Group"),
+        "Add Star Trim Animation: failed to get star vectors"
+    );
+    var starPath = _sta_ensure(
+        vectors.addProperty("ADBE Vector Shape - Star"),
+        "Add Star Trim Animation: failed to add star path"
+    );
+    starPath.property("ADBE Vector Star Points").setValue(o.points || 5);
+    starPath.property("ADBE Vector Star Inner Radius").setValue(o.innerRadius || 60);
+    starPath.property("ADBE Vector Star Outer Radius").setValue(o.outerRadius || 120);
+    starPath.property("ADBE Vector Star Inner Roundness").setValue(20);
+    starPath.property("ADBE Vector Star Outer Roundness").setValue(10);
+
+    setStep("add stroke and fill");
+    var stroke = _sta_ensure(
+        vectors.addProperty("ADBE Vector Graphic - Stroke"),
+        "Add Star Trim Animation: failed to add stroke"
+    );
+    stroke.property("ADBE Vector Stroke Color").setValue([1, 0.6, 0.1, 1]);
+    stroke.property("ADBE Vector Stroke Width").setValue(12);
+    stroke.property("ADBE Vector Stroke Line Cap").setValue(2);
+
+    var fill = _sta_ensure(
+        vectors.addProperty("ADBE Vector Graphic - Fill"),
+        "Add Star Trim Animation: failed to add fill"
+    );
+    fill.property("ADBE Vector Fill Color").setValue([0, 0, 0, 1]);
+    fill.property("ADBE Vector Fill Opacity").setValue(0);
+
+    setStep("add trim paths animation");
+    var trim = _sta_ensure(
+        contents.addProperty("ADBE Vector Filter - Trim"),
+        "Add Star Trim Animation: failed to add trim paths"
+    );
+    var endProp = _sta_ensure(
+        trim.property("ADBE Vector Trim End"),
+        "Add Star Trim Animation: failed to get trim end"
+    );
+    endProp.setValueAtTime(0, 0);
+    endProp.setValueAtTime(1, 100);
+
+    var startProp = _sta_ensure(
+        trim.property("ADBE Vector Trim Start"),
+        "Add Star Trim Animation: failed to get trim start"
+    );
+    startProp.setValue(0);
+
+    return starLayer;
+}

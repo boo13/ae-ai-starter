@@ -1,0 +1,46 @@
+/**
+ * @name Add Title Stack
+ * @description Adds a two-layer animated title stack (hero title + subtitle) with fade and slide-up keyframes.
+ * @category scene
+ * @inputs comp: CompItem; opts: { title: string, subtitle: string } (both optional — defaults to demo copy)
+ * @outputs Array<TextLayer> — [titleLayer, subtitleLayer]
+ * @whenToUse You want a quick hero text layout with entrance animation for demo or presentation comps.
+ * @example var layers = addTitleStack(comp, { title: "My Project", subtitle: "A short description" });
+ * @requires helpers.jsxinc — for setTextDocValue
+ */
+function addTitleStack(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Title Stack: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var titleText = o.title || "AI can build motion tools";
+    var subtitleText = o.subtitle || "Comps, guides, rigs, markers, queue actions";
+
+    var title = comp.layers.addText(titleText);
+    var subtitle = comp.layers.addText(subtitleText);
+
+    title.name = "Hero Title";
+    subtitle.name = "Hero Subtitle";
+
+    setTextDocValue(title, titleText, 108, [1, 0.98, 0.95]);
+    setTextDocValue(subtitle, subtitleText, 38, [0.98, 0.84, 0.32]);
+
+    title.property("Transform").property("Position").setValue([comp.width / 2, Math.round(comp.height * 0.38)]);
+    subtitle.property("Transform").property("Position").setValue([comp.width / 2, Math.round(comp.height * 0.50)]);
+
+    try {
+        title.property("Transform").property("Opacity").setValueAtTime(0, 0);
+        title.property("Transform").property("Opacity").setValueAtTime(0.8, 100);
+        title.property("Transform").property("Position").setValueAtTime(0, [comp.width / 2, Math.round(comp.height * 0.43)]);
+        title.property("Transform").property("Position").setValueAtTime(0.8, [comp.width / 2, Math.round(comp.height * 0.38)]);
+    } catch (_) {}
+
+    try {
+        subtitle.property("Transform").property("Opacity").setValueAtTime(0.25, 0);
+        subtitle.property("Transform").property("Opacity").setValueAtTime(1.1, 100);
+        subtitle.property("Transform").property("Position").setValueAtTime(0.25, [comp.width / 2, Math.round(comp.height * 0.54)]);
+        subtitle.property("Transform").property("Position").setValueAtTime(1.1, [comp.width / 2, Math.round(comp.height * 0.50)]);
+    } catch (_) {}
+
+    return [title, subtitle];
+}

@@ -4,6 +4,8 @@ Recipes are reusable automation patterns in `Scripts/recipes/`. Most are self-co
 
 For new generated scripts, start with `Scripts/recipes/reliability-template/`. It provides the required `beginScript()` / `writeResult()` pattern so each run writes `Scripts/runs/last_run.json`.
 
+**Before reaching for a recipe, check `Scripts/lib/actions/index.json`.** Several common automation tasks (backdrop, title stack, camera rig, beat markers, guides, comp creation, etc.) are already implemented as callable action functions in `Scripts/lib/actions/`. Actions are single `#include` calls — faster to use than copy-adapting a recipe. Recipes remain the right choice for multi-file patterns like `repeating-elements` (which requires a full registry + updater) or when you need the copy-and-adapt flexibility. When in doubt: actions for single operations, recipes for orchestrated multi-step patterns.
+
 ## Advanced demos
 
 If you want fully built examples instead of copy-and-adapt recipes, start with these:

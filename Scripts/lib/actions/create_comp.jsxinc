@@ -1,0 +1,36 @@
+/**
+ * @name Create Comp
+ * @description Creates a new composition in the project with a dark background and opens it in the viewer.
+ * @category comp
+ * @inputs opts: { name: string, width: number, height: number, duration: number, fps: number }
+ * @outputs CompItem — the newly created composition
+ * @whenToUse You need to create a new comp programmatically with specific dimensions. Does NOT require an existing comp.
+ * @example var comp = createCompFromValues({ name: "My Comp", width: 1920, height: 1080, duration: 8, fps: 24 });
+ */
+
+function _cc_parseNum(val, fallback) {
+    var n = parseFloat(val);
+    return isNaN(n) ? fallback : n;
+}
+
+function _cc_parseInt(val, fallback) {
+    var n = parseInt(val, 10);
+    return isNaN(n) ? fallback : n;
+}
+
+function createCompFromValues(opts) {
+    if (!app.project) {
+        throw new Error("Create Comp: no project is open.");
+    }
+    var o = opts || {};
+    var compName = (o.name && String(o.name).replace(/^\s+|\s+$/g, "")) || "AI Demo Comp";
+    var width = Math.max(16, _cc_parseInt(o.width, 1920));
+    var height = Math.max(16, _cc_parseInt(o.height, 1080));
+    var duration = Math.max(1, _cc_parseNum(o.duration, 8));
+    var fps = Math.max(1, _cc_parseNum(o.fps, 24));
+
+    var comp = app.project.items.addComp(compName, width, height, 1, duration, fps);
+    try { comp.bgColor = [0.08, 0.09, 0.13]; } catch (_) {}
+    try { comp.openInViewer(); } catch (_) {}
+    return comp;
+}

@@ -7,12 +7,13 @@
 ## AI Workflow
 
 1. Read `Scripts/reports/analysis.json` (preferred) or `analysis.md` to understand the AE project — use the `propertyPaths` key for exact ADBE match-names; trust `[VERIFIED]` and `[DOCS]` tags
-2. Write ScriptUI panels (primary) or headless scripts using `Scripts/lib/` helpers — see Required Reliability Pattern below
-3. User runs scripts in AE via File > Scripts > Run Script File
-4. Read `Scripts/runs/last_run.json` — verify `scriptName`, check `status`, read `diff` entries
-5. If `status` is `"started"` — script crashed before completing; ask user to re-run
-6. If `status` is `"success"` — ask user: "Does the result look correct?"
-7. After AE template changes, ask user to re-run `Scripts/analyze/run_analysis.jsx`
+2. Read `Scripts/lib/actions/index.json` — before writing any automation code, check if a vetted action already covers the task; use `whenToUse` to disambiguate. Prefer calling an existing action over re-implementing it.
+3. Write ScriptUI panels (primary) or headless scripts using `Scripts/lib/` helpers and actions — see Required Reliability Pattern below
+4. User runs scripts in AE via File > Scripts > Run Script File
+5. Read `Scripts/runs/last_run.json` — verify `scriptName`, check `status`, read `diff` entries
+6. If `status` is `"started"` — script crashed before completing; ask user to re-run
+7. If `status` is `"success"` — ask user: "Does the result look correct?"
+8. After AE template changes, ask user to re-run `Scripts/analyze/run_analysis.jsx`
 
 ## Required Reliability Pattern
 
@@ -152,6 +153,7 @@ Use only when the task doesn't belong in a panel. See `Scripts/recipes/reliabili
 
 - `Scripts/analyze/` -- Project analysis system (generates reports)
 - `Scripts/lib/` -- Shared ES3 utilities (including prop-walker and result-writer)
+- `Scripts/lib/actions/` -- Vetted callable actions; read `index.json` before writing code
 - `Scripts/recipes/` -- Automation patterns (start with reliability-template)
 - `Scripts/panel/` -- ScriptUI panel (if enabled)
 - `Scripts/reports/` -- Generated analysis reports (committed to git)
@@ -167,14 +169,61 @@ Each library is a separate file. Include only the ones you need:
 
 - **io.jsxinc** -- `readJsonFile(file)`, `writeJsonFile(file, data)`, `writeTextFile(file, content)`, `ensureFolder(path)`, `formatTimestamp()`, `formatTimestampISO(d)`
   - Include with `#include "lib/io.jsxinc"`
-- **helpers.jsxinc** -- `setTextPropertyValue(prop, text)`, `isSupportedImageExtension(ext)`, `countWords(str)`, `safeTrim(s)`, `getNumericValue(prop)`, `findNestedPropertyByName(group, targetName)`
+- **helpers.jsxinc** -- `setTextPropertyValue(prop, text)`, `setTextDocValue(layer, text, fontSize, colorValue)`, `isSupportedImageExtension(ext)`, `countWords(str)`, `safeTrim(s)`, `getNumericValue(prop)`, `findNestedPropertyByName(group, targetName)`
   - Include with `#include "lib/helpers.jsxinc"`
 - **report_writer.jsxinc** -- `createReportWriter()` returns a builder with `addMarkdown`, `addSection`, `addSubsection`, `addList`, `addTable`, `setJson`, `build` methods
   - Include with `#include "lib/report_writer.jsxinc"`
 - **prop-walker.jsxinc** -- `walkPropertyGroup(group, matchPrefix, displayPrefix, maxDepth, visitor)`, `getGroupMaxDepth(group)`, `serializePropertyValue(prop)` — shared property tree walker used by both analysis and result-writer
   - Include with `#include "lib/prop-walker.jsxinc"`
-- **result-writer.jsxinc** -- `beginScript(scriptName, comp)`, `writeResult(status, step, error, comp)` — required reliability layer; writes `Scripts/runs/last_run.json`
+- **result-writer.jsxinc** -- `beginScript(scriptName, comp)`, `writeResult(status, step, error, comp)`, `setStep(label)` — required reliability layer; writes `Scripts/runs/last_run.json`. Call `setStep("label")` inside action functions at key sub-operations for fine-grained diagnostics in error reports.
   - Include with `#include "lib/result-writer.jsxinc"` (requires io.jsxinc and prop-walker.jsxinc first)
+
+## Actions (`Scripts/lib/actions/`)
+
+Vetted, callable AE automation functions. **Read `Scripts/lib/actions/index.json` before writing any new script** — if an action covers your task, `#include` it rather than re-implementing.
+
+Each action file exposes one function following this contract:
+- **Signature**: `actionName(comp, opts)` — or `actionName(opts)` for actions that create a comp
+- **Caller owns** the undo group (`beginUndoGroup`/`endUndoGroup`) and reliability contract (`beginScript`/`writeResult`)
+- Actions may call `setStep("label")` for fine-grained diagnostics — this flows into `last_run.json` automatically
+- Actions validate inputs and throw `Error("Action Name: ...")` on bad arguments
+
+### Using an action in a headless script
+
+```javascript
+#include "lib/helpers.jsxinc"
+#include "lib/io.jsxinc"
+#include "lib/prop-walker.jsxinc"
+#include "lib/result-writer.jsxinc"
+#include "lib/actions/backdrop.jsxinc"
+
+(function () {
+    var step = "init";
+    var comp = app.project.activeItem;
+    beginScript("my_script.jsx", comp);
+    app.beginUndoGroup("Add Backdrop");
+    try {
+        step = "add backdrop";
+        addBackdrop(comp);
+        writeResult("success", step, null, comp);
+    } catch (e) {
+        writeResult("error", step, e, comp);
+        alert("Error at [" + step + "]: " + e.message);
+    } finally {
+        app.endUndoGroup();
+    }
+})();
+```
+
+### Adding a new action
+
+1. Create `Scripts/lib/actions/my_action.jsxinc` with a JSDoc header (`@name`, `@description`, `@category`, `@inputs`, `@outputs`, `@whenToUse`, `@example`) and implement following the contract above.
+2. Run `Scripts/analyze/build_actions_index.jsx` (or `run_analysis.jsx`) to regenerate `index.json`.
+3. Commit both the new `.jsxinc` and updated `index.json`.
+
+See `Scripts/lib/actions/README.md` for the full cheatsheet.
+
+Available actions (read `index.json` for current list): Add Backdrop, Add Beat Markers, Add Camera Rig, Add Film Damage Treatment, Add Guide Preset, Add Star Trim Animation, Add Title Stack, Build Demo Scene, Create Comp, Queue Comp.
 
 ## Recipes (`Scripts/recipes/`)
 

@@ -1,0 +1,36 @@
+/**
+ * @name Add Guide Preset
+ * @description Adds a named group of compositional guides to a comp (thirds, safe margins, or center cross).
+ * @category comp
+ * @inputs comp: CompItem; opts: { preset: "thirds"|"safe"|"center" }
+ * @outputs number — count of guides added (0 if preset name is unrecognized)
+ * @whenToUse You need standard guide layouts in a comp. Requires AE 16.1+ (comp.addGuide).
+ * @example var count = addGuidePreset(comp, { preset: "thirds" });
+ */
+function addGuidePreset(comp, opts) {
+    if (!comp || typeof comp.addGuide !== "function") {
+        throw new Error("Add Guide Preset: guides require AE 16.1+ (comp.addGuide unavailable).");
+    }
+    var preset = (opts && opts.preset) ? opts.preset : "thirds";
+    var count = 0;
+    if (preset === "thirds") {
+        comp.addGuide(1, Math.round(comp.width / 3));
+        comp.addGuide(1, Math.round((comp.width * 2) / 3));
+        comp.addGuide(0, Math.round(comp.height / 3));
+        comp.addGuide(0, Math.round((comp.height * 2) / 3));
+        count = 4;
+    } else if (preset === "safe") {
+        var marginX = Math.round(comp.width * 0.1);
+        var marginY = Math.round(comp.height * 0.1);
+        comp.addGuide(1, marginX);
+        comp.addGuide(1, comp.width - marginX);
+        comp.addGuide(0, marginY);
+        comp.addGuide(0, comp.height - marginY);
+        count = 4;
+    } else if (preset === "center") {
+        comp.addGuide(1, Math.round(comp.width / 2));
+        comp.addGuide(0, Math.round(comp.height / 2));
+        count = 2;
+    }
+    return count;
+}

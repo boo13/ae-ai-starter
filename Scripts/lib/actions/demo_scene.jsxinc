@@ -1,0 +1,21 @@
+/**
+ * @name Build Demo Scene
+ * @description Creates a fully composed demo scene: new comp + backdrop + guides (thirds + safe) + title stack + camera rig + beat markers.
+ * @category scene
+ * @inputs opts: { name: string, width: number, height: number, duration: number, fps: number, spacingSeconds: number }
+ * @outputs CompItem — the newly created composition
+ * @whenToUse You want to build a complete demo comp with all standard building blocks in one call.
+ * @example var comp = buildDemoScene({ name: "Demo", width: 1920, height: 1080, duration: 8, fps: 24, spacingSeconds: 1 });
+ * @requires create_comp.jsxinc, backdrop.jsxinc, guide_preset.jsxinc, title_stack.jsxinc, camera_rig.jsxinc, beat_markers.jsxinc
+ */
+function buildDemoScene(opts) {
+    var o = opts || {};
+    var comp = createCompFromValues(o);
+    addBackdrop(comp);
+    addGuidePreset(comp, { preset: "thirds" });
+    addGuidePreset(comp, { preset: "safe" });
+    addTitleStack(comp);
+    addCameraRig(comp);
+    addBeatMarkers(comp, { spacingSeconds: o.spacingSeconds });
+    return comp;
+}

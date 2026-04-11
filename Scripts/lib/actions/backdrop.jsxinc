@@ -1,0 +1,26 @@
+/**
+ * @name Add Backdrop
+ * @description Creates a three-layer atmospheric backdrop: dark base solid, warm accent band, bright signal line.
+ * @category scene
+ * @inputs comp: CompItem; opts: { } (no opts for v1 — defaults are opinionated)
+ * @outputs Array<AVLayer> — [bg, warmBand, topLine]
+ * @whenToUse You want a quick tone-setting backdrop for a demo or presentation comp.
+ * @example var layers = addBackdrop(comp);
+ */
+function addBackdrop(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Backdrop: comp must be a CompItem.");
+    }
+
+    var bg = comp.layers.addSolid([0.07, 0.09, 0.14], "BG Night", comp.width, comp.height, 1, comp.duration);
+    var warmBand = comp.layers.addSolid([0.86, 0.33, 0.16], "Accent Band", comp.width, Math.round(comp.height * 0.22), 1, comp.duration);
+    var topLine = comp.layers.addSolid([0.96, 0.82, 0.25], "Signal Line", comp.width, 22, 1, comp.duration);
+
+    warmBand.property("Transform").property("Position").setValue([comp.width / 2, comp.height - (warmBand.height / 2)]);
+    topLine.property("Transform").property("Position").setValue([comp.width / 2, 11]);
+
+    try { warmBand.property("Transform").property("Opacity").setValue(90); } catch (_) {}
+    try { topLine.property("Transform").property("Opacity").setValue(100); } catch (_) {}
+
+    return [bg, warmBand, topLine];
+}
