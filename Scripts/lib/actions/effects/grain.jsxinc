@@ -1,0 +1,39 @@
+/**
+ * @name Add Grain
+ * @description Adds a grain adjustment layer: Noise + Gaussian Blur + Unsharp Mask stack to simulate analog film grain.
+ * @category effect
+ * @tier block
+ * @inputs comp: CompItem; opts: { amount: number (default 10, Noise amount 0-100), blurRadius: number (default 6, Gaussian Blur blurriness) }
+ * @outputs AVLayer — the adjustment layer
+ * @whenToUse You want organic film-style grain on a comp without a full film damage treatment.
+ * @example var layer = addGrain(comp);
+ * @pluginDeps ADBE Noise, ADBE Gaussian Blur 2, ADBE Unsharp Mask
+ */
+function addGrain(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Grain: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var amount = (o.amount !== undefined) ? o.amount : 10;
+    var blurRadius = (o.blurRadius !== undefined) ? o.blurRadius : 6;
+
+    setStep("create grain adjustment layer");
+    var solid = comp.layers.addSolid([1, 1, 1], "GRAIN", comp.width, comp.height, comp.pixelAspect, comp.duration);
+    solid.adjustmentLayer = true;
+    solid.blendingMode = BlendingMode.NORMAL;
+
+    setStep("apply grain stack");
+    var parade = solid.property("ADBE Effect Parade");
+
+    var noiseFx = parade.addProperty("ADBE Noise");
+    noiseFx.property("ADBE Noise-0001").setValue(amount);
+
+    var blurFx = parade.addProperty("ADBE Gaussian Blur 2");
+    blurFx.property("ADBE Gaussian Blur 2-0001").setValue(blurRadius);
+
+    var unsharpFx = parade.addProperty("ADBE Unsharp Mask");
+    unsharpFx.property("ADBE Unsharp Mask-0001").setValue(300);
+    unsharpFx.property("ADBE Unsharp Mask-0002").setValue(3);
+
+    return solid;
+}

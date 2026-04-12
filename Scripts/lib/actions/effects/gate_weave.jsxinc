@@ -1,0 +1,34 @@
+/**
+ * @name Add Gate Weave
+ * @description Adds a gate-weave adjustment layer: a Transform effect with wiggle expressions on position and scale to simulate film gate instability.
+ * @category effect
+ * @tier block
+ * @inputs comp: CompItem; opts: { intensity: number (default 1.0, scale multiplier for wiggle amounts) }
+ * @outputs AVLayer — the adjustment layer
+ * @whenToUse You want subtle horizontal/vertical camera shake simulating a film gate slipping in the projector gate.
+ * @example var layer = addGateWeave(comp);
+ * @pluginDeps ADBE Geometry
+ */
+function addGateWeave(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Gate Weave: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var intensity = (o.intensity !== undefined) ? o.intensity : 1.0;
+
+    setStep("create gate weave adjustment layer");
+    var solid = comp.layers.addSolid([1, 1, 1], "GATE WEAVE", comp.width, comp.height, comp.pixelAspect, comp.duration);
+    solid.adjustmentLayer = true;
+    solid.blendingMode = BlendingMode.NORMAL;
+
+    setStep("apply gate weave transform");
+    var fx = solid.property("ADBE Effect Parade").addProperty("ADBE Geometry");
+    fx.property("ADBE Geometry-0011").setValue(1);
+    fx.property("ADBE Geometry-0003").setValue(101.5);
+    var posAmt = 0.5 * intensity;
+    var posAmt2 = 0.15 * intensity;
+    fx.property("ADBE Geometry-0002").expression =
+        "x = wiggle(12, " + posAmt + ")[0]; y = wiggle(3, " + posAmt2 + ", 3, 4)[1]; [x, y];";
+
+    return solid;
+}

@@ -1,0 +1,30 @@
+/**
+ * @name Add Flicker
+ * @description Adds a flicker adjustment layer: an Exposure effect with a wiggle expression to simulate random brightness fluctuation.
+ * @category effect
+ * @tier block
+ * @inputs comp: CompItem; opts: { speed: number (default 12, wiggle frequency in Hz), amount: number (default 0.1, wiggle amplitude in stops) }
+ * @outputs AVLayer — the adjustment layer
+ * @whenToUse You want random brightness flicker simulating aging film or unstable lighting.
+ * @example var layer = addFlicker(comp);
+ * @pluginDeps ADBE Exposure
+ */
+function addFlicker(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Flicker: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var speed = (o.speed !== undefined) ? o.speed : 12;
+    var amount = (o.amount !== undefined) ? o.amount : 0.1;
+
+    setStep("create flicker adjustment layer");
+    var solid = comp.layers.addSolid([1, 1, 1], "FLICKER", comp.width, comp.height, comp.pixelAspect, comp.duration);
+    solid.adjustmentLayer = true;
+    solid.blendingMode = BlendingMode.NORMAL;
+
+    setStep("apply flicker exposure");
+    var fx = solid.property("ADBE Effect Parade").addProperty("ADBE Exposure");
+    fx.property("ADBE Exposure-0003").expression = "wiggle(" + speed + ", " + amount + ")";
+
+    return solid;
+}

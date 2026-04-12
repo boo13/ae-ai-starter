@@ -1,0 +1,43 @@
+/**
+ * @name Add Color Grade
+ * @description Adds a color grade adjustment layer: Glow + Vignette + Levels stack for a warm, contrast-crushed analog look.
+ * @category effect
+ * @tier block
+ * @inputs comp: CompItem; opts: { glowIntensity: number (default 0.2, Glow intensity 0-1), vignetteAmount: number (default 50, CS Vignette amount 0-100) }
+ * @outputs AVLayer — the adjustment layer
+ * @whenToUse You want a subtle warm glow, vignette, and crushed levels for an analog or cinematic color treatment.
+ * @example var layer = addColorGrade(comp);
+ * @pluginDeps ADBE Glo2, CS Vignette, ADBE Easy Levels
+ * @note CS Vignette is a third-party plugin. If missing, AE will throw when addProperty is called. Replace with a native vignette approach if needed.
+ */
+function addColorGrade(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Color Grade: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var glowIntensity = (o.glowIntensity !== undefined) ? o.glowIntensity : 0.2;
+    var vignetteAmount = (o.vignetteAmount !== undefined) ? o.vignetteAmount : 50;
+
+    setStep("create color grade adjustment layer");
+    var solid = comp.layers.addSolid([1, 1, 1], "COLOR GRADE", comp.width, comp.height, comp.pixelAspect, comp.duration);
+    solid.adjustmentLayer = true;
+    solid.blendingMode = BlendingMode.NORMAL;
+
+    setStep("apply color grade stack");
+    var parade = solid.property("ADBE Effect Parade");
+
+    var glowFx = parade.addProperty("ADBE Glo2");
+    glowFx.property("ADBE Glo2-0002").setValue(50);
+    glowFx.property("ADBE Glo2-0003").setValue(500);
+    glowFx.property("ADBE Glo2-0004").setValue(glowIntensity);
+    glowFx.property("ADBE Glo2-0006").setValue(2);
+
+    var vignetteFx = parade.addProperty("CS Vignette");
+    vignetteFx.property("CS Vignette-0001").setValue(vignetteAmount);
+
+    var levelsFx = parade.addProperty("ADBE Easy Levels");
+    levelsFx.property("ADBE Easy Levels-0006").setValue(10);
+    levelsFx.property("ADBE Easy Levels-0007").setValue(235);
+
+    return solid;
+}
