@@ -49,6 +49,11 @@ var _rw_beforeMs = 0;
 var _rw_runsDir = null;          // resolved once in beginScript()
 var _rw_currentStep = null;      // last value set by setStep(); used by writeResult
 
+// Capture module path at parse time ($.fileName is reliable here — points to THIS file
+// during #include processing, regardless of which entry script included us).
+// Used by _rw_resolveRunsDir to find Scripts/runs/ from Scripts/lib/.
+var _rw_moduleFile = new File($.fileName);
+
 // ---------------------------------------------------------------------------
 // Internal: snapshot helpers
 // ---------------------------------------------------------------------------
@@ -215,15 +220,11 @@ function _rw_valuesEqual(a, b) {
  * @returns {Folder|null}
  */
 function _rw_resolveRunsDir() {
-    var scriptFilePath = $.fileName || "";
-    if (!scriptFilePath) return null;
-    var scriptFile = new File(scriptFilePath);
-    // $.fileName points to the *entry* script (e.g. Scripts/my_script.jsx)
-    // We need: script's parent dir -> Scripts/ -> Scripts/runs/
-    // result-writer.jsxinc lives in Scripts/lib/, so we need to go up one more level.
-    // However $.fileName always refers to the *outermost* file being evaluated,
-    // not the #include. So scriptFile.parent = Scripts/ already.
-    var scriptsDir = scriptFile.parent;
+    // Use the module's own path (captured at parse time) to navigate to Scripts/runs/.
+    // result-writer.jsxinc lives at Scripts/lib/, so parent.parent = Scripts/.
+    // This is reliable regardless of which entry script called beginScript(), because
+    // $.fileName inside an #include function resolves to the include file, not the caller.
+    var scriptsDir = _rw_moduleFile.parent.parent;  // Scripts/lib/ -> Scripts/
     var runsPath = String(scriptsDir.fsName) + "/runs";
     var runsFolder = new Folder(runsPath);
     if (!runsFolder.exists) {
