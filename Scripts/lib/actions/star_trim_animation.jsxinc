@@ -43,11 +43,14 @@ function addStarTrimAnimation(comp, opts) {
         vectors.addProperty("ADBE Vector Shape - Star"),
         "Add Star Trim Animation: failed to add star path"
     );
+    // Set type to Star (1) before accessing inner-radius/roundness properties;
+    // without this, some AE versions default to Polygon and those props return null.
+    try { starPath.property("ADBE Vector Star Type").setValue(1); } catch (_) {}
     starPath.property("ADBE Vector Star Points").setValue(o.points || 5);
     starPath.property("ADBE Vector Star Inner Radius").setValue(o.innerRadius || 60);
     starPath.property("ADBE Vector Star Outer Radius").setValue(o.outerRadius || 120);
-    starPath.property("ADBE Vector Star Inner Roundness").setValue(20);
-    starPath.property("ADBE Vector Star Outer Roundness").setValue(10);
+    try { starPath.property("ADBE Vector Star Inner Roundness").setValue(20); } catch (_) {}
+    try { starPath.property("ADBE Vector Star Outer Roundness").setValue(10); } catch (_) {}
 
     setStep("add stroke and fill");
     var stroke = _sta_ensure(
