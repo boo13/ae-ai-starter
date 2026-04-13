@@ -136,6 +136,22 @@ function buildActionsIndex(actionsDir, outFile) {
         throw new Error("buildActionsIndex: actions folder not found at " + (actionsDir ? actionsDir.fsName : "undefined"));
     }
 
+    // Load existing index so we can preserve runnerMeta across rebuilds
+    var existingRunnerMeta = {};
+    try {
+        if (outFile.exists) {
+            var existingData = readJsonFile(outFile);
+            if (existingData && existingData.actions) {
+                for (var ei = 0; ei < existingData.actions.length; ei++) {
+                    var ea = existingData.actions[ei];
+                    if (ea.name && ea.runnerMeta) {
+                        existingRunnerMeta[ea.name] = ea.runnerMeta;
+                    }
+                }
+            }
+        }
+    } catch (_) {}
+
     var warnings = [];
     var actions = [];
 
@@ -208,7 +224,8 @@ function buildActionsIndex(actionsDir, outFile) {
             whenToUse:   _ai_extractTag(block, "whenToUse") || "",
             example:     _ai_extractTag(block, "example") || "",
             requires:    requiresList,
-            pluginDeps:  pluginDepsList
+            pluginDeps:  pluginDepsList,
+            runnerMeta:  existingRunnerMeta[name] || undefined
         });
     }
 
