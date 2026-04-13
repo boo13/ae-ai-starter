@@ -1,0 +1,56 @@
+/**
+ * @name Set Simple Time Remap Loop
+ * @description Enables time remapping on selected layers, adds the standard seamless loop key, and applies a cycle loop expression to the time remap property.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), expressionType: "cycle"|"pingpong"|"offset"|"continue" (default "cycle"), stretchToComp: boolean (default true) }
+ * @outputs number — count of layers updated
+ * @whenToUse You want a footage or precomp layer to loop cleanly for the full composition duration without manually wiring time remap.
+ * @example var count = setSimpleTimeRemapLoop(comp, { expressionType: "cycle" });
+ */
+function setSimpleTimeRemapLoop(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Set Simple Time Remap Loop: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var layers = o.layers || comp.selectedLayers;
+    var expressionType = o.expressionType || "cycle";
+    var stretchToComp = (o.stretchToComp !== false);
+    var count = 0;
+    var i = 0;
+
+    setStep("validate layers");
+    if (!layers || !layers.length) {
+        throw new Error("Set Simple Time Remap Loop: no layers selected.");
+    }
+    if (expressionType !== "cycle" && expressionType !== "pingpong" && expressionType !== "offset" && expressionType !== "continue") {
+        throw new Error("Set Simple Time Remap Loop: opts.expressionType must be cycle, pingpong, offset, or continue.");
+    }
+
+    setStep("configure time remap");
+    for (i = 0; i < layers.length; i++) {
+        var layer = layers[i];
+        if (!layer || !layer.canSetTimeRemapEnabled) {
+            continue;
+        }
+        layer.timeRemapEnabled = true;
+        if (stretchToComp) {
+            layer.outPoint = comp.duration;
+        }
+        var timeRemap = layer.property("ADBE Time Remapping");
+        var numKeys = timeRemap.numKeys;
+        var lastKeyTime = timeRemap.keyTime(numKeys);
+        var firstKeyValue = timeRemap.valueAtTime(timeRemap.keyTime(1), false);
+        timeRemap.addKey(lastKeyTime - comp.frameDuration);
+        timeRemap.setValueAtTime(lastKeyTime, firstKeyValue);
+        timeRemap.expression = "loopOut(\"" + expressionType + "\");";
+        count++;
+    }
+
+    if (!count) {
+        throw new Error("Set Simple Time Remap Loop: no compatible layers were found.");
+    }
+
+    return count;
+}

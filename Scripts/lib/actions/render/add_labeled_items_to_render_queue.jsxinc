@@ -1,0 +1,66 @@
+/**
+ * @name Add Labeled Items To Render Queue
+ * @description Queues every composition in the project whose label color matches the requested label.
+ * @category render
+ * @tier block
+ * @inputs opts: { label: string|number (default "green") }
+ * @outputs number — count of comps added to the render queue
+ * @whenToUse You organize comps by label color and want to batch-queue only the marked items for rendering.
+ * @example var count = addLabeledItemsToRenderQueue({ label: "green" });
+ */
+
+/**
+ * Maps label names to AE label indices.
+ * @private
+ */
+function _alittrq_getLabelValue(label) {
+    var map = {
+        "none": 0,
+        "red": 1,
+        "pink": 2,
+        "purple": 3,
+        "deep_purple": 4,
+        "indigo": 5,
+        "blue": 6,
+        "cyan": 7,
+        "teal": 8,
+        "green": 9,
+        "lime_green": 10,
+        "yellow": 11,
+        "amber": 12,
+        "orange": 13,
+        "deep_orange": 14,
+        "white": 15,
+        "black": 16
+    };
+    if (typeof label === "number") {
+        return label;
+    }
+    return map[String(label).toLowerCase().replace(/\s+/g, "_")];
+}
+
+function addLabeledItemsToRenderQueue(opts) {
+    if (!app.project) {
+        throw new Error("Add Labeled Items To Render Queue: no project is open.");
+    }
+
+    var o = opts || {};
+    var labelValue = (o.label !== undefined) ? _alittrq_getLabelValue(o.label) : 9;
+    var count = 0;
+    var i = 0;
+
+    if (labelValue === undefined || labelValue === null || isNaN(labelValue)) {
+        throw new Error("Add Labeled Items To Render Queue: opts.label must be a valid AE label name or number.");
+    }
+
+    setStep("queue labeled comps");
+    for (i = 1; i <= app.project.numItems; i++) {
+        var item = app.project.item(i);
+        if (item instanceof CompItem && item.label === labelValue) {
+            app.project.renderQueue.items.add(item);
+            count++;
+        }
+    }
+
+    return count;
+}

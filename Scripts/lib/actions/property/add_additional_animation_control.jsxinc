@@ -1,0 +1,72 @@
+/**
+ * @name Add Additional Animation Control
+ * @description Adds a Slider or Angle Control to the owning layer for each selected 1D property, then links the property so the controller adds an offset to the original value.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties), controlPrefix: string (default "Additional "), forceType: "slider"|"angle" (optional) }
+ * @outputs number — count of controls created and linked
+ * @whenToUse You want an extra animator-friendly offset control next to an existing property without rewriting the full expression rig by hand.
+ * @example var count = addAdditionalAnimationControl(comp, { controlPrefix: "Offset " });
+ * @requires expression_control.jsxinc
+ */
+
+/**
+ * Walks up the property hierarchy to its owning layer.
+ * @private
+ */
+function _aaac_getOwningLayer(prop) {
+    while (prop && prop.parentProperty !== null) {
+        prop = prop.parentProperty;
+    }
+    return prop;
+}
+
+function addAdditionalAnimationControl(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Additional Animation Control: comp must be a CompItem.");
+    }
+    if (typeof addExpressionControl !== "function") {
+        throw new Error("Add Additional Animation Control: addExpressionControl() is required. Include property/expression_control.jsxinc.");
+    }
+
+    var o = opts || {};
+    var properties = o.properties || comp.selectedProperties;
+    var controlPrefix = (o.controlPrefix !== undefined) ? String(o.controlPrefix) : "Additional ";
+    var forceType = o.forceType || null;
+    var count = 0;
+    var i = 0;
+
+    setStep("validate properties");
+    if (!properties || !properties.length) {
+        throw new Error("Add Additional Animation Control: no properties selected.");
+    }
+    if (forceType && forceType !== "slider" && forceType !== "angle") {
+        throw new Error("Add Additional Animation Control: opts.forceType must be slider or angle.");
+    }
+
+    setStep("add controllers");
+    for (i = 0; i < properties.length; i++) {
+        var prop = properties[i];
+        if (!prop || prop.propertyType !== PropertyType.PROPERTY || prop.propertyValueType !== PropertyValueType.OneD || !prop.canSetExpression) {
+            continue;
+        }
+
+        var layer = _aaac_getOwningLayer(prop);
+        var controlType = forceType || ((prop.unitsText === "degrees") ? "angle" : "slider");
+        var controlName = controlPrefix + prop.name;
+        var effect = addExpressionControl(layer, {
+            type: controlType,
+            name: controlName,
+            value: 0
+        });
+        var controlValueProp = effect.property(1);
+        prop.expression = "value + effect(\"" + controlName + "\")(\"" + controlValueProp.name + "\").value;";
+        count++;
+    }
+
+    if (!count) {
+        throw new Error("Add Additional Animation Control: no compatible 1D properties were found.");
+    }
+
+    return count;
+}

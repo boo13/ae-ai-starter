@@ -1,0 +1,51 @@
+/**
+ * @name Prepare Layer Out Points For Lottie
+ * @description Extends any layer that ends exactly on the final frame by one frame, which avoids a common Lottie export edge case.
+ * @category layer
+ * @tier block
+ * @inputs comp: CompItem; opts: { allComps: boolean (default false) }
+ * @outputs number — count of layer out points adjusted
+ * @whenToUse You are preparing comps for Lottie export and want to avoid layers disappearing on the last frame.
+ * @example var count = prepareLayerOutPointsForLottie(comp);
+ */
+
+/**
+ * Adjusts all eligible layers inside a comp and returns the change count.
+ * @private
+ */
+function _plopf_adjustComp(targetComp) {
+    var count = 0;
+    var i = 0;
+    for (i = targetComp.numLayers; i > 0; i--) {
+        var layer = targetComp.layer(i);
+        if (layer.outPoint === targetComp.duration) {
+            layer.outPoint += targetComp.frameDuration;
+            count++;
+        }
+    }
+    return count;
+}
+
+function prepareLayerOutPointsForLottie(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Prepare Layer Out Points For Lottie: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var allComps = (o.allComps === true);
+    var count = 0;
+    var i = 0;
+
+    setStep("adjust layer out points");
+    if (!allComps) {
+        return _plopf_adjustComp(comp);
+    }
+
+    for (i = 1; i <= app.project.numItems; i++) {
+        var item = app.project.item(i);
+        if (item instanceof CompItem) {
+            count += _plopf_adjustComp(item);
+        }
+    }
+    return count;
+}

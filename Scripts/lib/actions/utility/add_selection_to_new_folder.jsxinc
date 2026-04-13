@@ -1,0 +1,25 @@
+/**
+ * @name Add Selection To New Folder
+ * @description Creates a new project-panel folder and moves selected project items into it.
+ * @category utility
+ * @tier block
+ * @inputs opts: { name: string (required) }
+ * @outputs FolderItem — the created folder
+ * @whenToUse You want to quickly group selected project items under a new folder.
+ * @example var folder = addSelectionToNewFolder({ name: "New Folder" });
+ */
+function addSelectionToNewFolder(opts) {
+    if (!app.project) throw new Error("Add Selection To New Folder: no project is open.");
+    var o = opts || {};
+    var name = o.name;
+    var items = app.project.selection;
+    var i = 0;
+    if (!name) throw new Error("Add Selection To New Folder: opts.name is required.");
+    if (!items || !items.length) throw new Error("Add Selection To New Folder: no project items selected.");
+    setStep("create project folder");
+    var newParentFolder = app.project.items.addFolder(String(name));
+    var oldParentFolder = items[0].parentFolder;
+    for (i = 0; i < items.length; i++) items[i].parentFolder = newParentFolder;
+    newParentFolder.parentFolder = oldParentFolder;
+    return newParentFolder;
+}

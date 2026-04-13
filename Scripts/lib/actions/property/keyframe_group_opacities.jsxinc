@@ -1,0 +1,54 @@
+/**
+ * @name Keyframe Group Opacities
+ * @description Adds a keyframe at the current time to every shape-group opacity property found in the selected layers.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), time: number (default comp.time) }
+ * @outputs number — count of group opacity properties keyframed
+ * @whenToUse You want to snapshot all shape group opacities at once, especially after converting text animators to shapes.
+ * @example var count = keyframeGroupOpacities(comp);
+ */
+
+/**
+ * Recursively adds keys to group opacity properties.
+ * @private
+ */
+function _kgo_walk(group, time) {
+    var total = 0;
+    var i = 0;
+    for (i = group.numProperties; i >= 1; i--) {
+        var prop = group.property(i);
+        if (prop.matchName === "ADBE Vector Group Opacity") {
+            prop.addKey(time);
+            total += 1;
+        } else if (prop.propertyType !== PropertyType.PROPERTY) {
+            total += _kgo_walk(prop, time);
+        }
+    }
+    return total;
+}
+
+function keyframeGroupOpacities(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Keyframe Group Opacities: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var layers = o.layers || comp.selectedLayers;
+    var time = (o.time !== undefined) ? Number(o.time) : comp.time;
+    var total = 0;
+    var i = 0;
+
+    if (!layers || !layers.length) {
+        throw new Error("Keyframe Group Opacities: no layers selected.");
+    }
+    if (isNaN(time)) {
+        throw new Error("Keyframe Group Opacities: opts.time must be a number.");
+    }
+
+    setStep("keyframe group opacities");
+    for (i = 0; i < layers.length; i++) {
+        total += _kgo_walk(layers[i], time);
+    }
+    return total;
+}

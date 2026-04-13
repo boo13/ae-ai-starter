@@ -1,0 +1,42 @@
+/**
+ * @name Round Selected Property Values
+ * @description Rounds the current values of selected non-animated 1D, 2D, and 3D properties to the nearest whole number.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties) }
+ * @outputs number — count of properties updated
+ * @whenToUse You want cleaner static values after dragging, importing, or procedurally setting properties.
+ * @example var count = roundSelectedPropertyValues(comp);
+ */
+function roundSelectedPropertyValues(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Round Selected Property Values: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var properties = o.properties || comp.selectedProperties;
+    var total = 0;
+    var i = 0;
+
+    if (!properties || !properties.length) {
+        throw new Error("Round Selected Property Values: no properties selected.");
+    }
+
+    setStep("round property values");
+    for (i = 0; i < properties.length; i++) {
+        var property = properties[i];
+        if (!property || property.propertyType !== PropertyType.PROPERTY || property.isTimeVarying) {
+            continue;
+        }
+        var value = property.value;
+        if (value instanceof Array) {
+            var rounded = [];
+            var d = 0;
+            for (d = 0; d < value.length; d++) rounded.push(Math.round(value[d]));
+            property.setValue(rounded);
+        } else {
+            property.setValue(Math.round(value));
+        }
+        total += 1;
+    }
+    return total;
+}

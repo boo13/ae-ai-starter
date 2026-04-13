@@ -1,0 +1,34 @@
+/**
+ * @name Calculate Distance Between Layers
+ * @description Calculates the distance between two layers in either composition or world space.
+ * @category utility
+ * @tier block
+ * @inputs comp: CompItem; opts: { layerA: AVLayer (default comp.selectedLayers[0]), layerB: AVLayer (default comp.selectedLayers[1]), space: "world"|"composition" (default inferred: world unless both 2D), keepTempEffects: boolean (default false) }
+ * @outputs number — distance in pixels
+ * @whenToUse You need a numeric distance measurement between two layers for layout or rigging.
+ * @example var d = calculateDistanceBetweenLayers(comp, { space: "world" });
+ */
+function calculateDistanceBetweenLayers(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) throw new Error("Calculate Distance Between Layers: comp must be a CompItem.");
+    var o = opts || {};
+    var layerA = o.layerA || comp.selectedLayers[0];
+    var layerB = o.layerB || comp.selectedLayers[1];
+    var space = o.space || ((!layerA.threeDLayer && !layerB.threeDLayer) ? "composition" : "world");
+    function getPosition(layer, type) {
+        var matchName = (type === "world") ? "ADBE Point3D Control" : "ADBE Point Control";
+        var methodName = (type === "world") ? "toWorld" : "toComp";
+        var pointControl = layer.property("ADBE Effect Parade").addProperty(matchName);
+        var pointProperty = pointControl.property(1);
+        pointProperty.expression = "thisComp.layer(\"" + layer.name + "\")." + methodName + "(thisComp.layer(\"" + layer.name + "\").transform.anchorPoint)";
+        var position = pointProperty.value;
+        if (position.length < 3) position.push(0);
+        pointControl.remove();
+        return position;
+    }
+    if (!layerA || !layerB) throw new Error("Calculate Distance Between Layers: two layers are required.");
+    if (space !== "world" && space !== "composition") throw new Error("Calculate Distance Between Layers: opts.space must be world or composition.");
+    setStep("calculate distance");
+    var a = getPosition(layerA, space);
+    var b = getPosition(layerB, space);
+    return Math.sqrt(Math.pow(b[0] - a[0], 2) + Math.pow(b[1] - a[1], 2) + Math.pow(b[2] - a[2], 2));
+}

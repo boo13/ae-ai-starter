@@ -1,0 +1,24 @@
+/**
+ * @name Add Posterize Time Adjustment Layer
+ * @description Creates an adjustment solid with the Posterize Time effect applied.
+ * @category effect
+ * @tier block
+ * @inputs comp: CompItem; opts: { fps: number (default half of comp frame rate rounded up), name: string (default "Posterize Time"), color: [r,g,b] (default [0.5,0.5,0.5]) }
+ * @outputs AVLayer — the created adjustment layer
+ * @whenToUse You want to posterize the whole comp with a single adjustment layer rather than per-property expressions.
+ * @example var layer = addPosterizeTimeAdjustmentLayer(comp, { fps: 12 });
+ */
+function addPosterizeTimeAdjustmentLayer(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) throw new Error("Add Posterize Time Adjustment Layer: comp must be a CompItem.");
+    var o = opts || {};
+    var fps = (o.fps !== undefined) ? Number(o.fps) : (Math.ceil(comp.frameRate) / 2);
+    var name = o.name || "Posterize Time";
+    var color = o.color || [0.5, 0.5, 0.5];
+    if (isNaN(fps) || fps <= 0) throw new Error("Add Posterize Time Adjustment Layer: opts.fps must be a positive number.");
+    setStep("create posterize adjustment");
+    var layer = comp.layers.addSolid(color, name, comp.width, comp.height, comp.pixelAspect, comp.duration);
+    layer.adjustmentLayer = true;
+    var effect = layer.property("ADBE Effect Parade").addProperty("ADBE Posterize Time");
+    effect.property(1).setValue(fps);
+    return layer;
+}

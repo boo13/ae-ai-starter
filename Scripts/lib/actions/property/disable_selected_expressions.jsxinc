@@ -1,0 +1,35 @@
+/**
+ * @name Disable Selected Expressions
+ * @description Disables expressions on selected expression-capable properties.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties) }
+ * @outputs number — count of properties updated
+ * @whenToUse You want to temporarily silence selected expressions without deleting the expression text.
+ * @example var count = disableSelectedExpressions(comp);
+ */
+function disableSelectedExpressions(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Disable Selected Expressions: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var properties = o.properties || comp.selectedProperties;
+    var count = 0;
+    var i = 0;
+
+    if (!properties || !properties.length) {
+        throw new Error("Disable Selected Expressions: no properties selected.");
+    }
+
+    setStep("disable expressions");
+    for (i = 0; i < properties.length; i++) {
+        var property = properties[i];
+        if (property && property.propertyType === PropertyType.PROPERTY && property.canSetExpression) {
+            property.expressionEnabled = false;
+            count++;
+        }
+    }
+
+    return count;
+}

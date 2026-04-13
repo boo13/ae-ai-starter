@@ -1,0 +1,93 @@
+/**
+ * @name Fill In Keyframes
+ * @description Bakes selected animated properties into per-frame keyframes, then removes redundant in-betweens and normalizes interpolation to linear.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties) }
+ * @outputs number — count of properties processed
+ * @whenToUse You need explicit in-between keyframes for an animation, such as after baking motion or preparing data for export.
+ * @example var count = fillInKeyframes(comp);
+ */
+
+/**
+ * Normalizes a scalar or array value into an array.
+ * @private
+ */
+function _fik_toArray(value) {
+    return (value instanceof Array) ? value : [value];
+}
+
+/**
+ * Compares values exactly after baking.
+ * @private
+ */
+function _fik_isEqual(a, b) {
+    var av = _fik_toArray(a);
+    var bv = _fik_toArray(b);
+    var i = 0;
+    if (av.length !== bv.length) {
+        return false;
+    }
+    for (i = 0; i < av.length; i++) {
+        if (av[i] !== bv[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * Removes triplicate redundant keys and forces linear interpolation across the baked span.
+ * @private
+ */
+function _fik_filterKeyframes(prop) {
+    var linear = KeyframeInterpolationType.LINEAR;
+    var i = 0;
+
+    for (i = prop.numKeys - 1; i > 1; i--) {
+        if (_fik_isEqual(prop.keyValue(i - 1), prop.keyValue(i)) && _fik_isEqual(prop.keyValue(i), prop.keyValue(i + 1))) {
+            prop.removeKey(i);
+        } else {
+            prop.setInterpolationTypeAtKey(i, linear, linear);
+        }
+    }
+    if (prop.numKeys > 0) {
+        prop.setInterpolationTypeAtKey(1, linear, linear);
+        prop.setInterpolationTypeAtKey(prop.numKeys, linear, linear);
+    }
+}
+
+function fillInKeyframes(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Fill In Keyframes: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var properties = o.properties || comp.selectedProperties;
+    var count = 0;
+    var i = 0;
+
+    setStep("validate properties");
+    if (!properties || !properties.length) {
+        throw new Error("Fill In Keyframes: no properties selected.");
+    }
+
+    setStep("bake keyframes");
+    for (i = 0; i < properties.length; i++) {
+        var prop = properties[i];
+        if (!prop || prop.propertyType !== PropertyType.PROPERTY || !prop.canVaryOverTime || !prop.isTimeVarying) {
+            continue;
+        }
+        prop.expression = "value;";
+        app.executeCommand(2639);
+        prop.expression = "";
+        _fik_filterKeyframes(prop);
+        count++;
+    }
+
+    if (!count) {
+        throw new Error("Fill In Keyframes: no time-varying properties were found.");
+    }
+
+    return count;
+}

@@ -1,0 +1,115 @@
+/**
+ * @name Flip Path
+ * @description Flips selected shape or mask paths horizontally or vertically around each path's bounding-box center. Supports both static and keyframed paths.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties), direction: "horizontal"|"vertical" (default "horizontal") }
+ * @outputs number — count of path properties updated
+ * @whenToUse You need to mirror selected mask or vector paths without manually editing vertices.
+ * @example var count = flipPath(comp, { direction: "vertical" });
+ */
+
+/**
+ * Returns the bounding box center for a shape.
+ * @private
+ */
+function _fp_getCenter(shape) {
+    var vertices = shape.vertices;
+    var minX = vertices[0][0];
+    var maxX = vertices[0][0];
+    var minY = vertices[0][1];
+    var maxY = vertices[0][1];
+    var i = 0;
+
+    for (i = 1; i < vertices.length; i++) {
+        minX = (vertices[i][0] < minX) ? vertices[i][0] : minX;
+        maxX = (vertices[i][0] > maxX) ? vertices[i][0] : maxX;
+        minY = (vertices[i][1] < minY) ? vertices[i][1] : minY;
+        maxY = (vertices[i][1] > maxY) ? vertices[i][1] : maxY;
+    }
+    return [(minX + maxX) / 2, (minY + maxY) / 2];
+}
+
+/**
+ * Returns a flipped copy of a shape.
+ * @private
+ */
+function _fp_flipShape(oldShape, center, scale) {
+    var newShape = new Shape();
+    var vertices = [];
+    var inTangents = [];
+    var outTangents = [];
+    var i = 0;
+
+    for (i = 0; i < oldShape.vertices.length; i++) {
+        vertices.push([
+            center[0] + (oldShape.vertices[i][0] - center[0]) * scale[0],
+            center[1] + (oldShape.vertices[i][1] - center[1]) * scale[1]
+        ]);
+        inTangents.push([
+            oldShape.inTangents[i][0] * scale[0],
+            oldShape.inTangents[i][1] * scale[1]
+        ]);
+        outTangents.push([
+            oldShape.outTangents[i][0] * scale[0],
+            oldShape.outTangents[i][1] * scale[1]
+        ]);
+    }
+
+    newShape.vertices = vertices;
+    newShape.inTangents = inTangents;
+    newShape.outTangents = outTangents;
+    newShape.closed = oldShape.closed;
+    return newShape;
+}
+
+function flipPath(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Flip Path: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var properties = o.properties || comp.selectedProperties;
+    var direction = o.direction || "horizontal";
+    var scale = null;
+    var count = 0;
+    var i = 0;
+    var k = 0;
+
+    if (!properties || !properties.length) {
+        throw new Error("Flip Path: no properties selected.");
+    }
+    if (direction === "horizontal") {
+        scale = [-1, 1];
+    } else if (direction === "vertical") {
+        scale = [1, -1];
+    } else {
+        throw new Error("Flip Path: opts.direction must be horizontal or vertical.");
+    }
+
+    setStep("flip path values");
+    for (i = 0; i < properties.length; i++) {
+        var property = properties[i];
+        if (!property || property.propertyType !== PropertyType.PROPERTY) {
+            continue;
+        }
+        if (property.matchName !== "ADBE Vector Shape" && property.matchName !== "ADBE Mask Shape") {
+            continue;
+        }
+        if (property.expressionEnabled) {
+            continue;
+        }
+        if (property.numKeys > 0) {
+            for (k = 1; k <= property.numKeys; k++) {
+                var shape = property.keyValue(k);
+                property.setValueAtTime(property.keyTime(k), _fp_flipShape(shape, _fp_getCenter(shape), scale));
+            }
+        } else {
+            var staticShape = property.value;
+            property.setValue(_fp_flipShape(staticShape, _fp_getCenter(staticShape), scale));
+        }
+        count++;
+    }
+
+    return count;
+}

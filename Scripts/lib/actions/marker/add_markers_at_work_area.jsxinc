@@ -1,0 +1,27 @@
+/**
+ * @name Add Markers At Work Area
+ * @description Adds composition markers at the start and end of the work area with configurable comments.
+ * @category marker
+ * @tier block
+ * @inputs comp: CompItem; opts: { startComment: string (default "start"), endComment: string (default "end") }
+ * @outputs number — count of markers added
+ * @whenToUse You want marker anchors for the current work area before trimming, exporting, or syncing other tools to a segment.
+ * @example var count = addMarkersAtWorkArea(comp);
+ */
+function addMarkersAtWorkArea(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Markers At Work Area: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var startComment = (o.startComment !== undefined) ? String(o.startComment) : "start";
+    var endComment = (o.endComment !== undefined) ? String(o.endComment) : "end";
+    var startTime = comp.workAreaStart;
+    var endTime = comp.workAreaStart + comp.workAreaDuration;
+
+    setStep("write work area markers");
+    comp.markerProperty.setValueAtTime(startTime, new MarkerValue(startComment));
+    comp.markerProperty.setValueAtTime(endTime, new MarkerValue(endComment));
+
+    return 2;
+}

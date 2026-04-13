@@ -1,0 +1,28 @@
+/**
+ * @name Transfer Composition Work Area
+ * @description Copies the work area from a source comp into app settings, or pastes the saved work area into a target comp.
+ * @category comp
+ * @tier block
+ * @inputs comp: CompItem; opts: { mode: "copy"|"paste" (default "copy"), settingsSection: string (default "KM Copy Work Area") }
+ * @outputs boolean — true when the operation completed
+ * @whenToUse You want to carry a work area selection from one composition to another.
+ * @example transferCompositionWorkArea(comp, { mode: "copy" });
+ */
+function transferCompositionWorkArea(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) throw new Error("Transfer Composition Work Area: comp must be a CompItem.");
+    var o = opts || {};
+    var mode = o.mode || "copy";
+    var section = o.settingsSection || "KM Copy Work Area";
+    if (mode !== "copy" && mode !== "paste") throw new Error("Transfer Composition Work Area: opts.mode must be copy or paste.");
+    setStep(mode === "copy" ? "copy work area" : "paste work area");
+    if (mode === "copy") {
+        app.settings.saveSetting(section, "Start", String(comp.workAreaStart));
+        app.settings.saveSetting(section, "Duration", String(comp.workAreaDuration));
+        app.preferences.saveToDisk();
+        return true;
+    }
+    if (!app.settings.haveSetting(section, "Start")) throw new Error("Transfer Composition Work Area: no saved work area exists in app settings.");
+    comp.workAreaStart = Number(app.settings.getSetting(section, "Start"));
+    comp.workAreaDuration = Number(app.settings.getSetting(section, "Duration"));
+    return true;
+}

@@ -1,0 +1,56 @@
+/**
+ * @name Connect Two Layers With A Line
+ * @description Creates a shape layer with an expression-driven path connecting two layers by their anchor points.
+ * @category layer
+ * @tier block
+ * @inputs comp: CompItem; opts: { layerA: AVLayer (default comp.selectedLayers[0]), layerB: AVLayer (default comp.selectedLayers[1]), strokeColor: [r,g,b] (default [1,1,1]), strokeWidth: number (default 3), name: string (default "Connection Line") }
+ * @outputs ShapeLayer — the created line layer
+ * @whenToUse You want a live connection line between two moving layers for diagrams, graphs, or network visuals.
+ * @example var line = connectTwoLayersWithALine(comp);
+ */
+function connectTwoLayersWithALine(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Connect Two Layers With A Line: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var layerA = o.layerA || comp.selectedLayers[0];
+    var layerB = o.layerB || comp.selectedLayers[1];
+    var strokeColor = o.strokeColor || [1, 1, 1];
+    var strokeWidth = (o.strokeWidth !== undefined) ? Number(o.strokeWidth) : 3;
+    var name = o.name || "Connection Line";
+    var shapeLayer = null;
+    var group = null;
+    var groupContents = null;
+    var stroke = null;
+    var pathProp = null;
+
+    if (!layerA || !layerB) {
+        throw new Error("Connect Two Layers With A Line: two layers are required.");
+    }
+    if (isNaN(strokeWidth) || strokeWidth <= 0) {
+        throw new Error("Connect Two Layers With A Line: opts.strokeWidth must be a positive number.");
+    }
+
+    setStep("create shape layer");
+    shapeLayer = comp.layers.addShape();
+    shapeLayer.name = name;
+    shapeLayer.moveToEnd();
+    shapeLayer.transform.position.setValue([0, 0]);
+
+    group = shapeLayer.property("Contents").addProperty("ADBE Vector Group");
+    groupContents = group.property("Contents");
+    stroke = groupContents.addProperty("ADBE Vector Graphic - Stroke");
+    stroke.property("ADBE Vector Stroke Color").setValue(strokeColor);
+    stroke.property("ADBE Vector Stroke Width").setValue(strokeWidth);
+    groupContents.addProperty("ADBE Vector Shape - Group");
+    pathProp = shapeLayer.property("ADBE Root Vectors Group").property(1).property("ADBE Vectors Group").property("ADBE Vector Shape - Group").property("ADBE Vector Shape");
+    pathProp.expression = [
+        "var a = thisComp.layer(\"" + layerA.name + "\").toComp(thisComp.layer(\"" + layerA.name + "\").transform.anchorPoint);",
+        "var b = thisComp.layer(\"" + layerB.name + "\").toComp(thisComp.layer(\"" + layerB.name + "\").transform.anchorPoint);",
+        "createPath([a, b], [], [], false);"
+    ].join("\n");
+    shapeLayer.selected = false;
+    shapeLayer.locked = true;
+    shapeLayer.transform.position.expression = "posterizeTime(0); [0, 0];";
+    return shapeLayer;
+}

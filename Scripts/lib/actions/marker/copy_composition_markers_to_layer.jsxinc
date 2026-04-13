@@ -1,0 +1,37 @@
+/**
+ * @name Copy Composition Markers To Layer
+ * @description Copies all comp markers to a target layer, preserving comment, duration, and label.
+ * @category marker
+ * @tier block
+ * @inputs comp: CompItem; opts: { layer: AVLayer (default comp.selectedLayers[0]) }
+ * @outputs number — count of markers copied to the layer
+ * @whenToUse You want a layer-local copy of composition markers for downstream animation or export logic.
+ * @example var count = copyCompositionMarkersToLayer(comp);
+ */
+function copyCompositionMarkersToLayer(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Copy Composition Markers To Layer: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var layer = o.layer || comp.selectedLayers[0];
+    var markers = comp.markerProperty;
+    var count = 0;
+    var i = 0;
+
+    if (!layer) {
+        throw new Error("Copy Composition Markers To Layer: a target layer is required.");
+    }
+
+    setStep("copy markers");
+    for (i = 1; i <= markers.numKeys; i++) {
+        var keyValue = markers.keyValue(i);
+        var markerValue = new MarkerValue(keyValue.comment);
+        markerValue.duration = keyValue.duration;
+        markerValue.label = keyValue.label;
+        layer.marker.setValueAtTime(markers.keyTime(i), markerValue);
+        count++;
+    }
+
+    return count;
+}

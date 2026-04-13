@@ -1,0 +1,23 @@
+/**
+ * @name Set Work Area To Markers
+ * @description Sets the work area to the span between two composition markers.
+ * @category comp
+ * @tier block
+ * @inputs comp: CompItem; opts: { startMarkerIndex: number (default 1), endMarkerIndex: number (default 2) }
+ * @outputs number — resulting work area duration
+ * @whenToUse You want to derive the work area from marker boundaries rather than setting it manually.
+ * @example var duration = setWorkAreaToMarkers(comp);
+ */
+function setWorkAreaToMarkers(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) throw new Error("Set Work Area To Markers: comp must be a CompItem.");
+    var o = opts || {};
+    var startIndex = (o.startMarkerIndex !== undefined) ? parseInt(o.startMarkerIndex, 10) : 1;
+    var endIndex = (o.endMarkerIndex !== undefined) ? parseInt(o.endMarkerIndex, 10) : 2;
+    if (comp.markerProperty.numKeys < Math.max(startIndex, endIndex)) throw new Error("Set Work Area To Markers: not enough composition markers exist.");
+    var start = comp.markerProperty.keyTime(startIndex);
+    var end = comp.markerProperty.keyTime(endIndex);
+    setStep("set work area from markers");
+    comp.workAreaStart = start;
+    comp.workAreaDuration = end - start;
+    return comp.workAreaDuration;
+}

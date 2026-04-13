@@ -1,0 +1,42 @@
+/**
+ * @name Add Markers At Out Points
+ * @description Places composition markers at the out points of layers. Defaults to all layers in the comp and supports an optional shared marker comment.
+ * @category marker
+ * @tier block
+ * @inputs comp: CompItem; opts: { layers: AVLayer[] (default all comp layers), comment: string (default "") }
+ * @outputs number — count of markers written to the comp marker stream
+ * @whenToUse You want timeline markers at each layer end for timing review, edit points, or export prep.
+ * @example var count = addMarkersAtOutPoints(comp, { comment: "Out" });
+ */
+function addMarkersAtOutPoints(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Markers At Out Points: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var layers = o.layers;
+    var comment = (o.comment !== undefined && o.comment !== null) ? String(o.comment) : "";
+    var count = 0;
+    var marker = new MarkerValue(comment);
+    var i = 0;
+
+    if (!layers) {
+        layers = [];
+        for (i = 1; i <= comp.numLayers; i++) {
+            layers.push(comp.layer(i));
+        }
+    }
+    if (!layers.length) {
+        throw new Error("Add Markers At Out Points: no layers to process.");
+    }
+
+    setStep("add comp markers");
+    for (i = 0; i < layers.length; i++) {
+        if (layers[i]) {
+            comp.markerProperty.setValueAtTime(layers[i].outPoint, marker);
+            count++;
+        }
+    }
+
+    return count;
+}

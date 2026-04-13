@@ -1,0 +1,61 @@
+/**
+ * @name Invert Selected Keyframes
+ * @description Multiplies each selected keyframe value by -1 on the selected properties. Supports both scalar and array values.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties) }
+ * @outputs number — count of keyframes updated
+ * @whenToUse You need to mirror selected keyframe values across zero without manually editing each key.
+ * @example var count = invertSelectedKeyframes(comp);
+ */
+
+/**
+ * Returns a negated copy of a scalar or array keyframe value.
+ * @private
+ */
+function _isk_invertValue(value) {
+    if (value instanceof Array) {
+        var out = [];
+        for (var i = 0; i < value.length; i++) {
+            out.push(value[i] * -1);
+        }
+        return out;
+    }
+    return value * -1;
+}
+
+function invertSelectedKeyframes(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Invert Selected Keyframes: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var properties = o.properties || comp.selectedProperties;
+    var count = 0;
+    var i = 0;
+    var k = 0;
+
+    setStep("validate properties");
+    if (!properties || !properties.length) {
+        throw new Error("Invert Selected Keyframes: no properties selected.");
+    }
+
+    setStep("invert keyframes");
+    for (i = 0; i < properties.length; i++) {
+        var prop = properties[i];
+        if (!prop || prop.propertyType !== PropertyType.PROPERTY || !prop.canVaryOverTime || !prop.selectedKeys) {
+            continue;
+        }
+        for (k = 0; k < prop.selectedKeys.length; k++) {
+            var keyIndex = prop.selectedKeys[k];
+            prop.setValueAtKey(keyIndex, _isk_invertValue(prop.keyValue(keyIndex)));
+            count++;
+        }
+    }
+
+    if (!count) {
+        throw new Error("Invert Selected Keyframes: no selected keyframes were found.");
+    }
+
+    return count;
+}

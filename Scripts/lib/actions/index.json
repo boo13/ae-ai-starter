@@ -1,1 +1,3069 @@
-{  "generatedAt": "2026-04-13T00:55:44.847Z",  "actionCount": 33,  "categories": {    "scene": {      "count": 3,      "summary": "Multi-layer scene building blocks: backdrops, title stacks, camera rigs"    },    "marker": {      "count": 1,      "summary": "Timeline markers and beat grids"    },    "layer": {      "count": 9,      "summary": "Individual layer creation and manipulation: footage import, shape layers"    },    "effect": {      "count": 6,      "summary": "Visual effects applied as adjustment layers: grain, flicker, glow, gate weave, etc."    },    "property": {      "count": 3,      "summary": "property"    },    "preset": {      "count": 5,      "summary": "Compound actions composing multiple blocks into curated looks or scenes"    },    "comp": {      "count": 3,      "summary": "Composition-level operations: create comp, add guides, settings"    },    "utility": {      "count": 2,      "summary": "Data processing, timing calculations, and non-AE helpers"    },    "render": {      "count": 1,      "summary": "Render queue and output operations"    }  },  "actions": [    {      "name": "Add Backdrop",      "function": "addBackdrop",      "file": "Scripts/lib/actions/scene/backdrop.jsxinc",      "description": "Creates a three-layer atmospheric backdrop: dark base solid, warm accent band, bright signal line.",      "category": "scene",      "tier": "block",      "inputs": "comp: CompItem; opts: { } (no opts for v1 — defaults are opinionated)",      "outputs": "Array<AVLayer> — [bg, warmBand, topLine]",      "whenToUse": "You want a quick tone-setting backdrop for a demo or presentation comp.",      "example": "var layers = addBackdrop(comp);",      "requires": [              ],      "pluginDeps": [              ]    },    {      "name": "Add Beat Markers",      "function": "addBeatMarkers",      "file": "Scripts/lib/actions/marker/beat_markers.jsxinc",      "description": "Places evenly-spaced comp markers from t=0 through comp.duration, labeled \"Beat 1\", \"Beat 2\", etc.",      "category": "marker",      "tier": "block",      "inputs": "comp: CompItem; opts: { spacingSeconds: number (default 1.0, minimum 0.25) }",      "outputs": "number — count of markers added",      "whenToUse": "You want a regular beat grid on the timeline for timing reference or music sync.",      "example": "var count = addBeatMarkers(comp, { spacingSeconds: 0.5 });",      "requires": [              ],      "pluginDeps": [              ]    },    {      "name": "Add Camera",      "function": "addCamera",      "file": "Scripts/lib/actions/layer/camera.jsxinc",      "description": "Creates a camera layer with configurable zoom and depth of field settings.",      "category": "layer",      "tier": "block",      "inputs": "comp: CompItem; opts: { name: string (default \"Camera\"), zoom: number (optional, pixels — AE default if omitted), depthOfField: boolean (default false) }",      "outputs": "CameraLayer — the newly created camera layer",      "whenToUse": "You need a standalone camera layer without a full orbit rig. Use addCameraRig for an animated orbit rig.",      "example": "var cam = addCamera(comp, { name: \"Main Camera\", depthOfField: true });",      "requires": [              ],      "pluginDeps": [              ]    },    {      "name": "Add Camera Rig",      "function": "addCameraRig",      "file": "Scripts/lib/actions/scene/camera_rig.jsxinc",      "description": "Adds an orbit camera rig: a 3D camera parented to a null controller with a gentle Y-rotation animation.",      "category": "scene",      "tier": "block",      "inputs": "comp: CompItem; opts: { } (no opts for v1)",      "outputs": "Array<AVLayer> — [camera, controller]",      "whenToUse": "You want a 3D camera that slowly orbits the scene over the comp's duration.",      "example": "var layers = addCameraRig(comp);",      "requires": [              ],      "pluginDeps": [              ]    },    {      "name": "Add Color Grade",      "function": "addColorGrade",      "file": "Scripts/lib/actions/effects/color_grade.jsxinc",      "description": "Adds a color grade adjustment layer: Glow + Vignette + Levels stack for a warm, contrast-crushed analog look.",      "category": "effect",      "tier": "block",      "inputs": "comp: CompItem; opts: { glowIntensity: number (default 0.2, Glow intensity 0-1), vignetteAmount: number (default 50, CS Vignette amount 0-100) }",      "outputs": "AVLayer — the adjustment layer",      "whenToUse": "You want a subtle warm glow, vignette, and crushed levels for an analog or cinematic color treatment.",      "example": "var layer = addColorGrade(comp);",      "requires": [              ],      "pluginDeps": [        "ADBE Glo2",        "CS Vignette",        "ADBE Easy Levels"      ]    },    {      "name": "Add Expression Control",      "function": "addExpressionControl",      "file": "Scripts/lib/actions/property/expression_control.jsxinc",      "description": "Adds an expression control effect to a layer (Slider, Angle, Checkbox, Color, Point, 3D Point, or Dropdown). Maps type strings to correct ADBE match names and sets the initial value on the correct sub-property.",      "category": "property",      "tier": "block",      "inputs": "layer: AVLayer; opts: { type: \"slider\"|\"angle\"|\"checkbox\"|\"color\"|\"point\"|\"point3d\"|\"dropdown\" (required), name: string (optional display name), value:",      "outputs": "PropertyGroup — the newly applied expression control effect",      "whenToUse": "You need a slider, color picker, checkbox, or other control on a null or adjustment layer for expression linking.",      "example": "var ctrl = addExpressionControl(nullLayer, { type: \"slider\", name: \"Speed\", value: 50 });",      "requires": [              ],      "pluginDeps": [              ]    },    {      "name": "Add Expression Rig",      "function": "addExpressionRig",      "file": "Scripts/lib/actions/presets/expression_rig.jsxinc",      "description": "Creates a null controller layer loaded with expression control effects (sliders, colors, checkboxes, etc.) for driving expressions across a comp. Returns the null layer and an array of the applied control effects.",      "category": "preset",      "tier": "compound",      "inputs": "comp: CompItem; opts: { controls: Array<{ name: string, type: \"slider\"|\"angle\"|\"checkbox\"|\"color\"|\"point\"|\"point3d\"|\"dropdown\", value:",      "outputs": "Object — { null: AVLayer, controls: PropertyGroup[] }",      "whenToUse": "You need a single controller null with multiple expression controls so expressions throughout the comp can reference one authoritative source.",      "example": "var rig = addExpressionRig(comp, { controls: [{ name: \"Speed\", type: \"slider\", value: 50 }, { name: \"Primary Color\", type: \"color\", value: [1, 0.5, 0] }] });",      "requires": [        "null_object.jsxinc",        "expression_control.jsxinc"      ],      "pluginDeps": [              ]    },    {      "name": "Add Film Damage Treatment",      "function": "addFilmDamageTreatment",      "file": "Scripts/lib/actions/presets/film_damage_treatment.jsxinc",      "description": "Composes gate_weave + grain + flicker + color_grade into a four-layer film damage look.",      "category": "preset",      "tier": "compound",      "inputs": "comp: CompItem; opts: { } (no opts for v1 — pass opts to individual blocks for fine control)",      "outputs": "Object — { gateWeave, grain, flicker, colorGrade } (the four adjustment layers)",      "whenToUse": "You want an instant analog/film-damage look applied on top of existing comp layers without choosing individual effects.",      "example": "var layers = addFilmDamageTreatment(comp);",      "requires": [        "gate_weave.jsxinc",        "grain.jsxinc",        "flicker.jsxinc",        "color_grade.jsxinc"      ],      "pluginDeps": [        "ADBE Geometry",        "ADBE Noise",        "ADBE Gaussian Blur 2",        "ADBE Unsharp Mask",        "ADBE Exposure",        "ADBE Glo2",        "CS Vignette",        "ADBE Easy Levels"      ]    },    {      "name": "Add Flicker",      "function": "addFlicker",      "file": "Scripts/lib/actions/effects/flicker.jsxinc",      "description": "Adds a flicker adjustment layer: an Exposure effect with a wiggle expression to simulate random brightness fluctuation.",      "category": "effect",      "tier": "block",      "inputs": "comp: CompItem; opts: { speed: number (default 12, wiggle frequency in Hz), amount: number (default 0.1, wiggle amplitude in stops) }",      "outputs": "AVLayer — the adjustment layer",      "whenToUse": "You want random brightness flicker simulating aging film or unstable lighting.",      "example": "var layer = addFlicker(comp);",      "requires": [              ],      "pluginDeps": [        "ADBE Exposure"      ]    },    {      "name": "Add Gate Weave",      "function": "addGateWeave",      "file": "Scripts/lib/actions/effects/gate_weave.jsxinc",      "description": "Adds a gate-weave adjustment layer: a Transform effect with wiggle expressions on position and scale to simulate film gate instability.",      "category": "effect",      "tier": "block",      "inputs": "comp: CompItem; opts: { intensity: number (default 1.0, scale multiplier for wiggle amounts) }",      "outputs": "AVLayer — the adjustment layer",      "whenToUse": "You want subtle horizontal/vertical camera shake simulating a film gate slipping in the projector gate.",      "example": "var layer = addGateWeave(comp);",      "requires": [              ],      "pluginDeps": [        "ADBE Geometry"      ]    },    {      "name": "Add Grain",      "function": "addGrain",      "file": "Scripts/lib/actions/effects/grain.jsxinc",      "description": "Adds a grain adjustment layer: Noise + Gaussian Blur + Unsharp Mask stack to simulate analog film grain.",      "category": "effect",      "tier": "block",      "inputs": "comp: CompItem; opts: { amount: number (default 10, Noise amount 0-100), blurRadius: number (default 6, Gaussian Blur blurriness) }",      "outputs": "AVLayer — the adjustment layer",      "whenToUse": "You want organic film-style grain on a comp without a full film damage treatment.",      "example": "var layer = addGrain(comp);",      "requires": [              ],      "pluginDeps": [        "ADBE Noise",        "ADBE Gaussian Blur 2",        "ADBE Unsharp Mask"      ]    },    {      "name": "Add Guide Preset",      "function": "addGuidePreset",      "file": "Scripts/lib/actions/comp/guide_preset.jsxinc",      "description": "Adds a named group of compositional guides to a comp (thirds, safe margins, or center cross).",      "category": "comp",      "tier": "block",      "inputs": "comp: CompItem; opts: { preset: \"thirds\"|\"safe\"|\"center\" }",      "outputs": "number — count of guides added (0 if preset name is unrecognized)",      "whenToUse": "You need standard guide layouts in a comp. Requires AE 16.1+ (comp.addGuide).",      "example": "var count = addGuidePreset(comp, { preset: \"thirds\" });",      "requires": [              ],      "pluginDeps": [              ]    },    {      "name": "Add Light",      "function": "addLight",      "file": "Scripts/lib/actions/layer/light.jsxinc",      "description": "Creates a light layer of the specified type (point, spot, parallel, ambient) with configurable intensity, color, and shadow options.",      "category": "layer",      "tier": "block",      "inputs": "comp: CompItem; opts: { type: \"point\"|\"spot\"|\"parallel\"|\"ambient\" (default \"point\"), name: string (default \"Light\"), position: [x,y,z] (default comp center, z=-600), intensity: number (default 100), color: [r,g,b] (default [1,1,1]), coneAngle: number (spot only, default 90), castsShadows: boolean (default false) }",      "outputs": "LightLayer — the newly created light layer",      "whenToUse": "You need a 3D scene light. Maps type strings to LightType enum; only sets cone angle for spot lights.",      "example": "var light = addLight(comp, { type: \"spot\", intensity: 120, coneAngle: 60, castsShadows: true });",      "requires": [              ],      "pluginDeps": [              ]    },    {      "name": "Add Mask",      "function": "addMask",      "file": "Scripts/lib/actions/layer/mask.jsxinc",      "description": "Adds a mask to a layer with rectangle, ellipse, or custom bezier shape. Uses verified ADBE match names (ADBE Mask Parade, ADBE Mask Atom, ADBE Mask Shape, ADBE Mask Feather, ADBE Mask Opacity, ADBE Mask Offset).",      "category": "layer",      "tier": "block",      "inputs": "layer: AVLayer; opts: { shape: \"rectangle\"|\"ellipse\"|\"custom\" (default \"rectangle\"), rect: [x,y,w,h] (rectangle/ellipse, default full comp bounds), vertices: [x,y][] (custom only), inTangents: [x,y][] (custom), outTangents: [x,y][] (custom), mode: \"add\"|\"subtract\"|\"intersect\"|\"lighten\"|\"darken\"|\"difference\"|\"none\" (default \"add\"), feather: [fx,fy] (default [0,0]), opacity: number (0–100, default 100), expansion: number (default 0), inverted: boolean (default false), name: string (optional display name) }",      "outputs": "MaskPropertyGroup — the newly created mask group",      "whenToUse": "You need to add a rectangular, elliptical, or custom bezier mask to any layer. Coordinates are in comp space.",      "example": "var mask = addMask(layer, { shape: \"rectangle\", rect: [100, 100, 800, 400], feather: [20, 20] });",      "requires": [              ],      "pluginDeps": [              ]    },    {      "name": "Add Null",      "function": "addNull",      "file": "Scripts/lib/actions/layer/null_object.jsxinc",      "description": "Creates a null object layer for use as a controller, parent anchor, or expression target.",      "category": "layer",      "tier": "block",      "inputs": "comp: CompItem; opts: { name: string (default \"Null Controller\"), position: [x,y] (default comp center), is3D: boolean (default false) }",      "outputs": "AVLayer — the newly created null layer",      "whenToUse": "You need an invisible controller layer for parenting, expressions, or camera rigs.",      "example": "var ctrl = addNull(comp, { name: \"Camera CTRL\", is3D: true });",      "requires": [              ],      "pluginDeps": [              ]    },    {      "name": "Add Shape Layer",      "function": "addShapeLayer",      "file": "Scripts/lib/actions/layer/shape_layer.jsxinc",      "description": "Creates a shape layer with rectangle, ellipse, polygon, or star geometry, plus optional fill and stroke. Uses correct ADBE match-name nesting to avoid property-path pitfalls.",      "category": "layer",      "tier": "block",      "inputs": "comp: CompItem; opts: { name: string, position: [x,y] (default comp center), shape: \"rectangle\"|\"ellipse\"|\"polygon\"|\"star\" (default \"rectangle\"), size: [w,h] (default [200,200]), points: number (polygon/star), innerRadius: number (star), outerRadius: number (star/polygon), fillColor: [r,g,b] (null = no fill), strokeColor: [r,g,b] (null = no stroke), strokeWidth: number (default 2), roundness: number (rectangle only) }",      "outputs": "ShapeLayer — the newly created shape layer",      "whenToUse": "You need a shape layer with a specific geometry. Handles correct ADBE nesting and sets star type before inner radius to prevent AE errors.",      "example": "var layer = addShapeLayer(comp, { shape: \"rectangle\", size: [400, 200], fillColor: [0.2, 0.4, 1] });",      "requires": [              ],      "pluginDeps": [              ]    },    {      "name": "Add Solid",      "function": "addSolid",      "file": "Scripts/lib/actions/layer/solid.jsxinc",      "description": "Creates a solid color layer with configurable color, dimensions, duration, and adjustment layer mode.",      "category": "layer",      "tier": "block",      "inputs": "comp: CompItem; opts: { color: [r,g,b] (default [1,1,1]), name: string (default \"Solid\"), width: number (default comp.width), height: number (default comp.height), duration: number (default comp.duration), isAdjustment: boolean (default false) }",      "outputs": "AVLayer — the newly created solid layer",      "whenToUse": "You need a solid color layer for backgrounds, mattes, color fills, or adjustment layer bases.",      "example": "var layer = addSolid(comp, { color: [0.07, 0.09, 0.14], name: \"BG Dark\", isAdjustment: false });",      "requires": [              ],      "pluginDeps": [              ]    },    {      "name": "Add Star Trim Animation",      "function": "addStarTrimAnimation",      "file": "Scripts/lib/actions/effects/star_trim_animation.jsxinc",      "description": "Adds an animated 5-point star shape layer with a trim-paths draw-on animation over 1 second.",      "category": "effect",      "tier": "block",      "inputs": "comp: CompItem; opts: { points: number, innerRadius: number, outerRadius: number } (all optional)",      "outputs": "ShapeLayer — the newly created star layer",      "whenToUse": "You want a shape-layer star with a trim-paths reveal animation as a motion design element.",      "example": "var layer = addStarTrimAnimation(comp);",      "requires": [              ],      "pluginDeps": [              ]    },    {      "name": "Add Text Animator",      "function": "addTextAnimator",      "file": "Scripts/lib/actions/presets/text_animator.jsxinc",      "description": "Adds a text animator preset to a text layer: typeOn (opacity reveal), fadeUp (opacity + position), trackingIn (tracking collapse), or scaleBounce (scale reveal with overshoot). Uses Range Selectors and keyframes for time-based animation.",      "category": "preset",      "tier": "compound",      "inputs": "layer: TextLayer; opts: { preset: \"typeOn\"|\"fadeUp\"|\"trackingIn\"|\"scaleBounce\" (default \"typeOn\"), duration: number (seconds, default 1.0), stagger: number (0-1 smoothness, default 0.05) }",      "outputs": "PropertyGroup — the newly added text animator",      "whenToUse": "You need a quick entrance animation on a text layer without manually building animators and range selectors.",      "example": "var anim = addTextAnimator(layer, { preset: \"fadeUp\", duration: 0.8 });",      "requires": [        "set_keyframes.jsxinc"      ],      "pluginDeps": [              ]    },    {      "name": "Add Text Layer",      "function": "addTextLayer",      "file": "Scripts/lib/actions/layer/text_layer.jsxinc",      "description": "Creates a text layer with full styling control. Applies all required AE TextDocument rules: applyFill before fillColor, explicit justification, anchor reset to [0,0], full property path access.",      "category": "layer",      "tier": "block",      "inputs": "comp: CompItem; opts: { text: string (default \"\"), fontSize: number (default 48), fillColor: [r,g,b] (default [1,1,1]), font: string, justification: \"left\"|\"center\"|\"right\" (default \"center\"), position: [x,y] (default comp center), name: string, tracking: number, leading: number }",      "outputs": "TextLayer — the newly created text layer",      "whenToUse": "You need a text layer with reliable styling. Prevents common pitfalls: applyFill, justification, anchor drift, and property path issues.",      "example": "var layer = addTextLayer(comp, { text: \"Hello World\", fontSize: 72, fillColor: [1, 1, 0], justification: \"center\" });",      "requires": [              ],      "pluginDeps": [              ]    },    {      "name": "Add Title Stack",      "function": "addTitleStack",      "file": "Scripts/lib/actions/scene/title_stack.jsxinc",      "description": "Adds a two-layer animated title stack (hero title + subtitle) with fade and slide-up keyframes.",      "category": "scene",      "tier": "block",      "inputs": "comp: CompItem; opts: { title: string, subtitle: string } (both optional — defaults to demo copy)",      "outputs": "Array<TextLayer> — [titleLayer, subtitleLayer]",      "whenToUse": "You want a quick hero text layout with entrance animation for demo or presentation comps.",      "example": "var layers = addTitleStack(comp, { title: \"My Project\", subtitle: \"A short description\" });",      "requires": [        "helpers.jsxinc"      ],      "pluginDeps": [              ]    },    {      "name": "Apply Effect",      "function": "applyEffect",      "file": "Scripts/lib/actions/effects/apply_effect.jsxinc",      "description": "Applies an effect to a layer by ADBE match name, then sets any specified property values. Validates the layer type and provides a clear error if the effect match name is not found (e.g. missing third-party plugin).",      "category": "effect",      "tier": "block",      "inputs": "layer: AVLayer; opts: { matchName: string (required, ADBE match name), properties: Object (matchName or display name -> value pairs, optional), name: string (optional display name override) }",      "outputs": "PropertyGroup — the newly applied effect group",      "whenToUse": "You need to apply any built-in or third-party effect to a layer by match name. Use this instead of hard-coding effect application logic. Warn the user if their project may not have required third-party plugins.",      "example": "var blur = applyEffect(layer, { matchName: \"ADBE Gaussian Blur 2\", properties: { \"ADBE Gaussian Blur 2-0001\": 20 } });",      "requires": [              ],      "pluginDeps": [              ]    },    {      "name": "Build Demo Scene",      "function": "buildDemoScene",      "file": "Scripts/lib/actions/presets/demo_scene.jsxinc",      "description": "Creates a fully composed demo scene: new comp + backdrop + guides (thirds + safe) + title stack + camera rig + beat markers.",      "category": "preset",      "tier": "compound",      "inputs": "opts: { name: string, width: number, height: number, duration: number, fps: number, spacingSeconds: number }",      "outputs": "CompItem — the newly created composition",      "whenToUse": "You want to build a complete demo comp with all standard building blocks in one call.",      "example": "var comp = buildDemoScene({ name: \"Demo\", width: 1920, height: 1080, duration: 8, fps: 24, spacingSeconds: 1 });",      "requires": [        "create_comp.jsxinc",        "backdrop.jsxinc",        "guide_preset.jsxinc",        "title_stack.jsxinc",        "camera_rig.jsxinc",        "beat_markers.jsxinc"      ],      "pluginDeps": [              ]    },    {      "name": "Build Motion Graphic Scene",      "function": "buildMotionGraphicScene",      "file": "Scripts/lib/actions/presets/motion_graphic_scene.jsxinc",      "description": "Creates a complete motion graphic comp: background solid, title + subtitle text layers, accent shapes, and guide preset. Three style tokens control the palette and geometry.",      "category": "preset",      "tier": "compound",      "inputs": "opts: { name: string (default \"MG Scene\"), width: number (default 1920), height: number (default 1080), duration: number (default 8), fps: number (default 24), title: string (default \"Title\"), subtitle: string (default \"Subtitle\"), bgColor: [r,g,b] (overrides style default), style: \"minimal\"|\"bold\"|\"tech\" (default \"minimal\") }",      "outputs": "Object — { comp, bg, title, subtitle, accent } (layers may be null if creation fails)",      "whenToUse": "You need a production-ready motion graphic starting point without assembling every layer individually. Pick a style token and supply copy.",      "example": "var scene = buildMotionGraphicScene({ title: \"Q4 Review\", subtitle: \"Sales & Marketing\", style: \"bold\" });",      "requires": [        "create_comp.jsxinc",        "solid.jsxinc",        "text_layer.jsxinc",        "shape_layer.jsxinc",        "guide_preset.jsxinc"      ],      "pluginDeps": [              ]    },    {      "name": "Create Comp",      "function": "createCompFromValues",      "file": "Scripts/lib/actions/comp/create_comp.jsxinc",      "description": "Creates a new composition in the project with a dark background and opens it in the viewer.",      "category": "comp",      "tier": "block",      "inputs": "opts: { name: string, width: number, height: number, duration: number, fps: number }",      "outputs": "CompItem — the newly created composition",      "whenToUse": "You need to create a new comp programmatically with specific dimensions. Does NOT require an existing comp.",      "example": "var comp = createCompFromValues({ name: \"My Comp\", width: 1920, height: 1080, duration: 8, fps: 24 });",      "requires": [              ],      "pluginDeps": [              ]    },    {      "name": "Data Timing",      "function": "computeDurationFromText",      "file": "Scripts/lib/actions/utility/data_timing.jsxinc",      "description": "Calculates and recalculates display durations for data-driven text elements using a words-per-second model. Exposes three primary functions: computeDurationFromText, resolveElementDuration, recalculateDurationsOnJson.",      "category": "utility",      "tier": "block",      "inputs": "data: Object (with elements/messages array); targetSecondsPerWord: number; targetMinDuration: number",      "outputs": "boolean — true if any durations were changed",      "whenToUse": "Display duration should vary based on text length (subtitle timing, auto-paced slideshows, narration sync).",      "example": "var changed = recalculateDurationsOnJson(data, 0.38, 1.5);",      "requires": [        "helpers.jsxinc"      ],      "pluginDeps": [              ]    },    {      "name": "Ensure Project Folder",      "function": "ensureProjectFolder",      "file": "Scripts/lib/actions/utility/project_folder.jsxinc",      "description": "Finds or creates a folder in the AE Project panel. Supports nested paths using \"/\" as a separator (e.g. \"Assets/Images\" creates \"Assets\" at the root, then \"Images\" inside it). A parentFolder can be passed to resolve the path relative to an existing folder.",      "category": "utility",      "tier": "block",      "inputs": "opts: { name: string (required, may contain \"/\" for nested paths), parentFolder: FolderItem (default: project root) }",      "outputs": "FolderItem — the deepest folder in the path (created if it did not exist)",      "whenToUse": "You need to organize imported footage, comps, or other items into project panel folders. Safely re-uses existing folders; never creates duplicates.",      "example": "var folder = ensureProjectFolder({ name: \"Assets/Images\" });",      "requires": [              ],      "pluginDeps": [              ]    },    {      "name": "Image Swap",      "function": "findFootageByPath",      "file": "Scripts/lib/actions/layer/image_swap.jsxinc",      "description": "Imports footage files, replaces layer sources, and scales layers to fit or fill a comp. Exposes five functions: replaceLayerSource, fitLayerToComp, getOrImportFootage, importFolderAssets, ensureProjectFolder.",      "category": "layer",      "tier": "block",      "inputs": "comp: CompItem; opts: { layerNameOrIndex: string|number, footageFile: File, fitMode: \"fit\"|\"fill\" }",      "outputs": "boolean — true if the source was successfully replaced",      "whenToUse": "You need to import external images and swap layer sources with proper fit/fill scaling.",      "example": "replaceLayerSource(comp, { layerNameOrIndex: \"Photo\", footageFile: new File(\"/path/img.jpg\"), fitMode: \"fill\" });",      "requires": [        "helpers.jsxinc"      ],      "pluginDeps": [              ]    },    {      "name": "Pre Compose",      "function": "preCompose",      "file": "Scripts/lib/actions/comp/pre_compose.jsxinc",      "description": "Pre-composes a set of layers within a comp by 1-based index. Sorts indices ascending (required by AE), validates range, and returns the new CompItem.",      "category": "comp",      "tier": "block",      "inputs": "comp: CompItem; opts: { layerIndices: number[] (required, 1-based), name: string (default \"Pre-comp\"), moveAttributes: boolean (default true) }",      "outputs": "CompItem — the newly created pre-composition",      "whenToUse": "You need to collapse layers into a nested comp programmatically. Always pass indices as 1-based integers.",      "example": "var precomp = preCompose(comp, { layerIndices: [1, 2, 3], name: \"BG Elements\" });",      "requires": [              ],      "pluginDeps": [              ]    },    {      "name": "Queue Comp",      "function": "queueComp",      "file": "Scripts/lib/actions/render/queue_comp.jsxinc",      "description": "Adds a comp to the After Effects render queue.",      "category": "render",      "tier": "block",      "inputs": "comp: CompItem",      "outputs": "undefined",      "whenToUse": "You want to programmatically send a comp to the render queue without touching the UI.",      "example": "queueComp(comp);",      "requires": [              ],      "pluginDeps": [              ]    },    {      "name": "Set Expression",      "function": "setExpression",      "file": "Scripts/lib/actions/property/set_expression.jsxinc",      "description": "Applies an expression string to an animatable property with three-guard validation: PROPERTY type check, canSetExpression check, and expression string check.",      "category": "property",      "tier": "block",      "inputs": "prop: Property; opts: { expression: string (required) }",      "outputs": "boolean — true if the expression was applied successfully",      "whenToUse": "You need to apply an expression to a property. Guards against non-property groups and properties that don't support expressions.",      "example": "var ok = setExpression(layer.property(\"Transform\").property(\"Opacity\"), { expression: \"wiggle(2, 10)\" });",      "requires": [              ],      "pluginDeps": [              ]    },    {      "name": "Set Keyframes",      "function": "setKeyframes",      "file": "Scripts/lib/actions/property/set_keyframes.jsxinc",      "description": "Sets one or more keyframes on an animatable property, with configurable easing. Validates canVaryOverTime, sorts keyframes by time, and maps easing strings to KeyframeInterpolationType + KeyframeEase.",      "category": "property",      "tier": "block",      "inputs": "prop: Property; opts: { keyframes: Array<{time: number, value:",      "outputs": "number — count of keyframes added",      "whenToUse": "You need to set keyframe values on any animatable property with consistent easing. Handles both temporal and spatial properties.",      "example": "var count = setKeyframes(layer.property(\"Transform\").property(\"Opacity\"), { keyframes: [{time: 0, value: 0}, {time: 1, value: 100}], easing: \"easeInOut\" });",      "requires": [              ],      "pluginDeps": [              ]    },    {      "name": "Set Layer Parent",      "function": "setLayerParent",      "file": "Scripts/lib/actions/layer/set_parent.jsxinc",      "description": "Sets the parent of a child layer within a comp by layer name or index. Pass null as parent to unparent. Prevents self-parenting.",      "category": "layer",      "tier": "block",      "inputs": "comp: CompItem; opts: { child: string|number (layer name or 1-based index, required), parent: string|number|null (layer name or 1-based index; null to unparent) }",      "outputs": "boolean — true if the parent was set (or cleared) successfully",      "whenToUse": "You need to parent one layer to another (e.g. camera to null, logo to controller). Use null as parent to break an existing parent link.",      "example": "setLayerParent(comp, { child: \"Logo\", parent: \"Null Controller\" });",      "requires": [              ],      "pluginDeps": [              ]    }  ]}
+{
+  "generatedAt": "2026-04-13T08:41:24.580Z",
+  "actionCount": 108,
+  "categories": {
+    "comp": {
+      "count": 13,
+      "summary": "Composition-level operations: create comp, add guides, settings"
+    },
+    "property": {
+      "count": 26,
+      "summary": "property"
+    },
+    "scene": {
+      "count": 3,
+      "summary": "Multi-layer scene building blocks: backdrops, title stacks, camera rigs"
+    },
+    "marker": {
+      "count": 7,
+      "summary": "Timeline markers and beat grids"
+    },
+    "layer": {
+      "count": 34,
+      "summary": "Individual layer creation and manipulation: footage import, shape layers"
+    },
+    "effect": {
+      "count": 8,
+      "summary": "Visual effects applied as adjustment layers: grain, flicker, glow, gate weave, etc."
+    },
+    "preset": {
+      "count": 6,
+      "summary": "Compound actions composing multiple blocks into curated looks or scenes"
+    },
+    "render": {
+      "count": 4,
+      "summary": "Render queue and output operations"
+    },
+    "utility": {
+      "count": 7,
+      "summary": "Data processing, timing calculations, and non-AE helpers"
+    }
+  },
+  "actions": [
+    {
+      "name": "Add 3D Break",
+      "function": "add3DBreak",
+      "file": "Scripts/lib/actions/comp/add_3d_break.jsxinc",
+      "description": "Adds an adjustment layer above the highest selected layer, or near the top when nothing is selected, to break 3D interaction.",
+      "category": "comp",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { name: string (default \"=== 3D Break ===\"), color: [r,g,b] (default [0.5,0.5,0.5]) }",
+      "outputs": "AVLayer \u2014 the created adjustment layer",
+      "whenToUse": "You want to insert a 3D-break adjustment layer in the stack without building it manually.",
+      "example": "var layer = add3DBreak(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "name",
+            "label": "Name",
+            "hint": "=== 3D Break ===",
+            "type": "string",
+            "argKey": "name"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Additional Animation Control",
+      "function": "addAdditionalAnimationControl",
+      "file": "Scripts/lib/actions/property/add_additional_animation_control.jsxinc",
+      "description": "Adds a Slider or Angle Control to the owning layer for each selected 1D property, then links the property so the controller adds an offset to the original value.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties), controlPrefix: string (default \"Additional \"), forceType: \"slider\"|\"angle\" (optional) }",
+      "outputs": "number \u2014 count of controls created and linked",
+      "whenToUse": "You want an extra animator-friendly offset control next to an existing property without rewriting the full expression rig by hand.",
+      "example": "var count = addAdditionalAnimationControl(comp, { controlPrefix: \"Offset \" });",
+      "requires": [
+        "expression_control.jsxinc"
+      ],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "controlPrefix",
+            "label": "Control Prefix",
+            "hint": "Additional ",
+            "type": "string",
+            "argKey": "controlPrefix"
+          },
+          {
+            "name": "forceType",
+            "label": "Force Type",
+            "hint": "slider",
+            "type": "string",
+            "argKey": "forceType"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Backdrop",
+      "function": "addBackdrop",
+      "file": "Scripts/lib/actions/scene/backdrop.jsxinc",
+      "description": "Creates a three-layer atmospheric backdrop: dark base solid, warm accent band, bright signal line.",
+      "category": "scene",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { } (no opts for v1 \u2014 defaults are opinionated)",
+      "outputs": "Array<AVLayer> \u2014 [bg, warmBand, topLine]",
+      "whenToUse": "You want a quick tone-setting backdrop for a demo or presentation comp.",
+      "example": "var layers = addBackdrop(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Add Beat Markers",
+      "function": "addBeatMarkers",
+      "file": "Scripts/lib/actions/marker/beat_markers.jsxinc",
+      "description": "Places evenly-spaced comp markers from t=0 through comp.duration, labeled \"Beat 1\", \"Beat 2\", etc.",
+      "category": "marker",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { spacingSeconds: number (default 1.0, minimum 0.25) }",
+      "outputs": "number \u2014 count of markers added",
+      "whenToUse": "You want a regular beat grid on the timeline for timing reference or music sync.",
+      "example": "var count = addBeatMarkers(comp, { spacingSeconds: 0.5 });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "spacingSeconds",
+            "label": "Spacing (sec)",
+            "hint": "1.0",
+            "type": "number",
+            "argKey": "spacingSeconds"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Camera",
+      "function": "addCamera",
+      "file": "Scripts/lib/actions/layer/camera.jsxinc",
+      "description": "Creates a camera layer with configurable zoom and depth of field settings.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { name: string (default \"Camera\"), zoom: number (optional, pixels \u2014 AE default if omitted), depthOfField: boolean (default false) }",
+      "outputs": "CameraLayer \u2014 the newly created camera layer",
+      "whenToUse": "You need a standalone camera layer without a full orbit rig. Use addCameraRig for an animated orbit rig.",
+      "example": "var cam = addCamera(comp, { name: \"Main Camera\", depthOfField: true });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "name",
+            "label": "Name",
+            "hint": "Camera",
+            "type": "string",
+            "argKey": "name"
+          },
+          {
+            "name": "depthOfField",
+            "label": "Depth of Field",
+            "hint": "false",
+            "type": "boolean",
+            "argKey": "depthOfField"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Camera Rig",
+      "function": "addCameraRig",
+      "file": "Scripts/lib/actions/scene/camera_rig.jsxinc",
+      "description": "Adds an orbit camera rig: a 3D camera parented to a null controller with a gentle Y-rotation animation.",
+      "category": "scene",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { } (no opts for v1)",
+      "outputs": "Array<AVLayer> \u2014 [camera, controller]",
+      "whenToUse": "You want a 3D camera that slowly orbits the scene over the comp's duration.",
+      "example": "var layers = addCameraRig(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Add Color Grade",
+      "function": "addColorGrade",
+      "file": "Scripts/lib/actions/effects/color_grade.jsxinc",
+      "description": "Adds a color grade adjustment layer: Glow + Vignette + Levels stack for a warm, contrast-crushed analog look.",
+      "category": "effect",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { glowIntensity: number (default 0.2, Glow intensity 0-1), vignetteAmount: number (default 50, CS Vignette amount 0-100) }",
+      "outputs": "AVLayer \u2014 the adjustment layer",
+      "whenToUse": "You want a subtle warm glow, vignette, and crushed levels for an analog or cinematic color treatment.",
+      "example": "var layer = addColorGrade(comp);",
+      "requires": [],
+      "pluginDeps": [
+        "ADBE Glo2",
+        "CS Vignette",
+        "ADBE Easy Levels"
+      ],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "glowIntensity",
+            "label": "Glow Intensity (0-1)",
+            "hint": "0.2",
+            "type": "number",
+            "argKey": "glowIntensity"
+          },
+          {
+            "name": "vignetteAmount",
+            "label": "Vignette (0-100)",
+            "hint": "50",
+            "type": "number",
+            "argKey": "vignetteAmount"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Expression Control",
+      "function": "addExpressionControl",
+      "file": "Scripts/lib/actions/property/expression_control.jsxinc",
+      "description": "Adds an expression control effect to a layer (Slider, Angle, Checkbox, Color, Point, 3D Point, or Dropdown). Maps type strings to correct ADBE match names and sets the initial value on the correct sub-property.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "layer: AVLayer; opts: { type: \"slider\"|\"angle\"|\"checkbox\"|\"color\"|\"point\"|\"point3d\"|\"dropdown\" (required), name: string (optional display name), value:",
+      "outputs": "PropertyGroup \u2014 the newly applied expression control effect",
+      "whenToUse": "You need a slider, color picker, checkbox, or other control on a null or adjustment layer for expression linking.",
+      "example": "var ctrl = addExpressionControl(nullLayer, { type: \"slider\", name: \"Speed\", value: 50 });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "layer",
+        "params": [
+          {
+            "name": "type",
+            "label": "Type",
+            "hint": "slider | angle | checkbox | color | point",
+            "type": "string",
+            "argKey": "type"
+          },
+          {
+            "name": "name",
+            "label": "Control Name",
+            "hint": "Speed",
+            "type": "string",
+            "argKey": "name"
+          },
+          {
+            "name": "value",
+            "label": "Initial Value",
+            "hint": "0",
+            "type": "auto",
+            "argKey": "value"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Expression Rig",
+      "function": "addExpressionRig",
+      "file": "Scripts/lib/actions/presets/expression_rig.jsxinc",
+      "description": "Creates a null controller layer loaded with expression control effects (sliders, colors, checkboxes, etc.) for driving expressions across a comp. Returns the null layer and an array of the applied control effects.",
+      "category": "preset",
+      "tier": "compound",
+      "inputs": "comp: CompItem; opts: { controls: Array<{ name: string, type: \"slider\"|\"angle\"|\"checkbox\"|\"color\"|\"point\"|\"point3d\"|\"dropdown\", value:",
+      "outputs": "Object \u2014 { null: AVLayer, controls: PropertyGroup[] }",
+      "whenToUse": "You need a single controller null with multiple expression controls so expressions throughout the comp can reference one authoritative source.",
+      "example": "var rig = addExpressionRig(comp, { controls: [{ name: \"Speed\", type: \"slider\", value: 50 }, { name: \"Primary Color\", type: \"color\", value: [1, 0.5, 0] }] });",
+      "requires": [
+        "null_object.jsxinc",
+        "expression_control.jsxinc"
+      ],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "nullName",
+            "label": "Null name",
+            "hint": "Expression Controls",
+            "type": "string",
+            "argKey": "nullName"
+          },
+          {
+            "name": "ctrl1Type",
+            "label": "Control 1 type",
+            "hint": "slider",
+            "type": "string",
+            "groupAs": "controls[0].type"
+          },
+          {
+            "name": "ctrl1Name",
+            "label": "Control 1 name",
+            "hint": "Speed",
+            "type": "string",
+            "groupAs": "controls[0].name"
+          },
+          {
+            "name": "ctrl1Value",
+            "label": "Control 1 value",
+            "hint": "50",
+            "type": "number",
+            "groupAs": "controls[0].value"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Film Damage Treatment",
+      "function": "addFilmDamageTreatment",
+      "file": "Scripts/lib/actions/presets/film_damage_treatment.jsxinc",
+      "description": "Composes gate_weave + grain + flicker + color_grade into a four-layer film damage look.",
+      "category": "preset",
+      "tier": "compound",
+      "inputs": "comp: CompItem; opts: { } (no opts for v1 \u2014 pass opts to individual blocks for fine control)",
+      "outputs": "Object \u2014 { gateWeave, grain, flicker, colorGrade } (the four adjustment layers)",
+      "whenToUse": "You want an instant analog/film-damage look applied on top of existing comp layers without choosing individual effects.",
+      "example": "var layers = addFilmDamageTreatment(comp);",
+      "requires": [
+        "gate_weave.jsxinc",
+        "grain.jsxinc",
+        "flicker.jsxinc",
+        "color_grade.jsxinc"
+      ],
+      "pluginDeps": [
+        "ADBE Geometry",
+        "ADBE Noise",
+        "ADBE Gaussian Blur 2",
+        "ADBE Unsharp Mask",
+        "ADBE Exposure",
+        "ADBE Glo2",
+        "CS Vignette",
+        "ADBE Easy Levels"
+      ],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Add Flicker",
+      "function": "addFlicker",
+      "file": "Scripts/lib/actions/effects/flicker.jsxinc",
+      "description": "Adds a flicker adjustment layer: an Exposure effect with a wiggle expression to simulate random brightness fluctuation.",
+      "category": "effect",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { speed: number (default 12, wiggle frequency in Hz), amount: number (default 0.1, wiggle amplitude in stops) }",
+      "outputs": "AVLayer \u2014 the adjustment layer",
+      "whenToUse": "You want random brightness flicker simulating aging film or unstable lighting.",
+      "example": "var layer = addFlicker(comp);",
+      "requires": [],
+      "pluginDeps": [
+        "ADBE Exposure"
+      ],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "speed",
+            "label": "Speed (Hz)",
+            "hint": "12",
+            "type": "number",
+            "argKey": "speed"
+          },
+          {
+            "name": "amount",
+            "label": "Amount (stops)",
+            "hint": "0.1",
+            "type": "number",
+            "argKey": "amount"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Gate Weave",
+      "function": "addGateWeave",
+      "file": "Scripts/lib/actions/effects/gate_weave.jsxinc",
+      "description": "Adds a gate-weave adjustment layer: a Transform effect with wiggle expressions on position and scale to simulate film gate instability.",
+      "category": "effect",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { intensity: number (default 1.0, scale multiplier for wiggle amounts) }",
+      "outputs": "AVLayer \u2014 the adjustment layer",
+      "whenToUse": "You want subtle horizontal/vertical camera shake simulating a film gate slipping in the projector gate.",
+      "example": "var layer = addGateWeave(comp);",
+      "requires": [],
+      "pluginDeps": [
+        "ADBE Geometry"
+      ],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "intensity",
+            "label": "Intensity",
+            "hint": "1.0",
+            "type": "number",
+            "argKey": "intensity"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Glitch Intro",
+      "function": "addGlitchIntro",
+      "file": "Scripts/lib/actions/presets/glitch_intro.jsxinc",
+      "description": "Builds a complete glitch-style motion graphics intro: fractal noise driver comp,",
+      "category": "preset",
+      "tier": "compound",
+      "inputs": "opts: {",
+      "outputs": "Object \u2014 { fractalComp, artworkSeqComp, artworkLoopComp, mainIntroComp, finalComp }",
+      "whenToUse": "You want a full glitch-style intro from scratch: triangle reveal, artwork flicker,",
+      "example": "var result = addGlitchIntro({ artworkItems: myImages, logoComp: logo, katakanaComp: kata });",
+      "requires": [
+        "create_comp.jsxinc",
+        "solid.jsxinc",
+        "null_object.jsxinc",
+        "shape_layer.jsxinc"
+      ],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "create",
+        "params": [
+          {
+            "name": "width",
+            "label": "Width",
+            "hint": "1920",
+            "type": "number",
+            "argKey": "width"
+          },
+          {
+            "name": "height",
+            "label": "Height",
+            "hint": "1080",
+            "type": "number",
+            "argKey": "height"
+          },
+          {
+            "name": "fps",
+            "label": "FPS",
+            "hint": "24",
+            "type": "number",
+            "argKey": "fps"
+          },
+          {
+            "name": "duration",
+            "label": "Duration (s)",
+            "hint": "8",
+            "type": "number",
+            "argKey": "duration"
+          },
+          {
+            "name": "artworkCount",
+            "label": "Artwork slots",
+            "hint": "6",
+            "type": "number",
+            "argKey": "artworkCount"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Grain",
+      "function": "addGrain",
+      "file": "Scripts/lib/actions/effects/grain.jsxinc",
+      "description": "Adds a grain adjustment layer: Noise + Gaussian Blur + Unsharp Mask stack to simulate analog film grain.",
+      "category": "effect",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { amount: number (default 10, Noise amount 0-100), blurRadius: number (default 6, Gaussian Blur blurriness) }",
+      "outputs": "AVLayer \u2014 the adjustment layer",
+      "whenToUse": "You want organic film-style grain on a comp without a full film damage treatment.",
+      "example": "var layer = addGrain(comp);",
+      "requires": [],
+      "pluginDeps": [
+        "ADBE Noise",
+        "ADBE Gaussian Blur 2",
+        "ADBE Unsharp Mask"
+      ],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "amount",
+            "label": "Amount (0-100)",
+            "hint": "10",
+            "type": "number",
+            "argKey": "amount"
+          },
+          {
+            "name": "blurRadius",
+            "label": "Blur Radius",
+            "hint": "6",
+            "type": "number",
+            "argKey": "blurRadius"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Guide Preset",
+      "function": "addGuidePreset",
+      "file": "Scripts/lib/actions/comp/guide_preset.jsxinc",
+      "description": "Adds a named group of compositional guides to a comp (thirds, safe margins, or center cross).",
+      "category": "comp",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { preset: \"thirds\"|\"safe\"|\"center\" }",
+      "outputs": "number \u2014 count of guides added (0 if preset name is unrecognized)",
+      "whenToUse": "You need standard guide layouts in a comp. Requires AE 16.1+ (comp.addGuide).",
+      "example": "var count = addGuidePreset(comp, { preset: \"thirds\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "preset",
+            "label": "Preset",
+            "hint": "thirds | safe | center",
+            "type": "string",
+            "argKey": "preset"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Labeled Items To Render Queue",
+      "function": "addLabeledItemsToRenderQueue",
+      "file": "Scripts/lib/actions/render/add_labeled_items_to_render_queue.jsxinc",
+      "description": "Queues every composition in the project whose label color matches the requested label.",
+      "category": "render",
+      "tier": "block",
+      "inputs": "opts: { label: string|number (default \"green\") }",
+      "outputs": "number \u2014 count of comps added to the render queue",
+      "whenToUse": "You organize comps by label color and want to batch-queue only the marked items for rendering.",
+      "example": "var count = addLabeledItemsToRenderQueue({ label: \"green\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "project",
+        "params": [
+          {
+            "name": "label",
+            "label": "Label",
+            "hint": "green",
+            "type": "string",
+            "argKey": "label"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Layer From Item",
+      "function": "addLayerFromItem",
+      "file": "Scripts/lib/actions/layer/layer_from_item.jsxinc",
+      "description": "Adds a FootageItem or CompItem to a comp as a new AVLayer with",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: {",
+      "outputs": "AVLayer \u2014 the newly added layer",
+      "whenToUse": "You need to place a footage item or comp inside another comp and control",
+      "example": "var layer = addLayerFromItem(mainComp, { item: logoComp, inPoint: 2, duration: 4 });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "itemName",
+            "label": "Item name",
+            "hint": "My Comp",
+            "type": "string",
+            "argKey": "item"
+          },
+          {
+            "name": "inPoint",
+            "label": "In point (s)",
+            "hint": "0",
+            "type": "number",
+            "argKey": "inPoint"
+          },
+          {
+            "name": "duration",
+            "label": "Duration (s, 0=natural)",
+            "hint": "0",
+            "type": "number",
+            "argKey": "duration"
+          },
+          {
+            "name": "opacity",
+            "label": "Opacity (0-100)",
+            "hint": "100",
+            "type": "number",
+            "argKey": "opacity"
+          },
+          {
+            "name": "preserve",
+            "label": "Preserve transparency",
+            "hint": "false",
+            "type": "boolean",
+            "argKey": "preserveTransparency"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Light",
+      "function": "addLight",
+      "file": "Scripts/lib/actions/layer/light.jsxinc",
+      "description": "Creates a light layer of the specified type (point, spot, parallel, ambient) with configurable intensity, color, and shadow options.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { type: \"point\"|\"spot\"|\"parallel\"|\"ambient\" (default \"point\"), name: string (default \"Light\"), position: [x,y,z] (default comp center, z=-600), intensity: number (default 100), color: [r,g,b] (default [1,1,1]), coneAngle: number (spot only, default 90), castsShadows: boolean (default false) }",
+      "outputs": "LightLayer \u2014 the newly created light layer",
+      "whenToUse": "You need a 3D scene light. Maps type strings to LightType enum; only sets cone angle for spot lights.",
+      "example": "var light = addLight(comp, { type: \"spot\", intensity: 120, coneAngle: 60, castsShadows: true });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "type",
+            "label": "Type",
+            "hint": "point | spot | parallel | ambient",
+            "type": "string",
+            "argKey": "type"
+          },
+          {
+            "name": "name",
+            "label": "Name",
+            "hint": "Light",
+            "type": "string",
+            "argKey": "name"
+          },
+          {
+            "name": "intensity",
+            "label": "Intensity",
+            "hint": "100",
+            "type": "number",
+            "argKey": "intensity"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Markers At Out Points",
+      "function": "addMarkersAtOutPoints",
+      "file": "Scripts/lib/actions/marker/add_markers_at_out_points.jsxinc",
+      "description": "Places composition markers at the out points of layers. Defaults to all layers in the comp and supports an optional shared marker comment.",
+      "category": "marker",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layers: AVLayer[] (default all comp layers), comment: string (default \"\") }",
+      "outputs": "number \u2014 count of markers written to the comp marker stream",
+      "whenToUse": "You want timeline markers at each layer end for timing review, edit points, or export prep.",
+      "example": "var count = addMarkersAtOutPoints(comp, { comment: \"Out\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "comment",
+            "label": "Marker Comment",
+            "hint": "Out",
+            "type": "string",
+            "argKey": "comment"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Markers At Selected Keyframes",
+      "function": "addMarkersAtSelectedKeyframes",
+      "file": "Scripts/lib/actions/marker/add_markers_at_selected_keyframes.jsxinc",
+      "description": "Adds a layer marker at the time of each selected keyframe on the selected properties. Each selected keyframe becomes a marker on its owning layer.",
+      "category": "marker",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties), comment: string (default \"\") }",
+      "outputs": "number \u2014 count of markers added to layers",
+      "whenToUse": "You want layer markers aligned to specific selected animation beats without placing them by hand.",
+      "example": "var count = addMarkersAtSelectedKeyframes(comp, { comment: \"Beat\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "comment",
+            "label": "Marker Comment",
+            "hint": "Beat",
+            "type": "string",
+            "argKey": "comment"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Markers At Work Area",
+      "function": "addMarkersAtWorkArea",
+      "file": "Scripts/lib/actions/marker/add_markers_at_work_area.jsxinc",
+      "description": "Adds composition markers at the start and end of the work area with configurable comments.",
+      "category": "marker",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { startComment: string (default \"start\"), endComment: string (default \"end\") }",
+      "outputs": "number \u2014 count of markers added",
+      "whenToUse": "You want marker anchors for the current work area before trimming, exporting, or syncing other tools to a segment.",
+      "example": "var count = addMarkersAtWorkArea(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "startComment",
+            "label": "Start Comment",
+            "hint": "start",
+            "type": "string",
+            "argKey": "startComment"
+          },
+          {
+            "name": "endComment",
+            "label": "End Comment",
+            "hint": "end",
+            "type": "string",
+            "argKey": "endComment"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Markers To Selected Layers",
+      "function": "addMarkersToSelectedLayers",
+      "file": "Scripts/lib/actions/marker/add_markers_to_selected_layers.jsxinc",
+      "description": "Places a layer marker on each selected layer at a shared time, with an optional shared comment.",
+      "category": "marker",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), time: number (default comp.time), comment: string (default \"\") }",
+      "outputs": "number \u2014 count of layer markers added",
+      "whenToUse": "You want to stamp the same marker onto multiple selected layers at the current time or a specified time.",
+      "example": "var count = addMarkersToSelectedLayers(comp, { comment: \"Sync point\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "comment",
+            "label": "Marker Comment",
+            "hint": "Sync point",
+            "type": "string",
+            "argKey": "comment"
+          },
+          {
+            "name": "time",
+            "label": "Time (sec)",
+            "hint": "0",
+            "type": "number",
+            "argKey": "time"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Mask",
+      "function": "addMask",
+      "file": "Scripts/lib/actions/layer/mask.jsxinc",
+      "description": "Adds a mask to a layer with rectangle, ellipse, or custom bezier shape. Uses verified ADBE match names (ADBE Mask Parade, ADBE Mask Atom, ADBE Mask Shape, ADBE Mask Feather, ADBE Mask Opacity, ADBE Mask Offset).",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "layer: AVLayer; opts: { shape: \"rectangle\"|\"ellipse\"|\"custom\" (default \"rectangle\"), rect: [x,y,w,h] (rectangle/ellipse, default full comp bounds), vertices: [x,y][] (custom only), inTangents: [x,y][] (custom), outTangents: [x,y][] (custom), mode: \"add\"|\"subtract\"|\"intersect\"|\"lighten\"|\"darken\"|\"difference\"|\"none\" (default \"add\"), feather: [fx,fy] (default [0,0]), opacity: number (0\u2013100, default 100), expansion: number (default 0), inverted: boolean (default false), name: string (optional display name) }",
+      "outputs": "MaskPropertyGroup \u2014 the newly created mask group",
+      "whenToUse": "You need to add a rectangular, elliptical, or custom bezier mask to any layer. Coordinates are in comp space.",
+      "example": "var mask = addMask(layer, { shape: \"rectangle\", rect: [100, 100, 800, 400], feather: [20, 20] });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "layer",
+        "params": [
+          {
+            "name": "shape",
+            "label": "Shape",
+            "hint": "rectangle | ellipse",
+            "type": "string",
+            "argKey": "shape"
+          },
+          {
+            "name": "name",
+            "label": "Mask Name (optional)",
+            "hint": "",
+            "type": "string",
+            "argKey": "name"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Null",
+      "function": "addNull",
+      "file": "Scripts/lib/actions/layer/null_object.jsxinc",
+      "description": "Creates a null object layer for use as a controller, parent anchor, or expression target.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { name: string (default \"Null Controller\"), position: [x,y] (default comp center), is3D: boolean (default false) }",
+      "outputs": "AVLayer \u2014 the newly created null layer",
+      "whenToUse": "You need an invisible controller layer for parenting, expressions, or camera rigs.",
+      "example": "var ctrl = addNull(comp, { name: \"Camera CTRL\", is3D: true });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "name",
+            "label": "Name",
+            "hint": "Null Controller",
+            "type": "string",
+            "argKey": "name"
+          },
+          {
+            "name": "is3D",
+            "label": "3D Layer",
+            "hint": "false",
+            "type": "boolean",
+            "argKey": "is3D"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Posterize Time Adjustment Layer",
+      "function": "addPosterizeTimeAdjustmentLayer",
+      "file": "Scripts/lib/actions/effects/add_posterize_time_adjustment_layer.jsxinc",
+      "description": "Creates an adjustment solid with the Posterize Time effect applied.",
+      "category": "effect",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { fps: number (default half of comp frame rate rounded up), name: string (default \"Posterize Time\"), color: [r,g,b] (default [0.5,0.5,0.5]) }",
+      "outputs": "AVLayer \u2014 the created adjustment layer",
+      "whenToUse": "You want to posterize the whole comp with a single adjustment layer rather than per-property expressions.",
+      "example": "var layer = addPosterizeTimeAdjustmentLayer(comp, { fps: 12 });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "fps",
+            "label": "FPS",
+            "hint": "12",
+            "type": "number",
+            "argKey": "fps"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Posterize Time Expression",
+      "function": "addPosterizeTimeExpression",
+      "file": "Scripts/lib/actions/property/add_posterize_time_expression.jsxinc",
+      "description": "Prepends `posterizeTime(fps); value;` to selected expression-capable properties while preserving any existing expression code.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties), fps: number (default half of comp frame rate rounded up) }",
+      "outputs": "number \u2014 count of properties updated",
+      "whenToUse": "You want stepped motion on selected properties without deleting the expressions they already have.",
+      "example": "var count = addPosterizeTimeExpression(comp, { fps: 12 });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "fps",
+            "label": "FPS",
+            "hint": "12",
+            "type": "number",
+            "argKey": "fps"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Selected Compositions To Render Queue",
+      "function": "addSelectedCompositionsToRenderQueue",
+      "file": "Scripts/lib/actions/render/add_selected_compositions_to_render_queue.jsxinc",
+      "description": "Adds selected project-panel comps to the render queue and optionally applies output templates based on comp naming rules.",
+      "category": "render",
+      "tier": "block",
+      "inputs": "opts: { defaultTemplate: string (default \"H.264 MP4\"), alphaTemplate: string (default \"Apple ProRes 4444 + Alpha\"), alphaNameToken: string (default \"_TEXT_\") }",
+      "outputs": "number \u2014 count of comps queued",
+      "whenToUse": "You want to queue selected comps from the project panel with predictable output module templates.",
+      "example": "var count = addSelectedCompositionsToRenderQueue({});",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "project",
+        "params": []
+      }
+    },
+    {
+      "name": "Add Selection To New Folder",
+      "function": "addSelectionToNewFolder",
+      "file": "Scripts/lib/actions/utility/add_selection_to_new_folder.jsxinc",
+      "description": "Creates a new project-panel folder and moves selected project items into it.",
+      "category": "utility",
+      "tier": "block",
+      "inputs": "opts: { name: string (required) }",
+      "outputs": "FolderItem \u2014 the created folder",
+      "whenToUse": "You want to quickly group selected project items under a new folder.",
+      "example": "var folder = addSelectionToNewFolder({ name: \"New Folder\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "project",
+        "params": [
+          {
+            "name": "name",
+            "label": "Folder Name",
+            "hint": "New Folder",
+            "type": "string",
+            "argKey": "name"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Shape Layer",
+      "function": "addShapeLayer",
+      "file": "Scripts/lib/actions/layer/shape_layer.jsxinc",
+      "description": "Creates a shape layer with rectangle, ellipse, polygon, or star geometry, plus optional fill and stroke. Uses correct ADBE match-name nesting to avoid property-path pitfalls.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { name: string, position: [x,y] (default comp center), shape: \"rectangle\"|\"ellipse\"|\"polygon\"|\"star\" (default \"rectangle\"), size: [w,h] (default [200,200]), points: number (polygon/star), innerRadius: number (star), outerRadius: number (star/polygon), fillColor: [r,g,b] (null = no fill), strokeColor: [r,g,b] (null = no stroke), strokeWidth: number (default 2), roundness: number (rectangle only) }",
+      "outputs": "ShapeLayer \u2014 the newly created shape layer",
+      "whenToUse": "You need a shape layer with a specific geometry. Handles correct ADBE nesting and sets star type before inner radius to prevent AE errors.",
+      "example": "var layer = addShapeLayer(comp, { shape: \"rectangle\", size: [400, 200], fillColor: [0.2, 0.4, 1] });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "shape",
+            "label": "Shape",
+            "hint": "rectangle | ellipse | polygon | star",
+            "type": "string",
+            "argKey": "shape"
+          },
+          {
+            "name": "name",
+            "label": "Name",
+            "hint": "Shape Layer",
+            "type": "string",
+            "argKey": "name"
+          },
+          {
+            "name": "size",
+            "label": "Size (w, h)",
+            "hint": "200, 200",
+            "type": "size2d",
+            "argKey": "size"
+          },
+          {
+            "name": "fillColor",
+            "label": "Fill (r, g, b)",
+            "hint": "0.2, 0.4, 1.0",
+            "type": "color",
+            "argKey": "fillColor"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Simple Loop Expression",
+      "function": "addSimpleLoopExpression",
+      "file": "Scripts/lib/actions/property/add_simple_loop_expression.jsxinc",
+      "description": "Applies a loop expression to each selected animatable property. Direction, loop type, and optional keyframe count are parameterized instead of using a dialog.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties), direction: \"loopIn\"|\"loopOut\" (default \"loopOut\"), type: \"cycle\"|\"pingpong\"|\"offset\"|\"continue\" (default \"cycle\"), keyframes: number (default 0) }",
+      "outputs": "number \u2014 count of properties that received the loop expression",
+      "whenToUse": "You want to add a standard AE loop expression to multiple selected properties without opening a prompt.",
+      "example": "var count = addSimpleLoopExpression(comp, { direction: \"loopOut\", type: \"pingpong\", keyframes: 2 });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "direction",
+            "label": "Direction",
+            "hint": "loopOut",
+            "type": "string",
+            "argKey": "direction"
+          },
+          {
+            "name": "type",
+            "label": "Type",
+            "hint": "cycle",
+            "type": "string",
+            "argKey": "type"
+          },
+          {
+            "name": "keyframes",
+            "label": "Keyframes",
+            "hint": "0",
+            "type": "number",
+            "argKey": "keyframes"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Solid",
+      "function": "addSolid",
+      "file": "Scripts/lib/actions/layer/solid.jsxinc",
+      "description": "Creates a solid color layer with configurable color, dimensions, duration, and adjustment layer mode.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { color: [r,g,b] (default [1,1,1]), name: string (default \"Solid\"), width: number (default comp.width), height: number (default comp.height), duration: number (default comp.duration), isAdjustment: boolean (default false) }",
+      "outputs": "AVLayer \u2014 the newly created solid layer",
+      "whenToUse": "You need a solid color layer for backgrounds, mattes, color fills, or adjustment layer bases.",
+      "example": "var layer = addSolid(comp, { color: [0.07, 0.09, 0.14], name: \"BG Dark\", isAdjustment: false });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "name",
+            "label": "Name",
+            "hint": "Solid",
+            "type": "string",
+            "argKey": "name"
+          },
+          {
+            "name": "color",
+            "label": "Color (r, g, b)",
+            "hint": "0.1, 0.1, 0.1",
+            "type": "color",
+            "argKey": "color"
+          },
+          {
+            "name": "isAdjustment",
+            "label": "Adjustment Layer",
+            "hint": "false",
+            "type": "boolean",
+            "argKey": "isAdjustment"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Star Trim Animation",
+      "function": "addStarTrimAnimation",
+      "file": "Scripts/lib/actions/effects/star_trim_animation.jsxinc",
+      "description": "Adds an animated 5-point star shape layer with a trim-paths draw-on animation over 1 second.",
+      "category": "effect",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { points: number, innerRadius: number, outerRadius: number } (all optional)",
+      "outputs": "ShapeLayer \u2014 the newly created star layer",
+      "whenToUse": "You want a shape-layer star with a trim-paths reveal animation as a motion design element.",
+      "example": "var layer = addStarTrimAnimation(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Add Text Animator",
+      "function": "addTextAnimator",
+      "file": "Scripts/lib/actions/presets/text_animator.jsxinc",
+      "description": "Adds a text animator preset to a text layer: typeOn (opacity reveal), fadeUp (opacity + position), trackingIn (tracking collapse), or scaleBounce (scale reveal with overshoot). Uses Range Selectors and keyframes for time-based animation.",
+      "category": "preset",
+      "tier": "compound",
+      "inputs": "layer: TextLayer; opts: { preset: \"typeOn\"|\"fadeUp\"|\"trackingIn\"|\"scaleBounce\" (default \"typeOn\"), duration: number (seconds, default 1.0), stagger: number (0-1 smoothness, default 0.05) }",
+      "outputs": "PropertyGroup \u2014 the newly added text animator",
+      "whenToUse": "You need a quick entrance animation on a text layer without manually building animators and range selectors.",
+      "example": "var anim = addTextAnimator(layer, { preset: \"fadeUp\", duration: 0.8 });",
+      "requires": [
+        "set_keyframes.jsxinc"
+      ],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "layer",
+        "params": [
+          {
+            "name": "preset",
+            "label": "Preset",
+            "hint": "typeOn | fadeUp | trackingIn | scaleBounce",
+            "type": "string",
+            "argKey": "preset"
+          },
+          {
+            "name": "duration",
+            "label": "Duration (sec)",
+            "hint": "1.0",
+            "type": "number",
+            "argKey": "duration"
+          },
+          {
+            "name": "stagger",
+            "label": "Stagger (0-1)",
+            "hint": "0.05",
+            "type": "number",
+            "argKey": "stagger"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Text Layer",
+      "function": "addTextLayer",
+      "file": "Scripts/lib/actions/layer/text_layer.jsxinc",
+      "description": "Creates a text layer with full styling control. Applies all required AE TextDocument rules: applyFill before fillColor, explicit justification, anchor reset to [0,0], full property path access.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { text: string (default \"\"), fontSize: number (default 48), fillColor: [r,g,b] (default [1,1,1]), font: string, justification: \"left\"|\"center\"|\"right\" (default \"center\"), position: [x,y] (default comp center), name: string, tracking: number, leading: number }",
+      "outputs": "TextLayer \u2014 the newly created text layer",
+      "whenToUse": "You need a text layer with reliable styling. Prevents common pitfalls: applyFill, justification, anchor drift, and property path issues.",
+      "example": "var layer = addTextLayer(comp, { text: \"Hello World\", fontSize: 72, fillColor: [1, 1, 0], justification: \"center\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "text",
+            "label": "Text",
+            "hint": "Hello World",
+            "type": "string",
+            "argKey": "text"
+          },
+          {
+            "name": "fontSize",
+            "label": "Font Size",
+            "hint": "48",
+            "type": "number",
+            "argKey": "fontSize"
+          },
+          {
+            "name": "justification",
+            "label": "Justification",
+            "hint": "center | left | right",
+            "type": "string",
+            "argKey": "justification"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Title Stack",
+      "function": "addTitleStack",
+      "file": "Scripts/lib/actions/scene/title_stack.jsxinc",
+      "description": "Adds a two-layer animated title stack (hero title + subtitle) with fade and slide-up keyframes.",
+      "category": "scene",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { title: string, subtitle: string } (both optional \u2014 defaults to demo copy)",
+      "outputs": "Array<TextLayer> \u2014 [titleLayer, subtitleLayer]",
+      "whenToUse": "You want a quick hero text layout with entrance animation for demo or presentation comps.",
+      "example": "var layers = addTitleStack(comp, { title: \"My Project\", subtitle: \"A short description\" });",
+      "requires": [
+        "helpers.jsxinc"
+      ],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "title",
+            "label": "Title",
+            "hint": "My Project",
+            "type": "string",
+            "argKey": "title"
+          },
+          {
+            "name": "subtitle",
+            "label": "Subtitle",
+            "hint": "A short description",
+            "type": "string",
+            "argKey": "subtitle"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Add Visibility Controller",
+      "function": "addVisibilityController",
+      "file": "Scripts/lib/actions/layer/add_visibility_controller.jsxinc",
+      "description": "Creates a null controller with a Checkbox Control, then links selected layer opacity to that checkbox so one toggle can show or hide the group.",
+      "category": "layer",
+      "tier": "compound",
+      "inputs": "comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), controllerName: string (default \"Visibility Controller\"), controlName: string (default \"Visible\"), initialValue: boolean (default true) }",
+      "outputs": "Object \u2014 { controller: AVLayer, count: number }",
+      "whenToUse": "You want one shared visibility toggle for one or more layers instead of adding separate checkbox controls to each layer.",
+      "example": "var result = addVisibilityController(comp, { controllerName: \"CTA Toggle\" });",
+      "requires": [
+        "null_object.jsxinc",
+        "expression_control.jsxinc"
+      ],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "controllerName",
+            "label": "Controller Name",
+            "hint": "Visibility Controller",
+            "type": "string",
+            "argKey": "controllerName"
+          },
+          {
+            "name": "controlName",
+            "label": "Control Name",
+            "hint": "Visible",
+            "type": "string",
+            "argKey": "controlName"
+          },
+          {
+            "name": "initialValue",
+            "label": "Initially Visible",
+            "hint": "true",
+            "type": "boolean",
+            "argKey": "initialValue"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Append To Expression",
+      "function": "appendToExpression",
+      "file": "Scripts/lib/actions/property/append_to_expression.jsxinc",
+      "description": "Prepends custom expression code to selected properties that already have enabled expressions.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties), code: string (required) }",
+      "outputs": "number \u2014 count of properties updated",
+      "whenToUse": "You want to batch-insert shared expression code such as `posterizeTime()` or utility variables across selected properties.",
+      "example": "var count = appendToExpression(comp, { code: \"posterizeTime(12);\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "code",
+            "label": "Code",
+            "hint": "posterizeTime(0);",
+            "type": "string",
+            "argKey": "code"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Apply Effect",
+      "function": "applyEffect",
+      "file": "Scripts/lib/actions/effects/apply_effect.jsxinc",
+      "description": "Applies an effect to a layer by ADBE match name, then sets any specified property values. Validates the layer type and provides a clear error if the effect match name is not found (e.g. missing third-party plugin).",
+      "category": "effect",
+      "tier": "block",
+      "inputs": "layer: AVLayer; opts: { matchName: string (required, ADBE match name), properties: Object (matchName or display name -> value pairs, optional), name: string (optional display name override) }",
+      "outputs": "PropertyGroup \u2014 the newly applied effect group",
+      "whenToUse": "You need to apply any built-in or third-party effect to a layer by match name. Use this instead of hard-coding effect application logic. Warn the user if their project may not have required third-party plugins.",
+      "example": "var blur = applyEffect(layer, { matchName: \"ADBE Gaussian Blur 2\", properties: { \"ADBE Gaussian Blur 2-0001\": 20 } });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "layer",
+        "params": [
+          {
+            "name": "matchName",
+            "label": "Match Name (ADBE...)",
+            "hint": "ADBE Gaussian Blur 2",
+            "type": "string",
+            "argKey": "matchName"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Apply Maintain Stroke Width Expression",
+      "function": "applyMaintainStrokeWidthExpression",
+      "file": "Scripts/lib/actions/property/apply_maintain_stroke_width_expression.jsxinc",
+      "description": "Finds every vector stroke width property in the comp and applies an expression that visually preserves stroke width despite scaling.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layers: AVLayer[] (default all comp layers), expression: string (default maintain-stroke-width expression) }",
+      "outputs": "number \u201a\u00c4\u00ee count of stroke width properties updated",
+      "whenToUse": "You want scalable shape layers to keep a consistent apparent stroke weight.",
+      "example": "var count = applyMaintainStrokeWidthExpression(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Build Demo Scene",
+      "function": "buildDemoScene",
+      "file": "Scripts/lib/actions/presets/demo_scene.jsxinc",
+      "description": "Creates a fully composed demo scene: new comp + backdrop + guides (thirds + safe) + title stack + camera rig + beat markers.",
+      "category": "preset",
+      "tier": "compound",
+      "inputs": "opts: { name: string, width: number, height: number, duration: number, fps: number, spacingSeconds: number }",
+      "outputs": "CompItem \u2014 the newly created composition",
+      "whenToUse": "You want to build a complete demo comp with all standard building blocks in one call.",
+      "example": "var comp = buildDemoScene({ name: \"Demo\", width: 1920, height: 1080, duration: 8, fps: 24, spacingSeconds: 1 });",
+      "requires": [
+        "create_comp.jsxinc",
+        "backdrop.jsxinc",
+        "guide_preset.jsxinc",
+        "title_stack.jsxinc",
+        "camera_rig.jsxinc",
+        "beat_markers.jsxinc"
+      ],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "create",
+        "params": [
+          {
+            "name": "name",
+            "label": "Name",
+            "hint": "Demo Scene",
+            "type": "string",
+            "argKey": "name"
+          },
+          {
+            "name": "width",
+            "label": "Width (px)",
+            "hint": "1920",
+            "type": "number",
+            "argKey": "width"
+          },
+          {
+            "name": "height",
+            "label": "Height (px)",
+            "hint": "1080",
+            "type": "number",
+            "argKey": "height"
+          },
+          {
+            "name": "duration",
+            "label": "Duration (sec)",
+            "hint": "8",
+            "type": "number",
+            "argKey": "duration"
+          },
+          {
+            "name": "fps",
+            "label": "FPS",
+            "hint": "24",
+            "type": "number",
+            "argKey": "fps"
+          },
+          {
+            "name": "spacingSeconds",
+            "label": "Beat Spacing (sec)",
+            "hint": "1",
+            "type": "number",
+            "argKey": "spacingSeconds"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Build Dropdown Selector",
+      "function": "buildDropdownSelector",
+      "file": "Scripts/lib/actions/property/build_dropdown_selector.jsxinc",
+      "description": "Creates a guide controller layer with a Dropdown Control that toggles target layer opacity. The dropdown can also be added to Essential Graphics.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { name: string (default \"Controller\"), targetLayers: AVLayer[] (default all layers except controller), addToEssentialGraphics: boolean (default true), hideNonSelectedAsZero: boolean (default true) }",
+      "outputs": "Object \u2014 { controller: ShapeLayer, dropdown: Property, count: number }",
+      "whenToUse": "You want a single dropdown to switch between multiple layer visibility states in a comp or Essential Graphics template.",
+      "example": "var result = buildDropdownSelector(comp, { name: \"Version\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "name",
+            "label": "Controller Name",
+            "hint": "Controller",
+            "type": "string",
+            "argKey": "name"
+          },
+          {
+            "name": "addToEssentialGraphics",
+            "label": "Add To EGP",
+            "hint": "true",
+            "type": "boolean",
+            "argKey": "addToEssentialGraphics"
+          },
+          {
+            "name": "hideNonSelectedAsZero",
+            "label": "Visible Uses 100",
+            "hint": "true",
+            "type": "boolean",
+            "argKey": "hideNonSelectedAsZero"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Build Motion Graphic Scene",
+      "function": "buildMotionGraphicScene",
+      "file": "Scripts/lib/actions/presets/motion_graphic_scene.jsxinc",
+      "description": "Creates a complete motion graphic comp: background solid, title + subtitle text layers, accent shapes, and guide preset. Three style tokens control the palette and geometry.",
+      "category": "preset",
+      "tier": "compound",
+      "inputs": "opts: { name: string (default \"MG Scene\"), width: number (default 1920), height: number (default 1080), duration: number (default 8), fps: number (default 24), title: string (default \"Title\"), subtitle: string (default \"Subtitle\"), bgColor: [r,g,b] (overrides style default), style: \"minimal\"|\"bold\"|\"tech\" (default \"minimal\") }",
+      "outputs": "Object \u2014 { comp, bg, title, subtitle, accent } (layers may be null if creation fails)",
+      "whenToUse": "You need a production-ready motion graphic starting point without assembling every layer individually. Pick a style token and supply copy.",
+      "example": "var scene = buildMotionGraphicScene({ title: \"Q4 Review\", subtitle: \"Sales & Marketing\", style: \"bold\" });",
+      "requires": [
+        "create_comp.jsxinc",
+        "solid.jsxinc",
+        "text_layer.jsxinc",
+        "shape_layer.jsxinc",
+        "guide_preset.jsxinc"
+      ],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "create",
+        "params": [
+          {
+            "name": "name",
+            "label": "Name",
+            "hint": "MG Scene",
+            "type": "string",
+            "argKey": "name"
+          },
+          {
+            "name": "title",
+            "label": "Title text",
+            "hint": "Title",
+            "type": "string",
+            "argKey": "title"
+          },
+          {
+            "name": "subtitle",
+            "label": "Subtitle text",
+            "hint": "Subtitle",
+            "type": "string",
+            "argKey": "subtitle"
+          },
+          {
+            "name": "style",
+            "label": "Style",
+            "hint": "minimal | bold | tech",
+            "type": "string",
+            "argKey": "style"
+          },
+          {
+            "name": "width",
+            "label": "Width (px)",
+            "hint": "1920",
+            "type": "number",
+            "argKey": "width"
+          },
+          {
+            "name": "height",
+            "label": "Height (px)",
+            "hint": "1080",
+            "type": "number",
+            "argKey": "height"
+          },
+          {
+            "name": "duration",
+            "label": "Duration (sec)",
+            "hint": "8",
+            "type": "number",
+            "argKey": "duration"
+          },
+          {
+            "name": "fps",
+            "label": "FPS",
+            "hint": "24",
+            "type": "number",
+            "argKey": "fps"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Calculate Distance Between Layers",
+      "function": "calculateDistanceBetweenLayers",
+      "file": "Scripts/lib/actions/utility/calculate_distance_between_layers.jsxinc",
+      "description": "Calculates the distance between two layers in either composition or world space.",
+      "category": "utility",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layerA: AVLayer (default comp.selectedLayers[0]), layerB: AVLayer (default comp.selectedLayers[1]), space: \"world\"|\"composition\" (default inferred: world unless both 2D), keepTempEffects: boolean (default false) }",
+      "outputs": "number \u2014 distance in pixels",
+      "whenToUse": "You need a numeric distance measurement between two layers for layout or rigging.",
+      "example": "var d = calculateDistanceBetweenLayers(comp, { space: \"world\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "space",
+            "label": "Space",
+            "hint": "world",
+            "type": "string",
+            "argKey": "space"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Center Composition",
+      "function": "centerComposition",
+      "file": "Scripts/lib/actions/comp/center_composition.jsxinc",
+      "description": "Sets the active viewer zoom to a normalized composition-centered zoom level.",
+      "category": "comp",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { zoom: number (default 0.5) }",
+      "outputs": "number \u2014 the zoom level applied",
+      "whenToUse": "You want a predictable centered comp view from scripting instead of relying on modifier keys.",
+      "example": "var zoom = centerComposition(comp, { zoom: 1.0 });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "zoom",
+            "label": "Zoom",
+            "hint": "0.5",
+            "type": "number",
+            "argKey": "zoom"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Clean Render Queue",
+      "function": "cleanRenderQueue",
+      "file": "Scripts/lib/actions/render/clean_render_queue.jsxinc",
+      "description": "Removes every item from the render queue.",
+      "category": "render",
+      "tier": "block",
+      "inputs": "opts: { } (no options)",
+      "outputs": "number \u2014 count of render queue items removed",
+      "whenToUse": "You want to clear the render queue before building a new batch.",
+      "example": "var count = cleanRenderQueue({});",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "project",
+        "params": []
+      }
+    },
+    {
+      "name": "Connect Two Layers With A Line",
+      "function": "connectTwoLayersWithALine",
+      "file": "Scripts/lib/actions/layer/connect_two_layers_with_a_line.jsxinc",
+      "description": "Creates a shape layer with an expression-driven path connecting two layers by their anchor points.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layerA: AVLayer (default comp.selectedLayers[0]), layerB: AVLayer (default comp.selectedLayers[1]), strokeColor: [r,g,b] (default [1,1,1]), strokeWidth: number (default 3), name: string (default \"Connection Line\") }",
+      "outputs": "ShapeLayer \u2014 the created line layer",
+      "whenToUse": "You want a live connection line between two moving layers for diagrams, graphs, or network visuals.",
+      "example": "var line = connectTwoLayersWithALine(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "name",
+            "label": "Layer Name",
+            "hint": "Connection Line",
+            "type": "string",
+            "argKey": "name"
+          },
+          {
+            "name": "strokeWidth",
+            "label": "Stroke Width",
+            "hint": "3",
+            "type": "number",
+            "argKey": "strokeWidth"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Copy Composition Markers To Layer",
+      "function": "copyCompositionMarkersToLayer",
+      "file": "Scripts/lib/actions/marker/copy_composition_markers_to_layer.jsxinc",
+      "description": "Copies all comp markers to a target layer, preserving comment, duration, and label.",
+      "category": "marker",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layer: AVLayer (default comp.selectedLayers[0]) }",
+      "outputs": "number \u2014 count of markers copied to the layer",
+      "whenToUse": "You want a layer-local copy of composition markers for downstream animation or export logic.",
+      "example": "var count = copyCompositionMarkersToLayer(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Copy Layer Markers To Composition",
+      "function": "copyLayerMarkersToComposition",
+      "file": "Scripts/lib/actions/marker/copy_layer_markers_to_composition.jsxinc",
+      "description": "Copies all markers from a source layer to the composition marker stream, preserving comment, duration, and label.",
+      "category": "marker",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layer: AVLayer (default comp.selectedLayers[0]) }",
+      "outputs": "number \u2014 count of markers copied to the composition",
+      "whenToUse": "You want layer-authored markers promoted to the comp timeline for broader timing use.",
+      "example": "var count = copyLayerMarkersToComposition(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Create Comp",
+      "function": "createCompFromValues",
+      "file": "Scripts/lib/actions/comp/create_comp.jsxinc",
+      "description": "Creates a new composition in the project with a dark background and opens it in the viewer.",
+      "category": "comp",
+      "tier": "block",
+      "inputs": "opts: { name: string, width: number, height: number, duration: number, fps: number }",
+      "outputs": "CompItem \u2014 the newly created composition",
+      "whenToUse": "You need to create a new comp programmatically with specific dimensions. Does NOT require an existing comp.",
+      "example": "var comp = createCompFromValues({ name: \"My Comp\", width: 1920, height: 1080, duration: 8, fps: 24 });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "create",
+        "params": [
+          {
+            "name": "name",
+            "label": "Name",
+            "hint": "My Comp",
+            "type": "string",
+            "argKey": "name"
+          },
+          {
+            "name": "width",
+            "label": "Width (px)",
+            "hint": "1920",
+            "type": "number",
+            "argKey": "width"
+          },
+          {
+            "name": "height",
+            "label": "Height (px)",
+            "hint": "1080",
+            "type": "number",
+            "argKey": "height"
+          },
+          {
+            "name": "duration",
+            "label": "Duration (sec)",
+            "hint": "8",
+            "type": "number",
+            "argKey": "duration"
+          },
+          {
+            "name": "fps",
+            "label": "FPS",
+            "hint": "24",
+            "type": "number",
+            "argKey": "fps"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Data Timing",
+      "function": "computeDurationFromText",
+      "file": "Scripts/lib/actions/utility/data_timing.jsxinc",
+      "description": "Calculates and recalculates display durations for data-driven text elements using a words-per-second model. Exposes three primary functions: computeDurationFromText, resolveElementDuration, recalculateDurationsOnJson.",
+      "category": "utility",
+      "tier": "block",
+      "inputs": "data: Object (with elements/messages array); targetSecondsPerWord: number; targetMinDuration: number",
+      "outputs": "boolean \u2014 true if any durations were changed",
+      "whenToUse": "Display duration should vary based on text length (subtitle timing, auto-paced slideshows, narration sync).",
+      "example": "var changed = recalculateDurationsOnJson(data, 0.38, 1.5);",
+      "requires": [
+        "helpers.jsxinc"
+      ],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "manual",
+        "note": "Operates on JSON data objects \u2014 call recalculateDurationsOnJson() in a script."
+      }
+    },
+    {
+      "name": "Disable Selected Expressions",
+      "function": "disableSelectedExpressions",
+      "file": "Scripts/lib/actions/property/disable_selected_expressions.jsxinc",
+      "description": "Disables expressions on selected expression-capable properties.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties) }",
+      "outputs": "number \u2014 count of properties updated",
+      "whenToUse": "You want to temporarily silence selected expressions without deleting the expression text.",
+      "example": "var count = disableSelectedExpressions(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Enable Collapse Transformations",
+      "function": "enableCollapseTransformations",
+      "file": "Scripts/lib/actions/comp/enable_collapse_transformations.jsxinc",
+      "description": "Enables collapse transformations on eligible layers. By default it operates on the active comp, and can optionally scan all comps in the project.",
+      "category": "comp",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { allComps: boolean (default false), protectMarkerComment: string (default \"Do Not Collapse Transformations\"), unlockLayers: boolean (default true) }",
+      "outputs": "number \u2014 count of layers updated",
+      "whenToUse": "You want to batch-enable collapse transformations while respecting marker-based exclusions.",
+      "example": "var count = enableCollapseTransformations(comp, { allComps: true });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "allComps",
+            "label": "All Comps",
+            "hint": "false",
+            "type": "boolean",
+            "argKey": "allComps"
+          },
+          {
+            "name": "unlockLayers",
+            "label": "Unlock Layers",
+            "hint": "true",
+            "type": "boolean",
+            "argKey": "unlockLayers"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Enable Motion Blur",
+      "function": "enableMotionBlur",
+      "file": "Scripts/lib/actions/effects/enable_motion_blur.jsxinc",
+      "description": "Enables or disables motion blur on the active comp by default, or all comps and their layers when `allComps` is true.",
+      "category": "effect",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { enabled: boolean (default true), allComps: boolean (default true) }",
+      "outputs": "number \u2014 count of comps updated",
+      "whenToUse": "You want a consistent project-wide motion blur state without opening comp settings one by one.",
+      "example": "var count = enableMotionBlur(comp, { enabled: true, allComps: true });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "enabled",
+            "label": "Enabled",
+            "hint": "true",
+            "type": "boolean",
+            "argKey": "enabled"
+          },
+          {
+            "name": "allComps",
+            "label": "All Comps",
+            "hint": "true",
+            "type": "boolean",
+            "argKey": "allComps"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Enable Selected Expressions",
+      "function": "enableSelectedExpressions",
+      "file": "Scripts/lib/actions/property/enable_selected_expressions.jsxinc",
+      "description": "Enables expressions on selected properties that already contain expression code.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties) }",
+      "outputs": "number \u2014 count of properties updated",
+      "whenToUse": "You want to re-enable selected expressions that were previously disabled.",
+      "example": "var count = enableSelectedExpressions(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Ensure Project Folder",
+      "function": "ensureProjectFolder",
+      "file": "Scripts/lib/actions/utility/project_folder.jsxinc",
+      "description": "Finds or creates a folder in the AE Project panel. Supports nested paths using \"/\" as a separator (e.g. \"Assets/Images\" creates \"Assets\" at the root, then \"Images\" inside it). A parentFolder can be passed to resolve the path relative to an existing folder.",
+      "category": "utility",
+      "tier": "block",
+      "inputs": "opts: { name: string (required, may contain \"/\" for nested paths), parentFolder: FolderItem (default: project root) }",
+      "outputs": "FolderItem \u2014 the deepest folder in the path (created if it did not exist)",
+      "whenToUse": "You need to organize imported footage, comps, or other items into project panel folders. Safely re-uses existing folders; never creates duplicates.",
+      "example": "var folder = ensureProjectFolder({ name: \"Assets/Images\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "project",
+        "params": [
+          {
+            "name": "name",
+            "label": "Folder path",
+            "hint": "Assets/Images",
+            "type": "string",
+            "argKey": "name"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Fill In Keyframes",
+      "function": "fillInKeyframes",
+      "file": "Scripts/lib/actions/property/fill_in_keyframes.jsxinc",
+      "description": "Bakes selected animated properties into per-frame keyframes, then removes redundant in-betweens and normalizes interpolation to linear.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties) }",
+      "outputs": "number \u2014 count of properties processed",
+      "whenToUse": "You need explicit in-between keyframes for an animation, such as after baking motion or preparing data for export.",
+      "example": "var count = fillInKeyframes(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Find All Expressions",
+      "function": "findAllExpressions",
+      "file": "Scripts/lib/actions/utility/find_all_expressions.jsxinc",
+      "description": "Scans the whole project and returns every active expression with its comp and layer context.",
+      "category": "utility",
+      "tier": "block",
+      "inputs": "opts: { } (no options)",
+      "outputs": "Array<Object> \u2014 [{ compName, layerName, layerIndex, propertyName }]",
+      "whenToUse": "You want an inventory of active expressions before export, cleanup, or Lottie prep.",
+      "example": "var matches = findAllExpressions({});",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "project",
+        "params": []
+      }
+    },
+    {
+      "name": "Find Specific Effect",
+      "function": "findSpecificEffect",
+      "file": "Scripts/lib/actions/utility/find_specific_effect.jsxinc",
+      "description": "Scans every comp and returns all layer/effect matches for one or more effect match names.",
+      "category": "utility",
+      "tier": "block",
+      "inputs": "opts: { effectMatchNames: string[]|string (default \"ADBE Gaussian Blur 2\") }",
+      "outputs": "Array<Object> \u2014 [{ compName, layerName, layerIndex, effectName, matchName }]",
+      "whenToUse": "You want an inventory of where a specific effect is used across the project.",
+      "example": "var matches = findSpecificEffect({ effectMatchNames: [\"ADBE Gaussian Blur 2\"] });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "project",
+        "params": [
+          {
+            "name": "effectMatchNames",
+            "label": "Match Names",
+            "hint": "ADBE Gaussian Blur 2",
+            "type": "string",
+            "argKey": "effectMatchNames"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Flip Path",
+      "function": "flipPath",
+      "file": "Scripts/lib/actions/property/flip_path.jsxinc",
+      "description": "Flips selected shape or mask paths horizontally or vertically around each path's bounding-box center. Supports both static and keyframed paths.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties), direction: \"horizontal\"|\"vertical\" (default \"horizontal\") }",
+      "outputs": "number \u2014 count of path properties updated",
+      "whenToUse": "You need to mirror selected mask or vector paths without manually editing vertices.",
+      "example": "var count = flipPath(comp, { direction: \"vertical\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "direction",
+            "label": "Direction",
+            "hint": "horizontal",
+            "type": "string",
+            "argKey": "direction"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Hard Solo Layers",
+      "function": "hardSoloLayers",
+      "file": "Scripts/lib/actions/layer/hard_solo_layers.jsxinc",
+      "description": "Disables every unselected layer in the comp and leaves selected layers enabled.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { invert: boolean (default false) }",
+      "outputs": "number \u2014 count of layers left enabled",
+      "whenToUse": "You want a destructive-style solo state that relies on the `enabled` switch instead of the temporary solo flag.",
+      "example": "var count = hardSoloLayers(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "invert",
+            "label": "Invert",
+            "hint": "false",
+            "type": "boolean",
+            "argKey": "invert"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Image Swap",
+      "function": "findFootageByPath",
+      "file": "Scripts/lib/actions/layer/image_swap.jsxinc",
+      "description": "Imports footage files, replaces layer sources, and scales layers to fit or fill a comp. Exposes five functions: replaceLayerSource, fitLayerToComp, getOrImportFootage, importFolderAssets, ensureProjectFolder.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layerNameOrIndex: string|number, footageFile: File, fitMode: \"fit\"|\"fill\" }",
+      "outputs": "boolean \u2014 true if the source was successfully replaced",
+      "whenToUse": "You need to import external images and swap layer sources with proper fit/fill scaling.",
+      "example": "replaceLayerSource(comp, { layerNameOrIndex: \"Photo\", footageFile: new File(\"/path/img.jpg\"), fitMode: \"fill\" });",
+      "requires": [
+        "helpers.jsxinc"
+      ],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "manual",
+        "note": "Requires a File path \u2014 call replaceLayerSource() in a script."
+      }
+    },
+    {
+      "name": "Increment Composition Versions",
+      "function": "incrementCompositionVersions",
+      "file": "Scripts/lib/actions/comp/increment_composition_versions.jsxinc",
+      "description": "Increments `_vNN` style version suffixes on compositions in the project.",
+      "category": "comp",
+      "tier": "block",
+      "inputs": "opts: { onlySelected: boolean (default false) }",
+      "outputs": "number \u2014 count of compositions renamed",
+      "whenToUse": "You want to batch-bump comp version numbers before delivery or iteration.",
+      "example": "var count = incrementCompositionVersions({});",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "project",
+        "params": [
+          {
+            "name": "onlySelected",
+            "label": "Only Selected",
+            "hint": "false",
+            "type": "boolean",
+            "argKey": "onlySelected"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Invert Selected Keyframes",
+      "function": "invertSelectedKeyframes",
+      "file": "Scripts/lib/actions/property/invert_selected_keyframes.jsxinc",
+      "description": "Multiplies each selected keyframe value by -1 on the selected properties. Supports both scalar and array values.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties) }",
+      "outputs": "number \u2014 count of keyframes updated",
+      "whenToUse": "You need to mirror selected keyframe values across zero without manually editing each key.",
+      "example": "var count = invertSelectedKeyframes(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Keyframe Current Value From Expression",
+      "function": "keyframeCurrentValueFromExpression",
+      "file": "Scripts/lib/actions/property/keyframe_current_value_from_expression.jsxinc",
+      "description": "Snapshots the current post-expression value of selected properties by writing a keyframe at the current time.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties), time: number (default comp.time) }",
+      "outputs": "number \u2014 count of keyframes added",
+      "whenToUse": "You want to bake the current result of an expression without converting the whole expression to keys.",
+      "example": "var count = keyframeCurrentValueFromExpression(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "time",
+            "label": "Time (sec)",
+            "hint": "0",
+            "type": "number",
+            "argKey": "time"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Keyframe Group Opacities",
+      "function": "keyframeGroupOpacities",
+      "file": "Scripts/lib/actions/property/keyframe_group_opacities.jsxinc",
+      "description": "Adds a keyframe at the current time to every shape-group opacity property found in the selected layers.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), time: number (default comp.time) }",
+      "outputs": "number \u2014 count of group opacity properties keyframed",
+      "whenToUse": "You want to snapshot all shape group opacities at once, especially after converting text animators to shapes.",
+      "example": "var count = keyframeGroupOpacities(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "time",
+            "label": "Time (sec)",
+            "hint": "0",
+            "type": "number",
+            "argKey": "time"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Lock All Layers",
+      "function": "lockAllLayers",
+      "file": "Scripts/lib/actions/layer/lock_all_layers.jsxinc",
+      "description": "Locks all layers in the active comp by default, or in every comp in the project when `allComps` is true.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { allComps: boolean (default false) }",
+      "outputs": "number \u2014 count of layers locked",
+      "whenToUse": "You want to freeze a comp or whole project against accidental layer edits.",
+      "example": "var count = lockAllLayers(comp, { allComps: true });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "allComps",
+            "label": "All Comps",
+            "hint": "false",
+            "type": "boolean",
+            "argKey": "allComps"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Make Hold Keyframes",
+      "function": "makeHoldKeyframes",
+      "file": "Scripts/lib/actions/property/make_hold_keyframes.jsxinc",
+      "description": "Converts selected keyframes on the selected properties into hold keyframes.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties) }",
+      "outputs": "number \u2014 count of keyframes converted to hold interpolation",
+      "whenToUse": "You want animation to step between values instead of interpolating smoothly.",
+      "example": "var count = makeHoldKeyframes(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Multiply Selected Keyframes",
+      "function": "multiplySelectedKeyframes",
+      "file": "Scripts/lib/actions/property/multiply_selected_keyframes.jsxinc",
+      "description": "Multiplies selected keyframe values by a scalar multiplier on the selected properties.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties), multiplier: number (default 2) }",
+      "outputs": "number \u2014 count of keyframes updated",
+      "whenToUse": "You want to proportionally scale selected animation values without editing each keyframe manually.",
+      "example": "var count = multiplySelectedKeyframes(comp, { multiplier: 1.5 });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "multiplier",
+            "label": "Multiplier",
+            "hint": "2",
+            "type": "number",
+            "argKey": "multiplier"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Parent Opacity",
+      "function": "parentOpacity",
+      "file": "Scripts/lib/actions/layer/parent_opacity.jsxinc",
+      "description": "Applies an opacity expression so each selected child layer respects both its own opacity and its parent's opacity, using the lower of the two values.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), expression: string (default min(child,parent) opacity expression) }",
+      "outputs": "number \u2014 count of layers updated",
+      "whenToUse": "You want child layers to fade with their parent while preserving their own local opacity animation.",
+      "example": "var count = parentOpacity(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Parent Selected Layers To Layers Below",
+      "function": "parentSelectedLayersToLayersBelow",
+      "file": "Scripts/lib/actions/layer/parent_selected_layers_to_layers_below.jsxinc",
+      "description": "Parents each selected layer to the layer directly below it in stacking order. Layers at the bottom of the comp are skipped.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers) }",
+      "outputs": "number \u2014 count of layers parented",
+      "whenToUse": "You want to quickly create a stack-based parent chain using the current layer order.",
+      "example": "var count = parentSelectedLayersToLayersBelow(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Pre Compose",
+      "function": "preCompose",
+      "file": "Scripts/lib/actions/comp/pre_compose.jsxinc",
+      "description": "Pre-composes a set of layers within a comp by 1-based index. Sorts indices ascending (required by AE), validates range, and returns the new CompItem.",
+      "category": "comp",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layerIndices: number[] (required, 1-based), name: string (default \"Pre-comp\"), moveAttributes: boolean (default true) }",
+      "outputs": "CompItem \u2014 the newly created pre-composition",
+      "whenToUse": "You need to collapse layers into a nested comp programmatically. Always pass indices as 1-based integers.",
+      "example": "var precomp = preCompose(comp, { layerIndices: [1, 2, 3], name: \"BG Elements\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "layerIndices",
+            "label": "Layer indices (e.g. 1,2,3)",
+            "hint": "1, 2",
+            "type": "csvIntegers",
+            "argKey": "layerIndices"
+          },
+          {
+            "name": "name",
+            "label": "Pre-comp name",
+            "hint": "Pre-comp",
+            "type": "string",
+            "argKey": "name"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Prepare Layer Out Points For Lottie",
+      "function": "prepareLayerOutPointsForLottie",
+      "file": "Scripts/lib/actions/layer/prepare_layer_out_points_for_lottie.jsxinc",
+      "description": "Extends any layer that ends exactly on the final frame by one frame, which avoids a common Lottie export edge case.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { allComps: boolean (default false) }",
+      "outputs": "number \u2014 count of layer out points adjusted",
+      "whenToUse": "You are preparing comps for Lottie export and want to avoid layers disappearing on the last frame.",
+      "example": "var count = prepareLayerOutPointsForLottie(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "allComps",
+            "label": "All Comps",
+            "hint": "false",
+            "type": "boolean",
+            "argKey": "allComps"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Queue Comp",
+      "function": "queueComp",
+      "file": "Scripts/lib/actions/render/queue_comp.jsxinc",
+      "description": "Adds a comp to the After Effects render queue.",
+      "category": "render",
+      "tier": "block",
+      "inputs": "comp: CompItem",
+      "outputs": "undefined",
+      "whenToUse": "You want to programmatically send a comp to the render queue without touching the UI.",
+      "example": "queueComp(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Randomize Layer Start Time",
+      "function": "randomizeLayerStartTime",
+      "file": "Scripts/lib/actions/layer/randomize_layer_start_time.jsxinc",
+      "description": "Randomly offsets selected layer start times within a frame range. Offsets are rounded to whole frames for deterministic timeline placement.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), rangeFrames: number (default 30), signed: boolean (default true) }",
+      "outputs": "number \u2014 count of layers shifted",
+      "whenToUse": "You want organic staggered timing across duplicated or repeated layers without hand-offsetting each one.",
+      "example": "var count = randomizeLayerStartTime(comp, { rangeFrames: 12 });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "rangeFrames",
+            "label": "Range (frames)",
+            "hint": "30",
+            "type": "number",
+            "argKey": "rangeFrames"
+          },
+          {
+            "name": "signed",
+            "label": "Signed Offset",
+            "hint": "true",
+            "type": "boolean",
+            "argKey": "signed"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Remove Redundant Keyframes",
+      "function": "removeRedundantKeyframes",
+      "file": "Scripts/lib/actions/property/remove_redundant_keyframes.jsxinc",
+      "description": "Removes consecutive keyframes whose values are effectively identical. Useful after baking expressions or oversampling animation.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties), tolerance: number (default 0.0001) }",
+      "outputs": "number \u2014 count of keyframes removed",
+      "whenToUse": "You want to reduce timeline noise by deleting keyframes that do not change the animation result.",
+      "example": "var removed = removeRedundantKeyframes(comp, { tolerance: 0.001 });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "tolerance",
+            "label": "Tolerance",
+            "hint": "0.0001",
+            "type": "number",
+            "argKey": "tolerance"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Rename Selected Layers With Numbers",
+      "function": "renameSelectedLayersWithNumbers",
+      "file": "Scripts/lib/actions/layer/rename_selected_layers_with_numbers.jsxinc",
+      "description": "Renames selected layers using a base name plus zero-padded sequence numbers.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), baseName: string (default first selected layer name), startAt: number (default 1) }",
+      "outputs": "number \u2014 count of layers renamed",
+      "whenToUse": "You want a consistent numbered naming scheme across a selected layer set.",
+      "example": "var count = renameSelectedLayersWithNumbers(comp, { baseName: \"Card\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "baseName",
+            "label": "Base Name",
+            "hint": "Layer",
+            "type": "string",
+            "argKey": "baseName"
+          },
+          {
+            "name": "startAt",
+            "label": "Start At",
+            "hint": "1",
+            "type": "number",
+            "argKey": "startAt"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Reset Composition Work Area",
+      "function": "resetCompositionWorkArea",
+      "file": "Scripts/lib/actions/comp/reset_composition_work_area.jsxinc",
+      "description": "Resets the comp work area to span the full composition duration.",
+      "category": "comp",
+      "tier": "block",
+      "inputs": "comp: CompItem",
+      "outputs": "boolean \u2014 true when the work area was reset",
+      "whenToUse": "You want to clear any trimmed work area and restore full-comp playback.",
+      "example": "resetCompositionWorkArea(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Reset Layer Names",
+      "function": "resetLayerNames",
+      "file": "Scripts/lib/actions/utility/reset_layer_names.jsxinc",
+      "description": "Resets every layer name in the comp back to AE's default-derived name by assigning an empty string.",
+      "category": "utility",
+      "tier": "block",
+      "inputs": "comp: CompItem",
+      "outputs": "number \u2014 count of layer names reset",
+      "whenToUse": "You want to clear custom naming in a comp and fall back to source/default layer names.",
+      "example": "var count = resetLayerNames(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Round Selected Keyframe Values",
+      "function": "roundSelectedKeyframeValues",
+      "file": "Scripts/lib/actions/property/round_selected_keyframe_values.jsxinc",
+      "description": "Rounds the selected keyframe values of compatible 1D, 2D, and 3D properties to the nearest whole number.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties) }",
+      "outputs": "number \u2014 count of keyframes updated",
+      "whenToUse": "You want cleaner numeric values after dragging, baking, or importing animation data.",
+      "example": "var count = roundSelectedKeyframeValues(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Round Selected Property Values",
+      "function": "roundSelectedPropertyValues",
+      "file": "Scripts/lib/actions/property/round_selected_property_values.jsxinc",
+      "description": "Rounds the current values of selected non-animated 1D, 2D, and 3D properties to the nearest whole number.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties) }",
+      "outputs": "number \u2014 count of properties updated",
+      "whenToUse": "You want cleaner static values after dragging, importing, or procedurally setting properties.",
+      "example": "var count = roundSelectedPropertyValues(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Select All Children",
+      "function": "selectAllChildren",
+      "file": "Scripts/lib/actions/layer/select_all_children.jsxinc",
+      "description": "Selects all unlocked child layers of a single selected parent layer.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { parentLayer: AVLayer (default comp.selectedLayers[0]), deselectParent: boolean (default true) }",
+      "outputs": "number \u2014 count of child layers selected",
+      "whenToUse": "You want to isolate every direct child of a selected parent layer.",
+      "example": "var count = selectAllChildren(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Select Disabled Layers",
+      "function": "selectDisabledLayers",
+      "file": "Scripts/lib/actions/layer/select_disabled_layers.jsxinc",
+      "description": "Selects all unlocked disabled layers in the comp.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { clearSelection: boolean (default true) }",
+      "outputs": "number \u2014 count of layers selected",
+      "whenToUse": "You want to quickly find hidden layers that are disabled via the eyeball switch.",
+      "example": "var count = selectDisabledLayers(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Select Guide Layers",
+      "function": "selectGuideLayers",
+      "file": "Scripts/lib/actions/layer/select_guide_layers.jsxinc",
+      "description": "Selects all guide layers in the comp.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { clearSelection: boolean (default true) }",
+      "outputs": "number \u2014 count of guide layers selected",
+      "whenToUse": "You want to isolate guide layers for cleanup or editing.",
+      "example": "var count = selectGuideLayers(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Select Non-Null Layers",
+      "function": "selectNonNullLayers",
+      "file": "Scripts/lib/actions/layer/select_non_null_layers.jsxinc",
+      "description": "Selects all unlocked non-null layers in the comp.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { clearSelection: boolean (default true) }",
+      "outputs": "number \u2014 count of layers selected",
+      "whenToUse": "You want to exclude null controllers from a bulk layer operation.",
+      "example": "var count = selectNonNullLayers(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Select Parent Layer",
+      "function": "selectParentLayer",
+      "file": "Scripts/lib/actions/layer/select_parent_layer.jsxinc",
+      "description": "Selects the parent of the first selected layer.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layer: AVLayer (default comp.selectedLayers[0]), deselectChild: boolean (default true) }",
+      "outputs": "AVLayer \u2014 the selected parent layer",
+      "whenToUse": "You want to jump from a child layer to its direct parent in one command.",
+      "example": "var parent = selectParentLayer(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Select Random Layers",
+      "function": "selectRandomLayers",
+      "file": "Scripts/lib/actions/layer/select_random_layers.jsxinc",
+      "description": "Randomly selects unlocked layers in the comp using a threshold probability.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { threshold: number (default 0.5), clearSelection: boolean (default true) }",
+      "outputs": "number \u2014 count of layers selected",
+      "whenToUse": "You want a quick random subset of layers for experimentation or staggered operations.",
+      "example": "var count = selectRandomLayers(comp, { threshold: 0.25 });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "threshold",
+            "label": "Threshold",
+            "hint": "0.5",
+            "type": "number",
+            "argKey": "threshold"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Select Shape Layers",
+      "function": "selectShapeLayers",
+      "file": "Scripts/lib/actions/layer/select_shape_layers.jsxinc",
+      "description": "Selects all shape layers in the comp, unlocking them first if requested.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { unlockLayers: boolean (default true), clearSelection: boolean (default true) }",
+      "outputs": "number \u2014 count of shape layers selected",
+      "whenToUse": "You want to isolate shape layers for styling or animation changes.",
+      "example": "var count = selectShapeLayers(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Select Text Layers",
+      "function": "selectTextLayers",
+      "file": "Scripts/lib/actions/layer/select_text_layers.jsxinc",
+      "description": "Selects all text layers in the comp. Optionally unlocks layers first so locked text layers can be selected as well.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { unlockLayers: boolean (default true), clearSelection: boolean (default true) }",
+      "outputs": "number \u2014 count of text layers selected",
+      "whenToUse": "You want to isolate all text layers in a comp for batch styling, parenting, or cleanup.",
+      "example": "var count = selectTextLayers(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "unlockLayers",
+            "label": "Unlock Layers",
+            "hint": "true",
+            "type": "boolean",
+            "argKey": "unlockLayers"
+          },
+          {
+            "name": "clearSelection",
+            "label": "Clear Selection",
+            "hint": "true",
+            "type": "boolean",
+            "argKey": "clearSelection"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Select Unparented Layers",
+      "function": "selectUnparentedLayers",
+      "file": "Scripts/lib/actions/layer/select_unparented_layers.jsxinc",
+      "description": "Selects all unlocked layers in the comp that do not have a parent.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { clearSelection: boolean (default true) }",
+      "outputs": "number \u2014 count of layers selected",
+      "whenToUse": "You want to find loose layers that are not attached to any rig or hierarchy.",
+      "example": "var count = selectUnparentedLayers(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Set Expression",
+      "function": "setExpression",
+      "file": "Scripts/lib/actions/property/set_expression.jsxinc",
+      "description": "Applies an expression string to an animatable property with three-guard validation: PROPERTY type check, canSetExpression check, and expression string check.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "prop: Property; opts: { expression: string (required) }",
+      "outputs": "boolean \u2014 true if the expression was applied successfully",
+      "whenToUse": "You need to apply an expression to a property. Guards against non-property groups and properties that don't support expressions.",
+      "example": "var ok = setExpression(layer.property(\"Transform\").property(\"Opacity\"), { expression: \"wiggle(2, 10)\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "manual",
+        "note": "Operates on a specific Property \u2014 call setExpression(prop, { expression: '...' }) in a script."
+      }
+    },
+    {
+      "name": "Set Keyframes",
+      "function": "setKeyframes",
+      "file": "Scripts/lib/actions/property/set_keyframes.jsxinc",
+      "description": "Sets one or more keyframes on an animatable property, with configurable easing. Validates canVaryOverTime, sorts keyframes by time, and maps easing strings to KeyframeInterpolationType + KeyframeEase.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "prop: Property; opts: { keyframes: Array<{time: number, value:",
+      "outputs": "number \u2014 count of keyframes added",
+      "whenToUse": "You need to set keyframe values on any animatable property with consistent easing. Handles both temporal and spatial properties.",
+      "example": "var count = setKeyframes(layer.property(\"Transform\").property(\"Opacity\"), { keyframes: [{time: 0, value: 0}, {time: 1, value: 100}], easing: \"easeInOut\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "manual",
+        "note": "Operates on a specific Property \u2014 call setKeyframes(prop, { keyframes: [...] }) in a script."
+      }
+    },
+    {
+      "name": "Set Layer Parent",
+      "function": "setLayerParent",
+      "file": "Scripts/lib/actions/layer/set_parent.jsxinc",
+      "description": "Sets the parent of a child layer within a comp by layer name or index. Pass null as parent to unparent. Prevents self-parenting.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { child: string|number (layer name or 1-based index, required), parent: string|number|null (layer name or 1-based index; null to unparent) }",
+      "outputs": "boolean \u2014 true if the parent was set (or cleared) successfully",
+      "whenToUse": "You need to parent one layer to another (e.g. camera to null, logo to controller). Use null as parent to break an existing parent link.",
+      "example": "setLayerParent(comp, { child: \"Logo\", parent: \"Null Controller\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "child",
+            "label": "Child (name or index)",
+            "hint": "Logo",
+            "type": "nameOrIndex",
+            "argKey": "child"
+          },
+          {
+            "name": "parent",
+            "label": "Parent (name, index, or blank=none)",
+            "hint": "Null Controller",
+            "type": "nameOrIndex",
+            "argKey": "parent"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Set Simple Time Remap Loop",
+      "function": "setSimpleTimeRemapLoop",
+      "file": "Scripts/lib/actions/property/set_simple_time_remap_loop.jsxinc",
+      "description": "Enables time remapping on selected layers, adds the standard seamless loop key, and applies a cycle loop expression to the time remap property.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), expressionType: \"cycle\"|\"pingpong\"|\"offset\"|\"continue\" (default \"cycle\"), stretchToComp: boolean (default true) }",
+      "outputs": "number \u2014 count of layers updated",
+      "whenToUse": "You want a footage or precomp layer to loop cleanly for the full composition duration without manually wiring time remap.",
+      "example": "var count = setSimpleTimeRemapLoop(comp, { expressionType: \"cycle\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "expressionType",
+            "label": "Loop Type",
+            "hint": "cycle",
+            "type": "string",
+            "argKey": "expressionType"
+          },
+          {
+            "name": "stretchToComp",
+            "label": "Stretch To Comp",
+            "hint": "true",
+            "type": "boolean",
+            "argKey": "stretchToComp"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Set To Average Position",
+      "function": "setToAveragePosition",
+      "file": "Scripts/lib/actions/layer/set_to_average_position.jsxinc",
+      "description": "Moves one selected layer to the average position of the selected set. By default it targets the last selected layer, matching the community script behavior.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), target: \"last\"|\"first\" (default \"last\") }",
+      "outputs": "AVLayer \u2014 the layer that was repositioned",
+      "whenToUse": "You need to snap a controller or layer to the centroid of a selected group.",
+      "example": "var layer = setToAveragePosition(comp, { target: \"first\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "target",
+            "label": "Target",
+            "hint": "last",
+            "type": "string",
+            "argKey": "target"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Set Track Matte To Above",
+      "function": "setTrackMatteToAbove",
+      "file": "Scripts/lib/actions/layer/set_track_matte_to_above.jsxinc",
+      "description": "Sets each selected layer's track matte to the layer directly above it, with a configurable matte type.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), matteType: \"alpha\"|\"alphaInverted\"|\"luma\"|\"lumaInverted\" (default \"lumaInverted\") }",
+      "outputs": "number \u2014 count of layers updated",
+      "whenToUse": "You want to batch-wire selected layers to use the layer above as their matte instead of setting each matte manually.",
+      "example": "var count = setTrackMatteToAbove(comp, { matteType: \"alpha\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "matteType",
+            "label": "Matte Type",
+            "hint": "lumaInverted",
+            "type": "string",
+            "argKey": "matteType"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Set Work Area To Markers",
+      "function": "setWorkAreaToMarkers",
+      "file": "Scripts/lib/actions/comp/set_work_area_to_markers.jsxinc",
+      "description": "Sets the work area to the span between two composition markers.",
+      "category": "comp",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { startMarkerIndex: number (default 1), endMarkerIndex: number (default 2) }",
+      "outputs": "number \u2014 resulting work area duration",
+      "whenToUse": "You want to derive the work area from marker boundaries rather than setting it manually.",
+      "example": "var duration = setWorkAreaToMarkers(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Shift Layer Start Time",
+      "function": "shiftLayerStartTime",
+      "file": "Scripts/lib/actions/layer/shift_layer_start_time.jsxinc",
+      "description": "Shifts selected layers so the earliest in-point aligns to a target time while preserving relative timing between layers.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), targetTime: number (default comp.time) }",
+      "outputs": "number \u2014 count of layers shifted",
+      "whenToUse": "You want to move a selected layer group in time as a unit without disturbing their internal offsets.",
+      "example": "var count = shiftLayerStartTime(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "targetTime",
+            "label": "Target Time",
+            "hint": "0",
+            "type": "number",
+            "argKey": "targetTime"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Swap Property Values",
+      "function": "swapPropertyValues",
+      "file": "Scripts/lib/actions/property/swap_property_values.jsxinc",
+      "description": "Swaps the current values of exactly two compatible selected properties.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties) }",
+      "outputs": "boolean \u2014 true if the values were swapped",
+      "whenToUse": "You want to exchange two property values without manually copying and pasting.",
+      "example": "var ok = swapPropertyValues(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Swap Selected Property Dimensions",
+      "function": "swapSelectedPropertyDimensions",
+      "file": "Scripts/lib/actions/property/swap_selected_property_dimensions.jsxinc",
+      "description": "Swaps the two dimensions of selected 2D properties such as size, position, or scale values.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties) }",
+      "outputs": "number \u2014 count of properties updated",
+      "whenToUse": "You want to quickly flip width/height or x/y values on selected 2D properties.",
+      "example": "var count = swapSelectedPropertyDimensions(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Toggle Maintain Scale Expression",
+      "function": "toggleMaintainScaleExpression",
+      "file": "Scripts/lib/actions/property/toggle_maintain_scale_expression.jsxinc",
+      "description": "Toggles an expression on selected 3D layers so their apparent scale stays visually consistent as Z position changes.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers) }",
+      "outputs": "number \u2014 count of layers updated",
+      "whenToUse": "You want 3D layers to preserve their apparent screen scale while moving in Z space.",
+      "example": "var count = toggleMaintainScaleExpression(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Toggle Onion Skinning",
+      "function": "toggleOnionSkinning",
+      "file": "Scripts/lib/actions/comp/toggle_onion_skinning.jsxinc",
+      "description": "Toggles a CC Wide Time adjustment layer in the comp and stores its source id in the comp comment for later removal.",
+      "category": "comp",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { marker: string (default \"",
+      "outputs": "boolean \u2014 true when onion skinning ends enabled, false when it was disabled",
+      "whenToUse": "You want a quick onion-skin preview setup without building the adjustment layer manually.",
+      "example": "var enabled = toggleOnionSkinning(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": []
+      }
+    },
+    {
+      "name": "Toggle Preserve Nested Frame Rate",
+      "function": "togglePreserveNestedFrameRate",
+      "file": "Scripts/lib/actions/comp/toggle_preserve_nested_frame_rate.jsxinc",
+      "description": "Sets preserve-nested-frame-rate across all comps in the project.",
+      "category": "comp",
+      "tier": "block",
+      "inputs": "opts: { enabled: boolean (default true) }",
+      "outputs": "number \u2014 count of compositions updated",
+      "whenToUse": "You want all compositions to consistently preserve nested frame rate or disable that behavior project-wide.",
+      "example": "var count = togglePreserveNestedFrameRate({ enabled: true });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "project",
+        "params": [
+          {
+            "name": "enabled",
+            "label": "Enabled",
+            "hint": "true",
+            "type": "boolean",
+            "argKey": "enabled"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Toggle Specific Effects",
+      "function": "toggleSpecificEffects",
+      "file": "Scripts/lib/actions/layer/toggle_specific_effects.jsxinc",
+      "description": "Enables or disables matching effects on layers by effect match name. Defaults to selected layers and can optionally scan every layer in the comp.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), allLayers: boolean (default false), enabled: boolean (default false), effectMatchNames: string[] (default [\"ADBE Turbulent Displace\"]) }",
+      "outputs": "number \u2014 count of effects toggled",
+      "whenToUse": "You want to batch-enable or batch-disable one or more heavy effects during preview or export prep.",
+      "example": "var count = toggleSpecificEffects(comp, { enabled: true, effectMatchNames: [\"ADBE Turbulent Displace\", \"ADBE Glo2\"] });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "enabled",
+            "label": "Enabled",
+            "hint": "false",
+            "type": "boolean",
+            "argKey": "enabled"
+          },
+          {
+            "name": "effectMatchNames",
+            "label": "Effect Match Names",
+            "hint": "ADBE Turbulent Displace",
+            "type": "string",
+            "argKey": "effectMatchNames"
+          },
+          {
+            "name": "allLayers",
+            "label": "All Layers",
+            "hint": "false",
+            "type": "boolean",
+            "argKey": "allLayers"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Toggle Timecode And Start Frames",
+      "function": "toggleTimecodeAndStartFrames",
+      "file": "Scripts/lib/actions/comp/toggle_timecode_and_start_frames.jsxinc",
+      "description": "Sets the project frame count mode to start on frame 0 or 1 and normalizes comp displayStartFrame to 0.",
+      "category": "comp",
+      "tier": "block",
+      "inputs": "opts: { startAtOne: boolean (default true) }",
+      "outputs": "boolean \u2014 true when frame count starts at 1, false when it starts at 0",
+      "whenToUse": "You want a project-wide frame numbering convention switch without opening preferences.",
+      "example": "toggleTimecodeAndStartFrames({ startAtOne: true });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "project",
+        "params": [
+          {
+            "name": "startAtOne",
+            "label": "Start At One",
+            "hint": "true",
+            "type": "boolean",
+            "argKey": "startAtOne"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Transfer Composition Work Area",
+      "function": "transferCompositionWorkArea",
+      "file": "Scripts/lib/actions/comp/transfer_composition_work_area.jsxinc",
+      "description": "Copies the work area from a source comp into app settings, or pastes the saved work area into a target comp.",
+      "category": "comp",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { mode: \"copy\"|\"paste\" (default \"copy\"), settingsSection: string (default \"KM Copy Work Area\") }",
+      "outputs": "boolean \u2014 true when the operation completed",
+      "whenToUse": "You want to carry a work area selection from one composition to another.",
+      "example": "transferCompositionWorkArea(comp, { mode: \"copy\" });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "mode",
+            "label": "Mode",
+            "hint": "copy",
+            "type": "string",
+            "argKey": "mode"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Unlock All Layers",
+      "function": "unlockAllLayers",
+      "file": "Scripts/lib/actions/layer/unlock_all_layers.jsxinc",
+      "description": "Unlocks all layers in the active comp by default, or every comp in the project when `allComps` is true.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { allComps: boolean (default false) }",
+      "outputs": "number \u2014 count of layers unlocked",
+      "whenToUse": "You want to clear accidental locking before batch editing.",
+      "example": "var count = unlockAllLayers(comp, { allComps: true });",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "allComps",
+            "label": "All Comps",
+            "hint": "false",
+            "type": "boolean",
+            "argKey": "allComps"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Update Stroke Weight Expressions",
+      "function": "updateStrokeWeightExpressions",
+      "file": "Scripts/lib/actions/property/update_stroke_weight_expressions.jsxinc",
+      "description": "Replaces an older maintain-stroke-width expression with the newer safer expression across the whole project.",
+      "category": "property",
+      "tier": "block",
+      "inputs": "opts: { oldExpression: string (optional), newExpression: string (optional) }",
+      "outputs": "number \u2014 count of expressions replaced",
+      "whenToUse": "You want to normalize old stroke-weight maintenance expressions to the safer project-wide variant.",
+      "example": "var count = updateStrokeWeightExpressions({});",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "project",
+        "params": []
+      }
+    },
+    {
+      "name": "Zero Position",
+      "function": "zeroPosition",
+      "file": "Scripts/lib/actions/layer/zero_position.jsxinc",
+      "description": "Creates guide-style zero nulls for selected layers and parents each selected layer to its zero, preserving visual position.",
+      "category": "layer",
+      "tier": "block",
+      "inputs": "comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), prefix: string (default \"z_\") }",
+      "outputs": "number \u2014 count of zero layers created",
+      "whenToUse": "You want to zero out layer transforms by inserting a parent at the current position.",
+      "example": "var count = zeroPosition(comp);",
+      "requires": [],
+      "pluginDeps": [],
+      "runnerMeta": {
+        "category": "comp",
+        "params": [
+          {
+            "name": "prefix",
+            "label": "Prefix",
+            "hint": "z_",
+            "type": "string",
+            "argKey": "prefix"
+          }
+        ]
+      }
+    }
+  ]
+}

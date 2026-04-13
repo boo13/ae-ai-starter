@@ -1,0 +1,75 @@
+/**
+ * @name Remove Redundant Keyframes
+ * @description Removes consecutive keyframes whose values are effectively identical. Useful after baking expressions or oversampling animation.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties), tolerance: number (default 0.0001) }
+ * @outputs number — count of keyframes removed
+ * @whenToUse You want to reduce timeline noise by deleting keyframes that do not change the animation result.
+ * @example var removed = removeRedundantKeyframes(comp, { tolerance: 0.001 });
+ */
+
+/**
+ * Normalizes a scalar or array value into an array for comparison.
+ * @private
+ */
+function _rrk_toArray(value) {
+    return (value instanceof Array) ? value : [value];
+}
+
+/**
+ * Compares two scalar/array values using a tolerance.
+ * @private
+ */
+function _rrk_isEqual(a, b, tolerance) {
+    var av = _rrk_toArray(a);
+    var bv = _rrk_toArray(b);
+    var i = 0;
+
+    if (av.length !== bv.length) {
+        return false;
+    }
+    for (i = 0; i < av.length; i++) {
+        if (Math.abs(av[i] - bv[i]) > tolerance) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function removeRedundantKeyframes(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Remove Redundant Keyframes: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var properties = o.properties || comp.selectedProperties;
+    var tolerance = (o.tolerance !== undefined) ? Number(o.tolerance) : 0.0001;
+    var removed = 0;
+    var i = 0;
+    var k = 0;
+
+    setStep("validate properties");
+    if (!properties || !properties.length) {
+        throw new Error("Remove Redundant Keyframes: no properties selected.");
+    }
+    if (isNaN(tolerance) || tolerance < 0) {
+        throw new Error("Remove Redundant Keyframes: opts.tolerance must be a non-negative number.");
+    }
+
+    setStep("remove redundant keys");
+    for (i = 0; i < properties.length; i++) {
+        var prop = properties[i];
+        if (!prop || prop.propertyType !== PropertyType.PROPERTY || !prop.isTimeVarying || prop.numKeys < 2) {
+            continue;
+        }
+        for (k = prop.numKeys; k > 1; k--) {
+            if (_rrk_isEqual(prop.keyValue(k), prop.keyValue(k - 1), tolerance)) {
+                prop.removeKey(k);
+                removed++;
+            }
+        }
+    }
+
+    return removed;
+}

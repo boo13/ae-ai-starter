@@ -1,0 +1,46 @@
+/**
+ * @name Lock All Layers
+ * @description Locks all layers in the active comp by default, or in every comp in the project when `allComps` is true.
+ * @category layer
+ * @tier block
+ * @inputs comp: CompItem; opts: { allComps: boolean (default false) }
+ * @outputs number — count of layers locked
+ * @whenToUse You want to freeze a comp or whole project against accidental layer edits.
+ * @example var count = lockAllLayers(comp, { allComps: true });
+ */
+
+/**
+ * Locks every layer in a comp.
+ * @private
+ */
+function _lal_lockComp(targetComp) {
+    var count = 0;
+    var i = 0;
+    for (i = targetComp.numLayers; i > 0; i--) {
+        targetComp.layer(i).selected = false;
+        targetComp.layer(i).locked = true;
+        count++;
+    }
+    return count;
+}
+
+function lockAllLayers(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Lock All Layers: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var count = 0;
+    var i = 0;
+
+    setStep("lock layers");
+    if (o.allComps === true) {
+        for (i = 1; i <= app.project.numItems; i++) {
+            if (app.project.item(i) instanceof CompItem) {
+                count += _lal_lockComp(app.project.item(i));
+            }
+        }
+        return count;
+    }
+    return _lal_lockComp(comp);
+}

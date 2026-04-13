@@ -1,0 +1,38 @@
+/**
+ * @name Find Specific Effect
+ * @description Scans every comp and returns all layer/effect matches for one or more effect match names.
+ * @category utility
+ * @tier block
+ * @inputs opts: { effectMatchNames: string[]|string (default "ADBE Gaussian Blur 2") }
+ * @outputs Array<Object> — [{ compName, layerName, layerIndex, effectName, matchName }]
+ * @whenToUse You want an inventory of where a specific effect is used across the project.
+ * @example var matches = findSpecificEffect({ effectMatchNames: ["ADBE Gaussian Blur 2"] });
+ */
+function findSpecificEffect(opts) {
+    if (!app.project) throw new Error("Find Specific Effect: no project is open.");
+    var o = opts || {};
+    var names = o.effectMatchNames || ["ADBE Gaussian Blur 2"];
+    var out = [];
+    var i = 0, l = 0, e = 0;
+    if (!(names instanceof Array)) names = String(names).split(",");
+    for (i = 0; i < names.length; i++) names[i] = String(names[i]).replace(/^\s+|\s+$/g, "");
+    setStep("scan project effects");
+    for (i = app.project.numItems; i > 0; i--) {
+        var item = app.project.items[i];
+        if (item instanceof CompItem) {
+            for (l = item.numLayers; l > 0; l--) {
+                var layer = item.layer(l);
+                var effects = layer.property("ADBE Effect Parade");
+                if (!effects) continue;
+                for (e = effects.numProperties; e > 0; e--) {
+                    var effect = effects.property(e);
+                    var m = 0;
+                    for (m = 0; m < names.length; m++) {
+                        if (effect.matchName === names[m]) out.push({ compName: item.name, layerName: layer.name, layerIndex: layer.index, effectName: effect.name, matchName: effect.matchName });
+                    }
+                }
+            }
+        }
+    }
+    return out;
+}

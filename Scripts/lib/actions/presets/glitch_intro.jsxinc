@@ -1,0 +1,968 @@
+/**
+ * @name Add Glitch Intro
+ * @description Builds a complete glitch-style motion graphics intro: fractal noise driver comp,
+ *   artwork flicker comp (sequenced images + loop), triangle reveal system with hold-keyframe
+ *   flicker, katakana logo glitch-in via Displacement Map, 3-layer thermal logo stack,
+ *   fractal wipe transition (Stencil Luma), and a final FX comp (global Displacement Map,
+ *   CC Ball Action LED look, dual standard Glow bloom, Posterize Time 12fps adjustment layer).
+ * @category preset
+ * @tier compound
+ * @inputs opts: {
+ *   artworkItems: Array<FootageItem|CompItem>  optional — pre-imported footage; placeholder comps are created if omitted,
+ *   logoComp: CompItem                         optional — main logo comp; placeholder created if omitted,
+ *   katakanaComp: CompItem                     optional — katakana comp; placeholder created if omitted,
+ *   width: number                              default 1920,
+ *   height: number                             default 1080,
+ *   fps: number                                default 24,
+ *   duration: number                           default 8 (seconds),
+ *   artworkCount: number                       default 6 (placeholder slots when artworkItems not provided),
+ *   artworkFrames: number                      default 4 (frames per artwork image),
+ *   artworkLoopCount: number                   default 6 (duplicates of artwork seq comp),
+ *   posterizeFps: number                       default 12,
+ *   logoGlitchFps: number                      default 6 (posterize on thermal layer),
+ *   fractalRate: number                        default 500 (Evolution expression multiplier),
+ *   compFolder: FolderItem                     optional — project folder to place new comps in
+ * }
+ * @outputs Object — { fractalComp, artworkSeqComp, artworkLoopComp, mainIntroComp, finalComp }
+ * @whenToUse You want a full glitch-style intro from scratch: triangle reveal, artwork flicker,
+ *   logo glitch-in, thermal/LED FX stack, and fractal wipe exit. Pass pre-imported artwork
+ *   footage and logo/katakana comps via opts.
+ * @example var result = addGlitchIntro({ artworkItems: myImages, logoComp: logo, katakanaComp: kata });
+ * @requires create_comp.jsxinc, solid.jsxinc, null_object.jsxinc, shape_layer.jsxinc,
+ *           apply_effect.jsxinc, set_keyframes.jsxinc, set_expression.jsxinc, set_parent.jsxinc,
+ *           layer_from_item.jsxinc
+ * @pluginDeps
+ *   ADBE Fractal Noise (built-in),
+ *   ADBE Displacement Map (built-in),
+ *   ADBE Fill (built-in),
+ *   ADBE Colorama (built-in),
+ *   ADBE Posterize (built-in — NOTE: this is the color Posterize; Posterize Time may use a
+ *     different match name — see UNCERTAIN note in _gi_buildFinalComp),
+ *   CC Ball Action (Cycore / built-in bundle — match name uncertain, see inline note),
+ *   ADBE Glo2 (built-in Stylize > Glow — used twice for wide + tight bloom)
+ */
+
+// Public entry point declared first so the indexer finds it within the first 8000 chars.
+// All _gi_* helpers below use function declarations, which hoist in ExtendScript.
+function addGlitchIntro(opts) {
+    if (!app.project) {
+        throw new Error("Add Glitch Intro: no project is open.");
+    }
+    var o = opts || {};
+
+    // Defaults
+    var width        = (o.width  !== undefined) ? o.width  : 1920;
+    var height       = (o.height !== undefined) ? o.height : 1080;
+    var fps          = (o.fps    !== undefined) ? o.fps    : 24;
+    var duration     = (o.duration !== undefined) ? o.duration : 8;
+    var artworkFrames   = (o.artworkFrames   !== undefined) ? o.artworkFrames   : 4;
+    var artworkLoopCount = (o.artworkLoopCount !== undefined) ? o.artworkLoopCount : 6;
+    var posterizeFps    = (o.posterizeFps    !== undefined) ? o.posterizeFps    : 12;
+    var logoGlitchFps   = (o.logoGlitchFps   !== undefined) ? o.logoGlitchFps   : 6;
+    var fractalRate     = (o.fractalRate     !== undefined) ? o.fractalRate     : 500;
+    var artworkCount    = (o.artworkCount    !== undefined) ? o.artworkCount    : 6;
+    var folder          = o.compFolder || null;
+
+    // Resolve or create placeholder sources
+    setStep("resolve artwork items");
+    var artworkItems = (o.artworkItems && o.artworkItems.length)
+        ? o.artworkItems
+        : _gi_makePlaceholderArtworkItems(artworkCount, width, height, fps, artworkFrames, folder);
+
+    setStep("resolve logo comp");
+    var logoComp = (o.logoComp instanceof CompItem)
+        ? o.logoComp
+        : _gi_makePlaceholderComp("Logo", width, height, fps, duration, [1, 1, 1], folder);
+
+    setStep("resolve katakana comp");
+    var katakanaComp = (o.katakanaComp instanceof CompItem)
+        ? o.katakanaComp
+        : _gi_makePlaceholderComp("Katakana", width, height, fps, duration, [0.9, 0.9, 0.9], folder);
+
+    var buildOpts = {
+        width: width, height: height, fps: fps, duration: duration,
+        posterizeFps: posterizeFps, logoGlitchFps: logoGlitchFps,
+        fractalRate: fractalRate, compFolder: folder
+    };
+
+    // Build the comp stack bottom-up
+    setStep("build fractal noise driver comp");
+    var fractalComp = _gi_buildFractalNoiseComp(width, height, fps, duration, fractalRate, folder);
+
+    setStep("build fractal wipe comp");
+    var fractalWipeComp = _gi_buildFractalWipeComp(width, height, fps, duration, folder);
+
+    setStep("build artwork sequence comp");
+    var artworkSeqComp = _gi_buildArtworkSeqComp(
+        artworkItems, width, height, fps, artworkFrames, folder
+    );
+
+    setStep("build artwork loop comp");
+    var artworkLoopComp = _gi_buildArtworkLoopComp(
+        artworkSeqComp, width, height, fps, artworkLoopCount, folder
+    );
+
+    setStep("build main intro comp");
+    var mainIntroComp = _gi_buildMainIntroComp(
+        fractalComp, fractalWipeComp, artworkLoopComp, katakanaComp, logoComp, buildOpts
+    );
+
+    setStep("build final comp");
+    var finalComp = _gi_buildFinalComp(mainIntroComp, fractalComp, buildOpts);
+
+    return {
+        fractalComp:    fractalComp,
+        fractalWipeComp: fractalWipeComp,
+        artworkSeqComp: artworkSeqComp,
+        artworkLoopComp: artworkLoopComp,
+        mainIntroComp:  mainIntroComp,
+        finalComp:      finalComp
+    };
+}
+
+// ─── Private Helpers ─────────────────────────────────────────────────────────
+
+/**
+ * Resolves a layer by name or 1-based index in a comp.
+ * @private
+ */
+function _gi_resolveLayer(comp, nameOrIndex) {
+    if (nameOrIndex === null || nameOrIndex === undefined) { return null; }
+    if (typeof nameOrIndex === "number") {
+        try { return comp.layer(nameOrIndex); } catch (_) { return null; }
+    }
+    try { return comp.layer(String(nameOrIndex)); } catch (_) { return null; }
+}
+
+/**
+ * Thin wrapper: delegates to the addLayerFromItem block action.
+ * @private
+ */
+function _gi_addItemLayer(comp, item, inPoint, duration) {
+    return addLayerFromItem(comp, {
+        item: item,
+        inPoint: (inPoint !== undefined && inPoint !== null) ? inPoint : 0,
+        duration: (duration !== undefined && duration !== null) ? duration : undefined
+    });
+}
+
+// ─── Step 1: Fractal Noise Driver Comp ────────────────────────────────────────
+/**
+ * Creates a black solid comp with Fractal Noise as a reusable driver for
+ * displacement, color mapping, and wipe transitions.
+ *
+ * UNCERTAIN: Fractal Noise property match names (ADBE Fractal Noise-XXXX indices)
+ * are not documented in public AE scripting references. Using display names here as
+ * fallback via applyEffect's property lookup. Verify against your AE version.
+ * Noise Type 3 = Block (enum index, may vary — tutorial specifies Block for texture,
+ * Soft Linear for the wipe variant; adjust manually if wrong).
+ *
+ * @private
+ */
+function _gi_buildFractalNoiseComp(width, height, fps, duration, fractalRate, folder) {
+    setStep("create fractal noise comp");
+    var comp = createCompFromValues({
+        name: "FRACTAL NOISE DRIVER",
+        width: width,
+        height: height,
+        fps: fps,
+        duration: duration
+    });
+    if (folder) { try { comp.parentFolder = folder; } catch (_) {} }
+
+    setStep("add fractal noise solid");
+    var solid = addSolid(comp, {
+        color: [0, 0, 0],
+        name: "Fractal Solid"
+    });
+
+    setStep("apply fractal noise effect");
+    // UNCERTAIN: property match names for Fractal Noise use sequential ADBE indices.
+    // The display names ("Noise Type", "Scale Width", "Evolution") should resolve via
+    // effect.property() by display name if match names fail.
+    var fx = applyEffect(solid, {
+        matchName: "ADBE Fractal Noise",
+        name: "Fractal Noise",
+        properties: {
+            // Noise Type 3 = Block (0=Soft Linear,1=Linear,2=Spline,3=Block — verify in AE)
+            // UNCERTAIN: index-based enum; may need manual adjustment
+            "Noise Type": 3
+        }
+    });
+
+    // Scale Width: increase to create horizontal strips (tutorial says "increased")
+    // UNCERTAIN: "Scale Width" display name should work; match name is ADBE Fractal Noise-XXXX
+    try {
+        fx.property("Scale Width").setValue(400);
+    } catch (_) {
+        // Non-fatal — user can adjust manually
+    }
+
+    // Evolution expression: time * fractalRate (drives animation)
+    setStep("set fractal evolution expression");
+    try {
+        setExpression(fx.property("Evolution"), {
+            expression: "time * " + fractalRate
+        });
+    } catch (_) {
+        // UNCERTAIN: "Evolution" display name — if this fails, set expression manually:
+        // Effect("Fractal Noise")("Evolution").expression = "time * 500"
+    }
+
+    return comp;
+}
+
+/**
+ * Creates a variant fractal noise comp configured for the Stencil Luma wipe:
+ * Soft Linear noise type, Contrast ~500, Brightness animates high→low.
+ * @private
+ */
+function _gi_buildFractalWipeComp(width, height, fps, duration, folder) {
+    setStep("create fractal wipe comp");
+    var comp = createCompFromValues({
+        name: "FRACTAL WIPE",
+        width: width,
+        height: height,
+        fps: fps,
+        duration: duration
+    });
+    if (folder) { try { comp.parentFolder = folder; } catch (_) {} }
+
+    var solid = addSolid(comp, { color: [0, 0, 0], name: "Wipe Solid" });
+
+    var fx = applyEffect(solid, {
+        matchName: "ADBE Fractal Noise",
+        name: "Fractal Noise Wipe",
+        properties: {
+            "Noise Type": 0,    // 0 = Soft Linear — UNCERTAIN: verify enum index
+            "Contrast": 500
+        }
+    });
+
+    // Brightness animates from white (255) to black (0) across the comp duration
+    // This creates the fractal wipe: bright areas stay, dark areas cut to black
+    setStep("keyframe wipe brightness");
+    try {
+        var brightProp = fx.property("Brightness");
+        setKeyframes(brightProp, {
+            keyframes: [
+                { time: 0, value: 255 },
+                { time: duration, value: -255 }
+            ],
+            easing: "easeInOut"
+        });
+    } catch (_) {
+        // UNCERTAIN: "Brightness" display name; adjust manually if needed
+    }
+
+    return comp;
+}
+
+// ─── Step 3: Artwork Flicker System ─────────────────────────────────────────
+
+/**
+ * Creates the artwork sequence comp: each image displayed for artworkFrames frames,
+ * stacked sequentially. A Null controls global scale (110%→100% zoom-out).
+ *
+ * NOTE: artworkItems must be pre-imported FootageItems or CompItems from the project.
+ * This action cannot import files — use File > Import or an import action first.
+ * @private
+ */
+function _gi_buildArtworkSeqComp(artworkItems, width, height, fps, artworkFrames, folder) {
+    var frameDur = artworkFrames / fps;
+    var totalDur = artworkItems.length * frameDur;
+    if (totalDur < 1) { totalDur = 1; }
+
+    setStep("create artwork sequence comp");
+    var comp = createCompFromValues({
+        name: "ARTWORK SEQUENCE",
+        width: width,
+        height: height,
+        fps: fps,
+        duration: totalDur
+    });
+    if (folder) { try { comp.parentFolder = folder; } catch (_) {} }
+
+    // Add each artwork item sequentially, each visible for artworkFrames frames
+    setStep("add artwork layers");
+    var artLayers = [];
+    for (var i = 0; i < artworkItems.length; i++) {
+        var inPt = i * frameDur;
+        var layer = _gi_addItemLayer(comp, artworkItems[i], inPt, frameDur);
+        // Center each item
+        try {
+            layer.property("Transform").property("Position").setValue([width / 2, height / 2]);
+        } catch (_) {}
+        artLayers.push(layer);
+    }
+
+    // Null object: parent all artwork layers, animate scale 110%→100% for subtle motion
+    setStep("add artwork null controller");
+    var ctrl = addNull(comp, {
+        name: "Artwork Scale Ctrl",
+        position: [width / 2, height / 2]
+    });
+    var scaleProp = ctrl.property("Transform").property("Scale");
+    setKeyframes(scaleProp, {
+        keyframes: [
+            { time: 0, value: [110, 110] },
+            { time: totalDur, value: [100, 100] }
+        ],
+        easing: "easeInOut"
+    });
+
+    // Parent all artwork layers to the null
+    for (var j = 0; j < artLayers.length; j++) {
+        try { artLayers[j].parent = ctrl; } catch (_) {}
+    }
+
+    return comp;
+}
+
+/**
+ * Creates the looping artwork comp: adds artworkSeqComp N times end-to-end.
+ * @private
+ */
+function _gi_buildArtworkLoopComp(artworkSeqComp, width, height, fps, loopCount, folder) {
+    var totalDur = artworkSeqComp.duration * loopCount;
+    if (totalDur < 1) { totalDur = 1; }
+
+    setStep("create artwork loop comp");
+    var comp = createCompFromValues({
+        name: "ARTWORK LOOP",
+        width: width,
+        height: height,
+        fps: fps,
+        duration: totalDur
+    });
+    if (folder) { try { comp.parentFolder = folder; } catch (_) {} }
+
+    for (var i = 0; i < loopCount; i++) {
+        var inPt = i * artworkSeqComp.duration;
+        _gi_addItemLayer(comp, artworkSeqComp, inPt, artworkSeqComp.duration);
+    }
+
+    return comp;
+}
+
+// ─── Step 2: Triangle Animation System ───────────────────────────────────────
+
+/**
+ * Adds hold-keyframe opacity flicker to a layer's Opacity property.
+ * flickerTimes: array of seconds at which opacity alternates 100/0/100/0...
+ * @private
+ */
+function _gi_applyHoldFlicker(layer, flickerTimes) {
+    var opacityProp = layer.property("Transform").property("Opacity");
+    var kfs = [];
+    for (var i = 0; i < flickerTimes.length; i++) {
+        kfs.push({
+            time: flickerTimes[i],
+            value: (i % 2 === 0) ? 100 : 0
+        });
+    }
+    setKeyframes(opacityProp, { keyframes: kfs, easing: "hold" });
+}
+
+/**
+ * Builds the 4-triangle animation system in mainIntroComp.
+ *
+ * Triangle geometry NOTE: sizes/positions below are approximations based on
+ * comp dimensions. The tutorial does not give exact coordinates — adjust manually
+ * or pass customized opts.triangles to override.
+ *
+ * Triangle 4 (canvas reveal) intentionally has no opacity animation — it stays
+ * fully visible as the permanent reveal shape for the artwork flicker.
+ *
+ * @private
+ */
+function _gi_addTriangleSystem(comp, fps, duration) {
+    var cx = comp.width / 2;
+    var cy = comp.height / 2;
+
+    // ── Triangle 1: cursor flash (tiny, hold-kf opacity) ──────────────────────
+    setStep("add triangle 1 cursor flash");
+    var tri1 = addShapeLayer(comp, {
+        name: "Triangle 1 - Cursor Flash",
+        shape: "polygon",
+        points: 3,
+        outerRadius: 28,
+        position: [cx - 80, cy + 100],
+        fillColor: [1, 1, 1],
+        strokeColor: null
+    });
+    // Hold flicker every 2 frames: 0, 2/fps, 4/fps, ...
+    var flickerInterval1 = 2 / fps;
+    var flickerTimes1 = [];
+    for (var f = 0; f * flickerInterval1 < duration * 0.6; f++) {
+        flickerTimes1.push(f * flickerInterval1);
+    }
+    _gi_applyHoldFlicker(tri1, flickerTimes1);
+
+    // ── Triangle 2: fast flicker + scale up ───────────────────────────────────
+    setStep("add triangle 2 fast flicker");
+    var tri2 = addShapeLayer(comp, {
+        name: "Triangle 2 - Fast Flicker",
+        shape: "polygon",
+        points: 3,
+        outerRadius: 65,
+        position: [cx, cy + 60],
+        fillColor: [1, 1, 1],
+        strokeColor: null
+    });
+    // Faster hold flicker every 1 frame
+    var flickerInterval2 = 1 / fps;
+    var flickerTimes2 = [];
+    for (var g = 0; g * flickerInterval2 < duration * 0.5; g++) {
+        flickerTimes2.push(g * flickerInterval2);
+    }
+    _gi_applyHoldFlicker(tri2, flickerTimes2);
+    // Scale: 80%→100% over first ~0.5s
+    setKeyframes(tri2.property("Transform").property("Scale"), {
+        keyframes: [
+            { time: 0, value: [80, 80] },
+            { time: 0.5, value: [100, 100] }
+        ],
+        easing: "easeOut"
+    });
+
+    // ── Triangle 3: large transition (~2.5s scale shrink) ─────────────────────
+    setStep("add triangle 3 large transition");
+    var tri3 = addShapeLayer(comp, {
+        name: "Triangle 3 - Large Transition",
+        shape: "polygon",
+        points: 3,
+        outerRadius: 800,
+        position: [cx, cy],
+        fillColor: [1, 1, 1],
+        strokeColor: null
+    });
+    // UNCERTAIN: "meeting center triangle" means shrinking outerRadius — but shape layer
+    // outerRadius is baked at creation time. Scale transform is used instead.
+    // The triangle scales from 100%→20% (large→small), targeting roughly the size of tri2.
+    // Adjust scale target based on desired final size relative to comp.
+    setKeyframes(tri3.property("Transform").property("Scale"), {
+        keyframes: [
+            { time: 0, value: [100, 100] },
+            { time: 2.5, value: [20, 20] }
+        ],
+        easing: "easeInOut"
+    });
+
+    // ── Triangle 4: canvas reveal (static filled shape) ───────────────────────
+    // This is the permanent shape that reveals artwork via Preserve Underlying Transparency.
+    // The artwork flicker comp must be placed ABOVE this and all triangles, with
+    // preserveTransparency = true.
+    setStep("add triangle 4 canvas reveal");
+    var tri4 = addShapeLayer(comp, {
+        name: "Triangle 4 - Canvas Reveal",
+        shape: "polygon",
+        points: 3,
+        outerRadius: 520,
+        position: [cx, cy],
+        fillColor: [1, 1, 1],
+        strokeColor: null
+    });
+    // Triangle 4 appears at ~3s; set inPoint
+    try { tri4.inPoint = 3.0; } catch (_) {}
+
+    return { tri1: tri1, tri2: tri2, tri3: tri3, tri4: tri4 };
+}
+
+// ─── Steps 6–7: Katakana Glitch-in + Logo Stack ───────────────────────────────
+
+/**
+ * Adds the katakana comp with a Displacement Map glitch-in effect.
+ * Max Horizontal Displacement animates 100→0 over the first few frames.
+ *
+ * UNCERTAIN: Displacement Map property match names. Using display names as fallback.
+ * The "Displacement Map Layer" property is set by layer index (1-based integer).
+ * Verify that fractalComp is visible and renders before the katakana layer in the comp.
+ *
+ * @private
+ */
+function _gi_addKatakanaGlitchIn(comp, katakanaComp, fractalComp, fps) {
+    setStep("add katakana layer");
+    var layer = _gi_addItemLayer(comp, katakanaComp, 0, null);
+    layer.name = "Katakana Logo";
+
+    setStep("apply displacement map to katakana");
+    // UNCERTAIN: "ADBE Displacement Map" match name is standard; property sub-names
+    // ("Displacement Map Layer", "Max Horizontal Displacement") are display names —
+    // actual ADBE match names would be ADBE Displacement Map-0001 through -0005.
+    var fx = applyEffect(layer, {
+        matchName: "ADBE Displacement Map",
+        name: "Glitch Displacement"
+    });
+
+    // Set the map layer reference to the fractal noise comp layer.
+    // Find fractalComp's layer index in this comp.
+    // UNCERTAIN: AE expects a 1-based layer index integer for layer-reference effect props.
+    // If fractalComp is not yet a layer in this comp, this will fail silently.
+    setStep("set displacement map layer reference");
+    try {
+        var fractalLayer = null;
+        for (var i = 1; i <= comp.numLayers; i++) {
+            var l = comp.layer(i);
+            if (l.source && l.source === fractalComp) {
+                fractalLayer = l;
+                break;
+            }
+        }
+        if (fractalLayer) {
+            fx.property("Displacement Map Layer").setValue(fractalLayer.index);
+        }
+        // UNCERTAIN: Use For Horizontal Displacement — display name varies by AE version.
+        // Setting to Luminance (enum 1) is typical.
+        fx.property("Use For Horizontal Displacement").setValue(1);
+        fx.property("Use For Vertical Displacement").setValue(1);
+    } catch (_) {}
+
+    // Animate Max Horizontal Displacement: 100 → 0 over 3 frames
+    setStep("keyframe katakana displacement");
+    try {
+        var hDispProp = fx.property("Max Horizontal Displacement");
+        setKeyframes(hDispProp, {
+            keyframes: [
+                { time: 0, value: 100 },
+                { time: 3 / fps, value: 0 }
+            ],
+            easing: "easeOut"
+        });
+    } catch (_) {
+        // UNCERTAIN: If display name lookup fails, set manually in AE
+    }
+
+    return layer;
+}
+
+/**
+ * Builds the 3-layer logo stack:
+ *   Bottom — Fill White + Colorama (fractal noise input) + Posterize Time (6fps) → thermal glitch
+ *   Middle — clean logo (no effects)
+ *   Top    — logo with fractal noise layer above it as Luma Matte → transparent holes
+ *
+ * UNCERTAIN: Colorama's "Get Phase From" layer reference property.
+ * Colorama has a complex internal structure. The property path to set the input layer
+ * is not definitively documented. applyEffect sets what it can; the fractal input
+ * mapping may need manual setup in AE after running the script.
+ *
+ * UNCERTAIN: Posterize Time match name. The built-in "Time > Posterize Time" effect
+ * may use a different ADBE match name than the "Stylize > Posterize" color effect.
+ * If "ADBE Posterize" fails for Posterize Time, try "ADBE PosterizeTime" or search
+ * your AE effects panel for the exact match name.
+ *
+ * @private
+ */
+function _gi_addLogoStack(comp, logoComp, fractalComp, logoGlitchFps) {
+    setStep("add logo stack — bottom thermal layer");
+    // Bottom: white fill + Colorama (thermal palette from fractal) + posterize time
+    var logoBottom = _gi_addItemLayer(comp, logoComp, 0, null);
+    logoBottom.name = "Logo — Thermal";
+
+    applyEffect(logoBottom, {
+        matchName: "ADBE Fill",
+        properties: {
+            // Fill Color to white [r,g,b,a] — UNCERTAIN: sub-property display name
+            "Color": [1, 1, 1, 1]
+        }
+    });
+
+    var coloramaFx = applyEffect(logoBottom, {
+        matchName: "ADBE Colorama",
+        name: "Colorama Thermal"
+    });
+    // UNCERTAIN: setting "Get Phase From" to fractalComp layer.
+    // Colorama's internal property path for input layer reference is not reliably
+    // documented. Attempting via display name; manual setup likely required.
+    try {
+        var fractalLayerIdx = null;
+        for (var i = 1; i <= comp.numLayers; i++) {
+            var l = comp.layer(i);
+            if (l.source && l.source === fractalComp) {
+                fractalLayerIdx = l.index;
+                break;
+            }
+        }
+        if (fractalLayerIdx !== null) {
+            // Colorama input phase path: "Input Phase" > "Get Phase From"
+            // UNCERTAIN: exact nesting — may be coloramaFx.property("Input Phase").property("Get Phase From")
+            coloramaFx.property("Input Phase").property("Get Phase From").setValue(fractalLayerIdx);
+        }
+    } catch (_) {
+        // Expected to fail in many cases — see uncertainty note above
+    }
+
+    // Posterize Time on thermal layer — 6fps for the glitch pulse
+    // UNCERTAIN: "ADBE Posterize" may be the color Posterize, not Posterize Time.
+    // If this applies the wrong effect, try the match name "ADBE PosterizeTime".
+    // The Posterize Time effect lives under Time > Posterize Time in the Effects menu.
+    applyEffect(logoBottom, {
+        matchName: "ADBE Posterize",
+        name: "Posterize Time - Logo",
+        properties: {
+            "Frame Rate": logoGlitchFps
+        }
+    });
+
+    setStep("add logo stack — middle clean layer");
+    // Middle: clean logo, no effects
+    var logoMid = _gi_addItemLayer(comp, logoComp, 0, null);
+    logoMid.name = "Logo — Clean";
+
+    setStep("add logo stack — top matte layer");
+    // Fractal matte above top logo layer — fractal's dark areas punch holes in the logo
+    var fractalMatte = _gi_addItemLayer(comp, fractalComp, 0, null);
+    fractalMatte.name = "Fractal Luma Matte";
+    try { fractalMatte.blendingMode = BlendingMode.NORMAL; } catch (_) {}
+
+    // Top logo uses fractalMatte as Luma Matte
+    // In AE: the matte layer must be DIRECTLY ABOVE the matted layer (index N-1 above N).
+    // fractalMatte was added first (higher stack position), logoTop is added next (below it).
+    var logoTop = _gi_addItemLayer(comp, logoComp, 0, null);
+    logoTop.name = "Logo — Matte Punch";
+    try {
+        logoTop.trackMatteType = TrackMatteType.LUMA;
+    } catch (_) {
+        // UNCERTAIN: TrackMatteType.LUMA — if this fails, the enum may be LUMA_INVERTED
+        // depending on which layer is the matte. Verify visually in AE.
+        try { logoTop.trackMatteType = TrackMatteType.LUMA_INVERTED; } catch (_) {}
+    }
+
+    return {
+        logoBottom: logoBottom,
+        logoMid: logoMid,
+        fractalMatte: fractalMatte,
+        logoTop: logoTop
+    };
+}
+
+// ─── Step 8: Fractal Wipe Transition (Stencil Luma) ──────────────────────────
+
+/**
+ * Adds a black solid with Fractal Noise set to Stencil Luma blend mode.
+ * Brightness animates from high (white, fully visible) to low (black, cuts everything).
+ * This creates the dissolving exit: black regions punch through all layers below.
+ *
+ * @private
+ */
+function _gi_addFractalWipeLayer(comp, fractalWipeComp, duration) {
+    setStep("add fractal wipe layer");
+    var wipeLayer = _gi_addItemLayer(comp, fractalWipeComp, 0, null);
+    wipeLayer.name = "Fractal Wipe - Stencil Luma";
+    try {
+        wipeLayer.blendingMode = BlendingMode.STENCIL_LUMA;
+    } catch (_) {
+        // UNCERTAIN: BlendingMode.STENCIL_LUMA — this is the standard ExtendScript enum.
+        // If this errors, check your AE ExtendScript BlendingMode constants.
+    }
+    return wipeLayer;
+}
+
+// ─── Main Intro Comp Assembly ─────────────────────────────────────────────────
+
+/**
+ * Assembles MAIN INTRO COMP from all sub-components.
+ * Layer order (top to bottom):
+ *   1. Fractal Wipe (Stencil Luma)
+ *   2. Fractal Noise (hidden reference, Overlay ~30%)
+ *   3. Artwork Loop (preserveTransparency — shows only inside triangles)
+ *   4. Katakana Logo (with Displacement Map glitch-in)
+ *   5. Logo Top (Luma Matte via fractal)
+ *   4. Fractal Luma Matte (matte for Logo Top — auto-hidden by track matte)
+ *   6. Logo Middle (clean)
+ *   7. Logo Bottom (thermal: Fill + Colorama + Posterize Time)
+ *   8–11. Triangle 4, 3, 2, 1 (top to bottom by tutorial description)
+ *
+ * NOTE: AE layer index ordering means layers added later appear lower in the stack.
+ * Adjust ordering manually if the comp stacking looks wrong after running.
+ *
+ * @private
+ */
+function _gi_buildMainIntroComp(fractalComp, fractalWipeComp, artworkLoopComp,
+                                 katakanaComp, logoComp, opts) {
+    var width = opts.width;
+    var height = opts.height;
+    var fps = opts.fps;
+    var duration = opts.duration;
+    var folder = opts.compFolder;
+    var logoGlitchFps = opts.logoGlitchFps;
+
+    setStep("create main intro comp");
+    var comp = createCompFromValues({
+        name: "MAIN INTRO COMP",
+        width: width,
+        height: height,
+        fps: fps,
+        duration: duration
+    });
+    if (folder) { try { comp.parentFolder = folder; } catch (_) {} }
+
+    // Add fractal noise as global texture reference layer (Overlay, ~30% opacity)
+    // This must be added before layers that reference it by index.
+    setStep("add global fractal texture layer");
+    var fractalTexLayer = _gi_addItemLayer(comp, fractalComp, 0, null);
+    fractalTexLayer.name = "Fractal Texture (Global)";
+    try { fractalTexLayer.blendingMode = BlendingMode.OVERLAY; } catch (_) {}
+    try {
+        fractalTexLayer.property("Transform").property("Opacity").setValue(30);
+    } catch (_) {}
+
+    // Add triangles (bottom of stack — added last so they appear below artwork)
+    setStep("build triangle animation system");
+    var tris = _gi_addTriangleSystem(comp, fps, duration);
+
+    // Add artwork loop above triangles with Preserve Underlying Transparency
+    // This is the "key trick" — no mattes needed, artwork only shows over triangles.
+    setStep("add artwork flicker overlay");
+    var artworkLayer = _gi_addItemLayer(comp, artworkLoopComp, 0, null);
+    artworkLayer.name = "Artwork Flicker";
+    try {
+        // UNCERTAIN: layer.preserveTransparency is an AVLayer boolean property in AE ExtendScript.
+        // This corresponds to the "Preserve Transparency" T switch in the layer panel.
+        artworkLayer.preserveTransparency = true;
+    } catch (_) {
+        // If this fails, enable "Preserve Underlying Transparency" manually in the layer panel.
+    }
+
+    // Katakana logo glitch-in (references fractalComp layer by index — must be in comp)
+    setStep("add katakana glitch-in");
+    _gi_addKatakanaGlitchIn(comp, katakanaComp, fractalComp, fps);
+
+    // Logo stack (Colorama input references fractalComp layer by index)
+    setStep("build logo stack");
+    _gi_addLogoStack(comp, logoComp, fractalComp, logoGlitchFps);
+
+    // Fractal wipe transition (Stencil Luma — must be at top of stack)
+    setStep("add fractal wipe transition");
+    _gi_addFractalWipeLayer(comp, fractalWipeComp, duration);
+
+    return comp;
+}
+
+// ─── Final Comp + Global FX ───────────────────────────────────────────────────
+
+/**
+ * Builds the FINAL COMP with global FX stack on top of MAIN INTRO COMP.
+ *
+ * FX applied directly to the mainIntroComp layer:
+ *   A. Displacement Map — global glitch (160→0, spike to 200, then max at end)
+ *   B. CC Ball Action   — LED pixel grid look
+ *   C. Glow (wide)      — ADBE Glo2: large radius, low intensity for soft ambient bloom
+ *   D. Glow (tight)     — ADBE Glo2: small radius, higher intensity for hot core bloom
+ *
+ * Plus an Adjustment Layer at the top with Posterize Time (12fps).
+ *
+ * UNCERTAIN — CC Ball Action match name:
+ *   Cycore CC effects use non-ADBE prefixes. "CC Ball Action" is likely the match name
+ *   but it may be "CS Ball Action" or include a version suffix. If applyEffect throws,
+ *   apply CC Ball Action manually and set Grid Spacing low, Ball Size to 255, Scatter to 0.
+ *
+ * UNCERTAIN — Posterize Time match name:
+ *   "ADBE Posterize" is the color Posterize (Stylize). Time > Posterize Time may use
+ *   "ADBE PosterizeTime", "ADBE Posterize Time", or another internal name. If the wrong
+ *   effect is applied, remove it and apply Time > Posterize Time manually.
+ *
+ * @private
+ */
+function _gi_buildFinalComp(mainIntroComp, fractalComp, opts) {
+    var width = opts.width;
+    var height = opts.height;
+    var fps = opts.fps;
+    var duration = opts.duration;
+    var posterizeFps = opts.posterizeFps;
+    var folder = opts.compFolder;
+
+    setStep("create final comp");
+    var comp = createCompFromValues({
+        name: "FINAL COMP",
+        width: width,
+        height: height,
+        fps: fps,
+        duration: duration
+    });
+    if (folder) { try { comp.parentFolder = folder; } catch (_) {} }
+
+    // Hidden fractal noise reference layer (for effects that need a map layer)
+    setStep("add fractal reference to final comp");
+    var fractalRef = _gi_addItemLayer(comp, fractalComp, 0, null);
+    fractalRef.name = "Fractal Reference (Hidden)";
+    try { fractalRef.enabled = false; } catch (_) {}
+
+    // Main intro comp layer
+    setStep("add main intro comp layer");
+    var mainLayer = _gi_addItemLayer(comp, mainIntroComp, 0, null);
+    mainLayer.name = "MAIN INTRO COMP";
+
+    // A. Global Displacement Map — mostly horizontal glitch
+    setStep("apply global displacement map");
+    var dispFx = applyEffect(mainLayer, {
+        matchName: "ADBE Displacement Map",
+        name: "Global Glitch Displacement"
+    });
+    try {
+        // Set map layer to fractalRef
+        dispFx.property("Displacement Map Layer").setValue(fractalRef.index);
+        // Use Luminance for both axes (enum 1 — UNCERTAIN: verify value)
+        dispFx.property("Use For Horizontal Displacement").setValue(1);
+        dispFx.property("Use For Vertical Displacement").setValue(1);
+    } catch (_) {}
+
+    // Keyframe horizontal displacement:
+    //   Start: 160 → 0 (glitch in)
+    //   Mid: spike to ~200 → back to 0
+    //   End: max distortion (full glitch out)
+    // UNCERTAIN: exact timings from tutorial are approximate ("start", "mid", "end")
+    setStep("keyframe global displacement");
+    try {
+        var hDisp = dispFx.property("Max Horizontal Displacement");
+        setKeyframes(hDisp, {
+            keyframes: [
+                { time: 0,                value: 160 },
+                { time: 0.5,              value: 0 },
+                { time: duration * 0.5,   value: 200 },
+                { time: duration * 0.5 + 0.2, value: 0 },
+                { time: duration - 0.3,   value: 0 },
+                { time: duration,         value: 160 }
+            ],
+            easing: "easeInOut"
+        });
+    } catch (_) {}
+
+    // B. CC Ball Action — LED pixel grid
+    // UNCERTAIN: match name — see note above
+    setStep("apply CC Ball Action");
+    try {
+        var ballFx = applyEffect(mainLayer, {
+            matchName: "CC Ball Action",
+            name: "LED Grid"
+        });
+        // Grid Spacing: low (tutorial says "low" — using 4 as a reasonable default)
+        // Ball Size: 255 (max)
+        // Scatter: 0 (no scatter = tight grid = clean LED look)
+        // UNCERTAIN: property display names for CC Ball Action sub-properties
+        try { ballFx.property("Grid Spacing").setValue(4); } catch (_) {}
+        try { ballFx.property("Ball Size").setValue(255); } catch (_) {}
+        try { ballFx.property("Scatter").setValue(0); } catch (_) {}
+    } catch (e) {
+        // Expected to fail if CC Ball Action is not installed or match name is wrong.
+        // Apply manually: Effects > Simulation > CC Ball Action
+        // Set Grid Spacing: low, Ball Size: 255, Scatter: 0
+    }
+
+    // C. Dual standard Glow (built-in ADBE Glo2) replacing third-party Deep Glow.
+    // Two passes: wide ambient bloom + tight bright core.
+    // UNCERTAIN: ADBE Glo2 sub-property display names are used via effect.property() lookup.
+    setStep("apply wide ambient glow");
+    try {
+        var glowWide = applyEffect(mainLayer, {
+            matchName: "ADBE Glo2",
+            name: "Glow - Wide Ambient"
+        });
+        try { glowWide.property("Glow Threshold").setValue(40); } catch (_) {}
+        try { glowWide.property("Glow Radius").setValue(60); } catch (_) {}
+        try { glowWide.property("Glow Intensity").setValue(0.4); } catch (_) {}
+    } catch (e) {
+        // Apply manually: Effects > Stylize > Glow. Threshold ~40%, Radius 60, Intensity 0.4
+    }
+
+    setStep("apply tight core glow");
+    try {
+        var glowTight = applyEffect(mainLayer, {
+            matchName: "ADBE Glo2",
+            name: "Glow - Tight Core"
+        });
+        try { glowTight.property("Glow Threshold").setValue(70); } catch (_) {}
+        try { glowTight.property("Glow Radius").setValue(12); } catch (_) {}
+        try { glowTight.property("Glow Intensity").setValue(1.2); } catch (_) {}
+    } catch (e) {
+        // Apply manually: Effects > Stylize > Glow. Threshold ~70%, Radius 12, Intensity 1.2
+    }
+
+    // Adjustment layer: Posterize Time at posterizeFps (12fps default)
+    // Placed at TOP of comp stack to affect everything below it.
+    setStep("add posterize time adjustment layer");
+    var adjustLayer = addSolid(comp, {
+        color: [1, 1, 1],
+        name: "Posterize Time - Adjustment",
+        isAdjustment: true
+    });
+
+    // UNCERTAIN: "ADBE Posterize" is the color Posterize. Posterize Time (Time menu)
+    // may use "ADBE PosterizeTime" — see function header note.
+    try {
+        var ptFx = applyEffect(adjustLayer, {
+            matchName: "ADBE Posterize",
+            name: "Posterize Time 12fps",
+            properties: {
+                "Frame Rate": posterizeFps
+            }
+        });
+    } catch (_) {
+        // Fallback: try alternate match name
+        try {
+            applyEffect(adjustLayer, {
+                matchName: "ADBE PosterizeTime",
+                name: "Posterize Time 12fps",
+                properties: {
+                    "Frame Rate": posterizeFps
+                }
+            });
+        } catch (_) {}
+    }
+
+    // Move adjustment layer to index 1 (top of stack) so it affects all layers below
+    setStep("move adjustment layer to top");
+    try { adjustLayer.moveToBeginning(); } catch (_) {}
+
+    return comp;
+}
+
+// ─── Placeholder Factories ────────────────────────────────────────────────────
+
+/**
+ * Creates a single placeholder comp: a labelled solid the user can swap out.
+ * The comp name includes "[PLACEHOLDER]" so it's easy to find in the project panel.
+ * @private
+ */
+function _gi_makePlaceholderComp(label, width, height, fps, duration, color, folder) {
+    var comp = createCompFromValues({
+        name: label + " [PLACEHOLDER]",
+        width: width, height: height, fps: fps, duration: duration
+    });
+    if (folder) { try { comp.parentFolder = folder; } catch (_) {} }
+    addSolid(comp, { color: color || [0.3, 0.3, 0.3], name: "Replace: " + label });
+    return comp;
+}
+
+/**
+ * Creates N placeholder artwork comps, each with a distinct tint so they're
+ * visually distinct in the timeline. Duration = artworkFrames / fps.
+ * @private
+ */
+function _gi_makePlaceholderArtworkItems(count, width, height, fps, artworkFrames, folder) {
+    // Cycle through a set of distinct muted colors
+    var palette = [
+        [0.6, 0.2, 0.2],   // red
+        [0.2, 0.5, 0.6],   // teal
+        [0.5, 0.4, 0.1],   // amber
+        [0.3, 0.5, 0.2],   // green
+        [0.5, 0.2, 0.5],   // purple
+        [0.2, 0.3, 0.6],   // blue
+        [0.6, 0.4, 0.2],   // orange
+        [0.2, 0.5, 0.4]    // seafoam
+    ];
+    var frameDur = artworkFrames / fps;
+    var items = [];
+    for (var i = 0; i < count; i++) {
+        var num = (i < 9) ? ("0" + (i + 1)) : String(i + 1);
+        var color = palette[i % palette.length];
+        var comp = _gi_makePlaceholderComp(
+            "Artwork " + num, width, height, fps, frameDur, color, folder
+        );
+        items.push(comp);
+    }
+    return items;
+}
+
+// (addGlitchIntro is declared at the top of this file, before the private helpers)

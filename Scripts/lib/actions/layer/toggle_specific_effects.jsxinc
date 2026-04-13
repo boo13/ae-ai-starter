@@ -1,0 +1,61 @@
+/**
+ * @name Toggle Specific Effects
+ * @description Enables or disables matching effects on layers by effect match name. Defaults to selected layers and can optionally scan every layer in the comp.
+ * @category layer
+ * @tier block
+ * @inputs comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), allLayers: boolean (default false), enabled: boolean (default false), effectMatchNames: string[] (default ["ADBE Turbulent Displace"]) }
+ * @outputs number — count of effects toggled
+ * @whenToUse You want to batch-enable or batch-disable one or more heavy effects during preview or export prep.
+ * @example var count = toggleSpecificEffects(comp, { enabled: true, effectMatchNames: ["ADBE Turbulent Displace", "ADBE Glo2"] });
+ */
+function toggleSpecificEffects(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Toggle Specific Effects: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var enabled = (o.enabled === true);
+    var effectMatchNames = o.effectMatchNames || ["ADBE Turbulent Displace"];
+    var layers = o.layers || comp.selectedLayers;
+    var count = 0;
+    var i = 0;
+    var e = 0;
+
+    setStep("resolve target layers");
+    if (!(effectMatchNames instanceof Array)) {
+        effectMatchNames = String(effectMatchNames).split(",");
+    }
+    for (i = 0; i < effectMatchNames.length; i++) {
+        effectMatchNames[i] = String(effectMatchNames[i]).replace(/^\s+|\s+$/g, "");
+    }
+    if (o.allLayers === true) {
+        layers = [];
+        for (i = 1; i <= comp.numLayers; i++) {
+            layers.push(comp.layer(i));
+        }
+    }
+    if (!layers || !layers.length) {
+        throw new Error("Toggle Specific Effects: no target layers were found.");
+    }
+
+    setStep("toggle effects");
+    for (i = 0; i < layers.length; i++) {
+        var effects = layers[i].property("ADBE Effect Parade");
+        if (!effects) {
+            continue;
+        }
+        for (e = effects.numProperties; e > 0; e--) {
+            var effect = effects.property(e);
+            var m = 0;
+            for (m = 0; m < effectMatchNames.length; m++) {
+                if (effect.matchName === effectMatchNames[m]) {
+                    effect.enabled = enabled;
+                    count++;
+                    break;
+                }
+            }
+        }
+    }
+
+    return count;
+}

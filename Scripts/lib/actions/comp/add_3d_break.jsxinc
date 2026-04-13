@@ -1,0 +1,27 @@
+/**
+ * @name Add 3D Break
+ * @description Adds an adjustment layer above the highest selected layer, or near the top when nothing is selected, to break 3D interaction.
+ * @category comp
+ * @tier block
+ * @inputs comp: CompItem; opts: { name: string (default "=== 3D Break ==="), color: [r,g,b] (default [0.5,0.5,0.5]) }
+ * @outputs AVLayer — the created adjustment layer
+ * @whenToUse You want to insert a 3D-break adjustment layer in the stack without building it manually.
+ * @example var layer = add3DBreak(comp);
+ */
+function add3DBreak(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) throw new Error("Add 3D Break: comp must be a CompItem.");
+    var o = opts || {};
+    var name = o.name || "=== 3D Break ===";
+    var color = o.color || [0.5, 0.5, 0.5];
+    var index = 2;
+    var i = 0;
+    if (comp.selectedLayers.length > 0) {
+        index = 999999;
+        for (i = 0; i < comp.selectedLayers.length; i++) if (comp.selectedLayers[i].index < index) index = comp.selectedLayers[i].index;
+    }
+    setStep("create 3d break");
+    var layer = comp.layers.addSolid(color, name, comp.width, comp.height, comp.pixelAspect, comp.duration);
+    layer.adjustmentLayer = true;
+    if (comp.layers[index]) layer.moveBefore(comp.layers[index]);
+    return layer;
+}

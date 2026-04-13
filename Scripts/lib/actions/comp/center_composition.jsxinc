@@ -1,0 +1,20 @@
+/**
+ * @name Center Composition
+ * @description Sets the active viewer zoom to a normalized composition-centered zoom level.
+ * @category comp
+ * @tier block
+ * @inputs comp: CompItem; opts: { zoom: number (default 0.5) }
+ * @outputs number — the zoom level applied
+ * @whenToUse You want a predictable centered comp view from scripting instead of relying on modifier keys.
+ * @example var zoom = centerComposition(comp, { zoom: 1.0 });
+ */
+function centerComposition(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) throw new Error("Center Composition: comp must be a CompItem.");
+    var o = opts || {};
+    var zoom = (o.zoom !== undefined) ? Number(o.zoom) : 0.5;
+    if (!app.activeViewer || !app.activeViewer.views || !app.activeViewer.views.length) throw new Error("Center Composition: no active viewer is available.");
+    if (isNaN(zoom) || zoom <= 0) throw new Error("Center Composition: opts.zoom must be a positive number.");
+    setStep("set viewer zoom");
+    app.activeViewer.views[0].options.zoom = zoom;
+    return zoom;
+}

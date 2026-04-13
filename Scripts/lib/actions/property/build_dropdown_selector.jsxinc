@@ -1,0 +1,75 @@
+/**
+ * @name Build Dropdown Selector
+ * @description Creates a guide controller layer with a Dropdown Control that toggles target layer opacity. The dropdown can also be added to Essential Graphics.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { name: string (default "Controller"), targetLayers: AVLayer[] (default all layers except controller), addToEssentialGraphics: boolean (default true), hideNonSelectedAsZero: boolean (default true) }
+ * @outputs Object — { controller: ShapeLayer, dropdown: Property, count: number }
+ * @whenToUse You want a single dropdown to switch between multiple layer visibility states in a comp or Essential Graphics template.
+ * @example var result = buildDropdownSelector(comp, { name: "Version" });
+ */
+function buildDropdownSelector(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Build Dropdown Selector: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var controllerName = o.name || "Controller";
+    var addToEGP = (o.addToEssentialGraphics !== false);
+    var hideAsZero = (o.hideNonSelectedAsZero !== false);
+    var controller = null;
+    var effects = null;
+    var dropdownEffect = null;
+    var dropdownProp = null;
+    var targetLayers = o.targetLayers;
+    var parameters = [];
+    var i = 0;
+
+    setStep("create controller layer");
+    controller = comp.layers.addShape();
+    controller.name = controllerName;
+    controller.guideLayer = true;
+
+    if (!targetLayers) {
+        targetLayers = [];
+        for (i = 1; i <= comp.numLayers; i++) {
+            if (comp.layer(i) !== controller) {
+                targetLayers.push(comp.layer(i));
+            }
+        }
+    }
+    if (!targetLayers.length) {
+        throw new Error("Build Dropdown Selector: no target layers were found.");
+    }
+
+    setStep("build dropdown parameters");
+    for (i = 0; i < targetLayers.length; i++) {
+        parameters.push(targetLayers[i].name);
+    }
+
+    setStep("add dropdown control");
+    effects = controller.property("ADBE Effect Parade");
+    dropdownEffect = effects.addProperty("ADBE Dropdown Control");
+    dropdownEffect.name = controllerName;
+    dropdownProp = dropdownEffect.property(1);
+    dropdownProp.setPropertyParameters(parameters);
+
+    setStep("apply opacity expressions");
+    for (i = 0; i < targetLayers.length; i++) {
+        var target = targetLayers[i];
+        var visibleValue = hideAsZero ? "100" : "value";
+        target.transform.opacity.expression =
+            "(thisComp.layer(\"" + controllerName + "\").effect(\"" + controllerName + "\")(\"Menu\").value === " + (i + 1) + ") ? " + visibleValue + " : 0;";
+    }
+
+    if (addToEGP && dropdownProp.canAddToMotionGraphicsTemplate && dropdownProp.canAddToMotionGraphicsTemplate(comp)) {
+        setStep("add to essential graphics");
+        dropdownProp.addToMotionGraphicsTemplateAs(comp, controllerName);
+    }
+
+    return {
+        controller: controller,
+        dropdown: dropdownProp,
+        count: targetLayers.length
+    };
+}

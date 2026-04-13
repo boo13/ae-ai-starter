@@ -1,0 +1,66 @@
+/**
+ * @name Add Simple Loop Expression
+ * @description Applies a loop expression to each selected animatable property. Direction, loop type, and optional keyframe count are parameterized instead of using a dialog.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties), direction: "loopIn"|"loopOut" (default "loopOut"), type: "cycle"|"pingpong"|"offset"|"continue" (default "cycle"), keyframes: number (default 0) }
+ * @outputs number — count of properties that received the loop expression
+ * @whenToUse You want to add a standard AE loop expression to multiple selected properties without opening a prompt.
+ * @example var count = addSimpleLoopExpression(comp, { direction: "loopOut", type: "pingpong", keyframes: 2 });
+ */
+
+/**
+ * Builds the final loop expression string.
+ * @private
+ */
+function _asle_buildExpression(direction, type, keyframes) {
+    var suffix = (keyframes && keyframes > 0) ? ", " + keyframes : "";
+    return direction + "(\"" + type + "\"" + suffix + ");";
+}
+
+function addSimpleLoopExpression(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Simple Loop Expression: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var properties = o.properties || comp.selectedProperties;
+    var direction = o.direction || "loopOut";
+    var type = o.type || "cycle";
+    var keyframes = (o.keyframes !== undefined) ? Number(o.keyframes) : 0;
+    var expression = "";
+    var count = 0;
+    var i = 0;
+
+    setStep("validate options");
+    if (!properties || !properties.length) {
+        throw new Error("Add Simple Loop Expression: no properties selected.");
+    }
+    if (direction !== "loopIn" && direction !== "loopOut") {
+        throw new Error("Add Simple Loop Expression: opts.direction must be loopIn or loopOut.");
+    }
+    if (type !== "cycle" && type !== "pingpong" && type !== "offset" && type !== "continue") {
+        throw new Error("Add Simple Loop Expression: opts.type must be cycle, pingpong, offset, or continue.");
+    }
+    if (isNaN(keyframes) || keyframes < 0) {
+        throw new Error("Add Simple Loop Expression: opts.keyframes must be a non-negative number.");
+    }
+
+    expression = _asle_buildExpression(direction, type, Math.floor(keyframes));
+
+    setStep("apply loop expression");
+    for (i = 0; i < properties.length; i++) {
+        var prop = properties[i];
+        if (!prop || prop.propertyType !== PropertyType.PROPERTY || !prop.isTimeVarying || !prop.canSetExpression) {
+            continue;
+        }
+        prop.expression = expression;
+        count++;
+    }
+
+    if (!count) {
+        throw new Error("Add Simple Loop Expression: no time-varying expression-capable properties were found.");
+    }
+
+    return count;
+}

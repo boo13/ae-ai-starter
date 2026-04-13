@@ -1,0 +1,42 @@
+/**
+ * @name Keyframe Current Value From Expression
+ * @description Snapshots the current post-expression value of selected properties by writing a keyframe at the current time.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties), time: number (default comp.time) }
+ * @outputs number — count of keyframes added
+ * @whenToUse You want to bake the current result of an expression without converting the whole expression to keys.
+ * @example var count = keyframeCurrentValueFromExpression(comp);
+ */
+function keyframeCurrentValueFromExpression(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Keyframe Current Value From Expression: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var properties = o.properties || comp.selectedProperties;
+    var time = (o.time !== undefined) ? Number(o.time) : comp.time;
+    var count = 0;
+    var i = 0;
+
+    if (!properties || !properties.length) {
+        throw new Error("Keyframe Current Value From Expression: no properties selected.");
+    }
+    if (isNaN(time)) {
+        throw new Error("Keyframe Current Value From Expression: opts.time must be a number.");
+    }
+
+    setStep("add snapshot keyframes");
+    for (i = 0; i < properties.length; i++) {
+        var property = properties[i];
+        if (!property || property.propertyType !== PropertyType.PROPERTY) {
+            continue;
+        }
+        if (property.propertyValueType !== PropertyValueType.NO_VALUE && property.canSetExpression && property.expression && property.expression.length > 0) {
+            property.setValueAtTime(time, property.valueAtTime(time, false));
+            count++;
+        }
+    }
+
+    return count;
+}

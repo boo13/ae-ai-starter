@@ -1,0 +1,57 @@
+/**
+ * @name Apply Maintain Stroke Width Expression
+ * @description Finds every vector stroke width property in the comp and applies an expression that visually preserves stroke width despite scaling.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { layers: AVLayer[] (default all comp layers), expression: string (default maintain-stroke-width expression) }
+ * @outputs number — count of stroke width properties updated
+ * @whenToUse You want scalable shape layers to keep a consistent apparent stroke weight.
+ * @example var count = applyMaintainStrokeWidthExpression(comp);
+ */
+
+/**
+ * Recursively walks a property group and applies the expression to stroke width properties.
+ * @private
+ */
+function _amswe_walk(group, expression) {
+    var count = 0;
+    var i = 0;
+    for (i = 1; i <= group.numProperties; i++) {
+        var property = group.property(i);
+        if (property.propertyType === PropertyType.PROPERTY) {
+            if (property.matchName === "ADBE Vector Stroke Width") {
+                property.expression = expression;
+                count++;
+            }
+        } else if (property.propertyType === PropertyType.INDEXED_GROUP || property.propertyType === PropertyType.NAMED_GROUP) {
+            count += _amswe_walk(property, expression);
+        }
+    }
+    return count;
+}
+
+function applyMaintainStrokeWidthExpression(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Apply Maintain Stroke Width Expression: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var expression = o.expression || "s = length(toComp([0,0]),toComp([0.7071,0.7071])); (s) ? value / s : 0;";
+    var layers = o.layers;
+    var count = 0;
+    var i = 0;
+
+    if (!layers) {
+        layers = [];
+        for (i = 1; i <= comp.numLayers; i++) {
+            layers.push(comp.layer(i));
+        }
+    }
+
+    setStep("apply stroke width expression");
+    for (i = 0; i < layers.length; i++) {
+        count += _amswe_walk(layers[i], expression);
+    }
+
+    return count;
+}

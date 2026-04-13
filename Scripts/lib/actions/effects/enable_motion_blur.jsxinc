@@ -1,0 +1,31 @@
+/**
+ * @name Enable Motion Blur
+ * @description Enables or disables motion blur on the active comp by default, or all comps and their layers when `allComps` is true.
+ * @category effect
+ * @tier block
+ * @inputs comp: CompItem; opts: { enabled: boolean (default true), allComps: boolean (default true) }
+ * @outputs number — count of comps updated
+ * @whenToUse You want a consistent project-wide motion blur state without opening comp settings one by one.
+ * @example var count = enableMotionBlur(comp, { enabled: true, allComps: true });
+ */
+function _emb_applyComp(targetComp, enabled) {
+    var i = 0;
+    targetComp.motionBlur = enabled;
+    for (i = 1; i <= targetComp.layers.length; i++) {
+        targetComp.layer(i).motionBlur = enabled;
+    }
+    return 1;
+}
+function enableMotionBlur(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) throw new Error("Enable Motion Blur: comp must be a CompItem.");
+    var o = opts || {};
+    var enabled = (o.enabled !== false);
+    var total = 0;
+    var i = 0;
+    setStep("apply motion blur");
+    if (o.allComps !== false) {
+        for (i = 1; i <= app.project.items.length; i++) if (app.project.item(i) instanceof CompItem) total += _emb_applyComp(app.project.item(i), enabled);
+        return total;
+    }
+    return _emb_applyComp(comp, enabled);
+}

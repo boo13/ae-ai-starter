@@ -1,0 +1,32 @@
+/**
+ * @name Unlock All Layers
+ * @description Unlocks all layers in the active comp by default, or every comp in the project when `allComps` is true.
+ * @category layer
+ * @tier block
+ * @inputs comp: CompItem; opts: { allComps: boolean (default false) }
+ * @outputs number — count of layers unlocked
+ * @whenToUse You want to clear accidental locking before batch editing.
+ * @example var count = unlockAllLayers(comp, { allComps: true });
+ */
+function _ual_unlockComp(targetComp) {
+    var total = 0;
+    var i = 0;
+    for (i = targetComp.numLayers; i > 0; i--) {
+        targetComp.layer(i).locked = false;
+        targetComp.layer(i).selected = false;
+        total += 1;
+    }
+    return total;
+}
+function unlockAllLayers(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) throw new Error("Unlock All Layers: comp must be a CompItem.");
+    var o = opts || {};
+    var total = 0;
+    var i = 0;
+    setStep("unlock layers");
+    if (o.allComps === true) {
+        for (i = 1; i <= app.project.numItems; i++) if (app.project.item(i) instanceof CompItem) total += _ual_unlockComp(app.project.item(i));
+        return total;
+    }
+    return _ual_unlockComp(comp);
+}

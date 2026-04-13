@@ -1,0 +1,31 @@
+/**
+ * @name Hard Solo Layers
+ * @description Disables every unselected layer in the comp and leaves selected layers enabled.
+ * @category layer
+ * @tier block
+ * @inputs comp: CompItem; opts: { invert: boolean (default false) }
+ * @outputs number — count of layers left enabled
+ * @whenToUse You want a destructive-style solo state that relies on the `enabled` switch instead of the temporary solo flag.
+ * @example var count = hardSoloLayers(comp);
+ */
+function hardSoloLayers(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Hard Solo Layers: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var invert = (o.invert === true);
+    var count = 0;
+    var i = 0;
+
+    setStep("toggle layer enabled states");
+    for (i = comp.numLayers; i > 0; i--) {
+        var enabled = invert ? !comp.layer(i).selected : comp.layer(i).selected;
+        comp.layer(i).enabled = enabled;
+        if (enabled) {
+            count++;
+        }
+    }
+
+    return count;
+}

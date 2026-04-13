@@ -1,0 +1,31 @@
+/**
+ * @name Toggle Onion Skinning
+ * @description Toggles a CC Wide Time adjustment layer in the comp and stores its source id in the comp comment for later removal.
+ * @category comp
+ * @tier block
+ * @inputs comp: CompItem; opts: { marker: string (default "*onion-skinning*") }
+ * @outputs boolean — true when onion skinning ends enabled, false when it was disabled
+ * @whenToUse You want a quick onion-skin preview setup without building the adjustment layer manually.
+ * @example var enabled = toggleOnionSkinning(comp);
+ */
+function toggleOnionSkinning(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) throw new Error("Toggle Onion Skinning: comp must be a CompItem.");
+    var o = opts || {};
+    var marker = o.marker || "*onion-skinning*";
+    setStep("toggle onion skinning");
+    if (comp.comment.indexOf(marker) > -1) {
+        var parts = comp.comment.split(marker);
+        comp.comment = parts[0];
+        var item = app.project.itemByID(Number(parts[1]));
+        if (item !== null) item.remove();
+        return false;
+    }
+    var layer = comp.layers.addSolid([0, 0, 0], "Onion Skin", comp.width, comp.height, comp.pixelAspect);
+    layer.adjustmentLayer = true;
+    layer.label = 0;
+    layer.moveToBeginning();
+    comp.comment = comp.comment + marker + layer.source.id;
+    var effect = layer.property("ADBE Effect Parade").addProperty("CC Wide Time");
+    effect.name = "Onion Skin";
+    return true;
+}

@@ -1,0 +1,17 @@
+/**
+ * @name Reset Composition Work Area
+ * @description Resets the comp work area to span the full composition duration.
+ * @category comp
+ * @tier block
+ * @inputs comp: CompItem
+ * @outputs boolean — true when the work area was reset
+ * @whenToUse You want to clear any trimmed work area and restore full-comp playback.
+ * @example resetCompositionWorkArea(comp);
+ */
+function resetCompositionWorkArea(comp) {
+    if (!comp || !(comp instanceof CompItem)) throw new Error("Reset Composition Work Area: comp must be a CompItem.");
+    setStep("reset work area");
+    comp.workAreaStart = 0;
+    comp.workAreaDuration = comp.duration;
+    return true;
+}

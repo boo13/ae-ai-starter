@@ -1,0 +1,35 @@
+/**
+ * @name Rename Selected Layers With Numbers
+ * @description Renames selected layers using a base name plus zero-padded sequence numbers.
+ * @category layer
+ * @tier block
+ * @inputs comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), baseName: string (default first selected layer name), startAt: number (default 1) }
+ * @outputs number — count of layers renamed
+ * @whenToUse You want a consistent numbered naming scheme across a selected layer set.
+ * @example var count = renameSelectedLayersWithNumbers(comp, { baseName: "Card" });
+ */
+function renameSelectedLayersWithNumbers(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Rename Selected Layers With Numbers: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var layers = o.layers || comp.selectedLayers;
+    var startAt = (o.startAt !== undefined) ? parseInt(o.startAt, 10) : 1;
+    var total = 0;
+    var i = 0;
+
+    if (!layers || !layers.length) {
+        throw new Error("Rename Selected Layers With Numbers: no layers selected.");
+    }
+    var baseName = o.baseName || layers[0].name;
+    var padLength = Math.max(String(startAt + layers.length - 1).length, 2);
+
+    setStep("rename layers");
+    for (i = 0; i < layers.length; i++) {
+        var num = String(startAt + i);
+        while (num.length < padLength) num = "0" + num;
+        layers[i].name = baseName + " " + num;
+        total += 1;
+    }
+    return total;
+}

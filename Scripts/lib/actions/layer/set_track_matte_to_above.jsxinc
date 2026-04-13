@@ -1,0 +1,59 @@
+/**
+ * @name Set Track Matte To Above
+ * @description Sets each selected layer's track matte to the layer directly above it, with a configurable matte type.
+ * @category layer
+ * @tier block
+ * @inputs comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), matteType: "alpha"|"alphaInverted"|"luma"|"lumaInverted" (default "lumaInverted") }
+ * @outputs number — count of layers updated
+ * @whenToUse You want to batch-wire selected layers to use the layer above as their matte instead of setting each matte manually.
+ * @example var count = setTrackMatteToAbove(comp, { matteType: "alpha" });
+ */
+
+/**
+ * Maps a matte type string to the AE enum.
+ * @private
+ */
+function _stmta_getType(name) {
+    if (name === "alpha") return TrackMatteType.ALPHA;
+    if (name === "alphaInverted") return TrackMatteType.ALPHA_INVERTED;
+    if (name === "luma") return TrackMatteType.LUMA;
+    if (name === "lumaInverted") return TrackMatteType.LUMA_INVERTED;
+    return null;
+}
+
+function setTrackMatteToAbove(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Set Track Matte To Above: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var layers = o.layers || comp.selectedLayers;
+    var matteTypeName = o.matteType || "lumaInverted";
+    var matteType = _stmta_getType(matteTypeName);
+    var count = 0;
+    var i = 0;
+
+    setStep("validate layers");
+    if (!layers || !layers.length) {
+        throw new Error("Set Track Matte To Above: no layers selected.");
+    }
+    if (!matteType) {
+        throw new Error("Set Track Matte To Above: unsupported matte type \"" + matteTypeName + "\".");
+    }
+
+    setStep("assign mattes");
+    for (i = 0; i < layers.length; i++) {
+        var layer = layers[i];
+        if (!layer || layer.index <= 1) {
+            continue;
+        }
+        layer.setTrackMatte(comp.layer(layer.index - 1), matteType);
+        count++;
+    }
+
+    if (!count) {
+        throw new Error("Set Track Matte To Above: no eligible layers were found above index 1.");
+    }
+
+    return count;
+}

@@ -1,0 +1,65 @@
+/**
+ * @name Enable Collapse Transformations
+ * @description Enables collapse transformations on eligible layers. By default it operates on the active comp, and can optionally scan all comps in the project.
+ * @category comp
+ * @tier block
+ * @inputs comp: CompItem; opts: { allComps: boolean (default false), protectMarkerComment: string (default "Do Not Collapse Transformations"), unlockLayers: boolean (default true) }
+ * @outputs number — count of layers updated
+ * @whenToUse You want to batch-enable collapse transformations while respecting marker-based exclusions.
+ * @example var count = enableCollapseTransformations(comp, { allComps: true });
+ */
+
+/**
+ * Returns true when the layer's first marker protects it from collapse transformation changes.
+ * @private
+ */
+function _ect_isProtected(layer, comment) {
+    if (layer.marker && layer.marker.numKeys > 0) {
+        return layer.marker.keyValue(1).comment === comment;
+    }
+    return false;
+}
+
+/**
+ * Enables collapse transformations in one comp.
+ * @private
+ */
+function _ect_processComp(targetComp, protectMarkerComment, unlockLayers) {
+    var count = 0;
+    var i = 0;
+    for (i = targetComp.numLayers; i > 0; i--) {
+        var layer = targetComp.layer(i);
+        if (unlockLayers) {
+            layer.locked = false;
+        }
+        if (layer.canSetCollapseTransformation && !_ect_isProtected(layer, protectMarkerComment)) {
+            layer.collapseTransformation = true;
+            count++;
+        }
+    }
+    return count;
+}
+
+function enableCollapseTransformations(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Enable Collapse Transformations: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var protectMarkerComment = (o.protectMarkerComment !== undefined) ? String(o.protectMarkerComment) : "Do Not Collapse Transformations";
+    var unlockLayers = (o.unlockLayers !== false);
+    var count = 0;
+    var i = 0;
+
+    setStep("enable collapse transformations");
+    if (o.allComps === true) {
+        for (i = 1; i <= app.project.numItems; i++) {
+            if (app.project.item(i) instanceof CompItem) {
+                count += _ect_processComp(app.project.item(i), protectMarkerComment, unlockLayers);
+            }
+        }
+        return count;
+    }
+
+    return _ect_processComp(comp, protectMarkerComment, unlockLayers);
+}

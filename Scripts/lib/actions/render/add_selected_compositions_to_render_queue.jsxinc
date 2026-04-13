@@ -1,0 +1,30 @@
+/**
+ * @name Add Selected Compositions To Render Queue
+ * @description Adds selected project-panel comps to the render queue and optionally applies output templates based on comp naming rules.
+ * @category render
+ * @tier block
+ * @inputs opts: { defaultTemplate: string (default "H.264 MP4"), alphaTemplate: string (default "Apple ProRes 4444 + Alpha"), alphaNameToken: string (default "_TEXT_") }
+ * @outputs number — count of comps queued
+ * @whenToUse You want to queue selected comps from the project panel with predictable output module templates.
+ * @example var count = addSelectedCompositionsToRenderQueue({});
+ */
+function addSelectedCompositionsToRenderQueue(opts) {
+    if (!app.project) throw new Error("Add Selected Compositions To Render Queue: no project is open.");
+    var o = opts || {};
+    var defaultTemplate = o.defaultTemplate || "H.264 MP4";
+    var alphaTemplate = o.alphaTemplate || "Apple ProRes 4444 + Alpha";
+    var alphaNameToken = o.alphaNameToken || "_TEXT_";
+    var items = app.project.selection;
+    var total = 0;
+    var i = 0;
+    setStep("queue selected comps");
+    for (i = 0; i < items.length; i++) {
+        var item = items[i];
+        if (item instanceof CompItem) {
+            var rqItem = app.project.renderQueue.items.add(item);
+            rqItem.outputModule(1).applyTemplate((item.name.indexOf(alphaNameToken) !== -1) ? alphaTemplate : defaultTemplate);
+            total += 1;
+        }
+    }
+    return total;
+}

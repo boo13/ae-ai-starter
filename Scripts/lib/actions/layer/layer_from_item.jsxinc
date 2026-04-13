@@ -1,0 +1,92 @@
+/**
+ * @name Add Layer From Item
+ * @description Adds a FootageItem or CompItem to a comp as a new AVLayer with
+ *   configurable timing and layer properties. Handles startTime/outPoint correctly:
+ *   startTime shifts the layer's position on the timeline; duration trims the outPoint.
+ *   Passing no duration leaves the layer at its natural source duration.
+ * @category layer
+ * @inputs comp: CompItem; opts: {
+ *   item: Item|string (required — FootageItem or CompItem, or a project item name string for lookup),
+ *   inPoint: number (default 0 — where the layer starts on the timeline),
+ *   duration: number (optional — trims layer to this many seconds; omit for source duration),
+ *   name: string (optional — override the default layer name),
+ *   blendingMode: BlendingMode (optional — BlendingMode constant, e.g. BlendingMode.OVERLAY),
+ *   opacity: number (optional — 0 to 100),
+ *   preserveTransparency: boolean (optional — enables "Preserve Underlying Transparency")
+ * }
+ * @outputs AVLayer — the newly added layer
+ * @tier block
+ * @whenToUse You need to place a footage item or comp inside another comp and control
+ *   its timing or basic layer properties. Replaces raw comp.layers.add() calls.
+ * @example var layer = addLayerFromItem(mainComp, { item: logoComp, inPoint: 2, duration: 4 });
+ * @example var layer = addLayerFromItem(finalComp, { item: fractalComp, blendingMode: BlendingMode.OVERLAY, opacity: 30 });
+ */
+function addLayerFromItem(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Layer From Item: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    if (!o.item) {
+        throw new Error("Add Layer From Item: opts.item is required (Item object or project item name string).");
+    }
+
+    // Accept a string name — look up the item in the open project by name
+    var resolvedItem = o.item;
+    if (typeof resolvedItem === "string") {
+        var searchName = String(resolvedItem).replace(/^\s+|\s+$/g, "");
+        resolvedItem = null;
+        if (app.project) {
+            for (var si = 1; si <= app.project.numItems; si++) {
+                if (app.project.item(si).name === searchName) {
+                    resolvedItem = app.project.item(si);
+                    break;
+                }
+            }
+        }
+        if (!resolvedItem) {
+            throw new Error("Add Layer From Item: no project item named \"" + searchName + "\" found.");
+        }
+    }
+
+    var layer;
+    try {
+        layer = comp.layers.add(resolvedItem);
+    } catch (e) {
+        throw new Error("Add Layer From Item: failed to add item \"" + o.item.name + "\": " + e.message);
+    }
+
+    // Name override
+    if (o.name !== undefined && o.name !== null) {
+        try { layer.name = String(o.name); } catch (_) {}
+    }
+
+    // Timeline position: startTime shifts where the layer sits on the timeline.
+    // Setting startTime = T places the layer's first frame at time T.
+    var inPoint = (o.inPoint !== undefined && o.inPoint !== null) ? o.inPoint : 0;
+    try { layer.startTime = inPoint; } catch (_) {}
+
+    // Duration: trim the layer's outPoint. 0 or null means "use natural source duration".
+    // outPoint is an absolute comp time (not relative to startTime).
+    if (o.duration !== undefined && o.duration !== null && o.duration > 0) {
+        try { layer.outPoint = layer.inPoint + o.duration; } catch (_) {}
+    }
+
+    // Blend mode
+    if (o.blendingMode !== undefined && o.blendingMode !== null) {
+        try { layer.blendingMode = o.blendingMode; } catch (_) {}
+    }
+
+    // Opacity
+    if (o.opacity !== undefined && o.opacity !== null) {
+        try {
+            layer.property("Transform").property("Opacity").setValue(o.opacity);
+        } catch (_) {}
+    }
+
+    // Preserve Underlying Transparency (the T switch in the layer panel)
+    if (o.preserveTransparency) {
+        try { layer.preserveTransparency = true; } catch (_) {}
+    }
+
+    return layer;
+}

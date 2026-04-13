@@ -1,0 +1,45 @@
+/**
+ * @name Make Hold Keyframes
+ * @description Converts selected keyframes on the selected properties into hold keyframes.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties) }
+ * @outputs number — count of keyframes converted to hold interpolation
+ * @whenToUse You want animation to step between values instead of interpolating smoothly.
+ * @example var count = makeHoldKeyframes(comp);
+ */
+function makeHoldKeyframes(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Make Hold Keyframes: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var properties = o.properties || comp.selectedProperties;
+    var hold = KeyframeInterpolationType.HOLD;
+    var count = 0;
+    var i = 0;
+    var k = 0;
+
+    setStep("validate properties");
+    if (!properties || !properties.length) {
+        throw new Error("Make Hold Keyframes: no properties selected.");
+    }
+
+    setStep("convert keyframes");
+    for (i = 0; i < properties.length; i++) {
+        var prop = properties[i];
+        if (!prop || prop.propertyType !== PropertyType.PROPERTY || !prop.isTimeVarying || !prop.selectedKeys) {
+            continue;
+        }
+        for (k = 0; k < prop.selectedKeys.length; k++) {
+            prop.setInterpolationTypeAtKey(prop.selectedKeys[k], hold, hold);
+            count++;
+        }
+    }
+
+    if (!count) {
+        throw new Error("Make Hold Keyframes: no selected keyframes were found.");
+    }
+
+    return count;
+}

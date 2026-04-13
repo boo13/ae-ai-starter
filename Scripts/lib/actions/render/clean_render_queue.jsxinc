@@ -1,0 +1,22 @@
+/**
+ * @name Clean Render Queue
+ * @description Removes every item from the render queue.
+ * @category render
+ * @tier block
+ * @inputs opts: { } (no options)
+ * @outputs number — count of render queue items removed
+ * @whenToUse You want to clear the render queue before building a new batch.
+ * @example var count = cleanRenderQueue({});
+ */
+function cleanRenderQueue(opts) {
+    if (!app.project) throw new Error("Clean Render Queue: no project is open.");
+    var rq = app.project.renderQueue;
+    var total = 0;
+    var i = 0;
+    setStep("remove render queue items");
+    for (i = rq.numItems; i > 0; i--) {
+        rq.item(i).remove();
+        total += 1;
+    }
+    return total;
+}

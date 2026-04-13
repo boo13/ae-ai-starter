@@ -1,0 +1,43 @@
+/**
+ * @name Swap Property Values
+ * @description Swaps the current values of exactly two compatible selected properties.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties) }
+ * @outputs boolean — true if the values were swapped
+ * @whenToUse You want to exchange two property values without manually copying and pasting.
+ * @example var ok = swapPropertyValues(comp);
+ */
+function swapPropertyValues(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Swap Property Values: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var selectedProperties = o.properties || comp.selectedProperties;
+    var targetProperties = [];
+    var i = 0;
+
+    if (!selectedProperties || !selectedProperties.length) {
+        throw new Error("Swap Property Values: no properties selected.");
+    }
+
+    for (i = 0; i < selectedProperties.length; i++) {
+        if (selectedProperties[i] && selectedProperties[i].propertyType === PropertyType.PROPERTY && selectedProperties[i].canVaryOverTime) {
+            targetProperties.push(selectedProperties[i]);
+        }
+    }
+    if (targetProperties.length !== 2) {
+        throw new Error("Swap Property Values: exactly two compatible properties must be selected.");
+    }
+    if (targetProperties[0].propertyValueType !== targetProperties[1].propertyValueType) {
+        throw new Error("Swap Property Values: selected properties must have the same propertyValueType.");
+    }
+
+    setStep("swap values");
+    var valueA = targetProperties[0].value;
+    var valueB = targetProperties[1].value;
+    targetProperties[0].setValue(valueB);
+    targetProperties[1].setValue(valueA);
+    return true;
+}

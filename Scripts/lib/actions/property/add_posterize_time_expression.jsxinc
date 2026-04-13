@@ -1,0 +1,45 @@
+/**
+ * @name Add Posterize Time Expression
+ * @description Prepends `posterizeTime(fps); value;` to selected expression-capable properties while preserving any existing expression code.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties), fps: number (default half of comp frame rate rounded up) }
+ * @outputs number — count of properties updated
+ * @whenToUse You want stepped motion on selected properties without deleting the expressions they already have.
+ * @example var count = addPosterizeTimeExpression(comp, { fps: 12 });
+ */
+function addPosterizeTimeExpression(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Posterize Time Expression: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var properties = o.properties || comp.selectedProperties;
+    var fps = (o.fps !== undefined) ? Number(o.fps) : (Math.ceil(comp.frameRate) / 2);
+    var count = 0;
+    var i = 0;
+
+    if (!properties || !properties.length) {
+        throw new Error("Add Posterize Time Expression: no properties selected.");
+    }
+    if (isNaN(fps) || fps <= 0) {
+        throw new Error("Add Posterize Time Expression: opts.fps must be a positive number.");
+    }
+
+    setStep("apply posterize expression");
+    for (i = 0; i < properties.length; i++) {
+        var property = properties[i];
+        if (!property || property.propertyType !== PropertyType.PROPERTY || !property.canSetExpression) {
+            continue;
+        }
+        var prefix = "posterizeTime(" + fps + "); value;";
+        if (property.expression && property.expression.length > 0) {
+            prefix += (property.expression.indexOf("\r") >= 0 || property.expression.indexOf("\n") >= 0) ? "\n" : " ";
+            prefix += property.expression;
+        }
+        property.expression = prefix;
+        count++;
+    }
+
+    return count;
+}

@@ -1,0 +1,39 @@
+/**
+ * @name Swap Selected Property Dimensions
+ * @description Swaps the two dimensions of selected 2D properties such as size, position, or scale values.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties) }
+ * @outputs number — count of properties updated
+ * @whenToUse You want to quickly flip width/height or x/y values on selected 2D properties.
+ * @example var count = swapSelectedPropertyDimensions(comp);
+ */
+function swapSelectedPropertyDimensions(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Swap Selected Property Dimensions: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var properties = o.properties || comp.selectedProperties;
+    var count = 0;
+    var i = 0;
+
+    if (!properties || !properties.length) {
+        throw new Error("Swap Selected Property Dimensions: no properties selected.");
+    }
+
+    setStep("swap dimensions");
+    for (i = 0; i < properties.length; i++) {
+        var property = properties[i];
+        if (!property || property.propertyType !== PropertyType.PROPERTY) {
+            continue;
+        }
+        if (property.propertyValueType === PropertyValueType.TwoD || property.propertyValueType === PropertyValueType.TwoD_SPATIAL) {
+            var value = property.value;
+            property.setValue([value[1], value[0]]);
+            count++;
+        }
+    }
+
+    return count;
+}

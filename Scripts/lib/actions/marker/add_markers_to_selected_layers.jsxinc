@@ -1,0 +1,37 @@
+/**
+ * @name Add Markers To Selected Layers
+ * @description Places a layer marker on each selected layer at a shared time, with an optional shared comment.
+ * @category marker
+ * @tier block
+ * @inputs comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), time: number (default comp.time), comment: string (default "") }
+ * @outputs number — count of layer markers added
+ * @whenToUse You want to stamp the same marker onto multiple selected layers at the current time or a specified time.
+ * @example var count = addMarkersToSelectedLayers(comp, { comment: "Sync point" });
+ */
+function addMarkersToSelectedLayers(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Markers To Selected Layers: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var layers = o.layers || comp.selectedLayers;
+    var time = (o.time !== undefined) ? Number(o.time) : comp.time;
+    var comment = (o.comment !== undefined && o.comment !== null) ? String(o.comment) : "";
+    var marker = new MarkerValue(comment);
+    var i = 0;
+
+    setStep("validate layers");
+    if (!layers || !layers.length) {
+        throw new Error("Add Markers To Selected Layers: no layers selected.");
+    }
+    if (isNaN(time)) {
+        throw new Error("Add Markers To Selected Layers: opts.time must be a number.");
+    }
+
+    setStep("add layer markers");
+    for (i = 0; i < layers.length; i++) {
+        layers[i].marker.setValueAtTime(time, marker);
+    }
+
+    return layers.length;
+}

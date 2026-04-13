@@ -1,0 +1,57 @@
+/**
+ * @name Round Selected Keyframe Values
+ * @description Rounds the selected keyframe values of compatible 1D, 2D, and 3D properties to the nearest whole number.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties) }
+ * @outputs number — count of keyframes updated
+ * @whenToUse You want cleaner numeric values after dragging, baking, or importing animation data.
+ * @example var count = roundSelectedKeyframeValues(comp);
+ */
+
+/**
+ * Rounds a scalar or array value.
+ * @private
+ */
+function _rskv_round(value) {
+    var i = 0;
+    if (value instanceof Array) {
+        var out = [];
+        for (i = 0; i < value.length; i++) {
+            out.push(Math.round(value[i]));
+        }
+        return out;
+    }
+    return Math.round(value);
+}
+
+function roundSelectedKeyframeValues(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Round Selected Keyframe Values: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var properties = o.properties || comp.selectedProperties;
+    var count = 0;
+    var i = 0;
+    var k = 0;
+
+    if (!properties || !properties.length) {
+        throw new Error("Round Selected Keyframe Values: no properties selected.");
+    }
+
+    setStep("round keyframe values");
+    for (i = 0; i < properties.length; i++) {
+        var property = properties[i];
+        if (!property || property.propertyType !== PropertyType.PROPERTY || !property.isTimeVarying || !property.selectedKeys) {
+            continue;
+        }
+        for (k = 0; k < property.selectedKeys.length; k++) {
+            var keyIndex = property.selectedKeys[k];
+            property.setValueAtKey(keyIndex, _rskv_round(property.keyValue(keyIndex)));
+            count++;
+        }
+    }
+
+    return count;
+}

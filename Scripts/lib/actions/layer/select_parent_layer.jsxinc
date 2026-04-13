@@ -1,0 +1,22 @@
+/**
+ * @name Select Parent Layer
+ * @description Selects the parent of the first selected layer.
+ * @category layer
+ * @tier block
+ * @inputs comp: CompItem; opts: { layer: AVLayer (default comp.selectedLayers[0]), deselectChild: boolean (default true) }
+ * @outputs AVLayer — the selected parent layer
+ * @whenToUse You want to jump from a child layer to its direct parent in one command.
+ * @example var parent = selectParentLayer(comp);
+ */
+function selectParentLayer(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) throw new Error("Select Parent Layer: comp must be a CompItem.");
+    var o = opts || {};
+    var layer = o.layer || comp.selectedLayers[0];
+    if (!layer) throw new Error("Select Parent Layer: a selected layer is required.");
+    if (!layer.parent) throw new Error("Select Parent Layer: selected layer has no parent.");
+    setStep("select parent layer");
+    if (o.deselectChild !== false) layer.selected = false;
+    layer.parent.locked = false;
+    layer.parent.selected = true;
+    return layer.parent;
+}

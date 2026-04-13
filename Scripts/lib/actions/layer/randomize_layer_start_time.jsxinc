@@ -1,0 +1,51 @@
+/**
+ * @name Randomize Layer Start Time
+ * @description Randomly offsets selected layer start times within a frame range. Offsets are rounded to whole frames for deterministic timeline placement.
+ * @category layer
+ * @tier block
+ * @inputs comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), rangeFrames: number (default 30), signed: boolean (default true) }
+ * @outputs number — count of layers shifted
+ * @whenToUse You want organic staggered timing across duplicated or repeated layers without hand-offsetting each one.
+ * @example var count = randomizeLayerStartTime(comp, { rangeFrames: 12 });
+ */
+
+/**
+ * Rounds time to the nearest frame.
+ * @private
+ */
+function _rlst_roundToFrame(time, frameRate) {
+    return Math.round(time * frameRate) / frameRate;
+}
+
+function randomizeLayerStartTime(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Randomize Layer Start Time: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var layers = o.layers || comp.selectedLayers;
+    var rangeFrames = (o.rangeFrames !== undefined) ? Number(o.rangeFrames) : 30;
+    var signed = (o.signed !== false);
+    var count = 0;
+    var i = 0;
+
+    setStep("validate layers");
+    if (!layers || !layers.length) {
+        throw new Error("Randomize Layer Start Time: no layers selected.");
+    }
+    if (isNaN(rangeFrames) || rangeFrames < 0) {
+        throw new Error("Randomize Layer Start Time: opts.rangeFrames must be a non-negative number.");
+    }
+
+    setStep("offset start times");
+    for (i = 0; i < layers.length; i++) {
+        var offsetFrames = Math.random() * rangeFrames;
+        if (signed && Math.random() >= 0.5) {
+            offsetFrames *= -1;
+        }
+        layers[i].startTime += _rlst_roundToFrame(offsetFrames * comp.frameDuration, comp.frameRate);
+        count++;
+    }
+
+    return count;
+}

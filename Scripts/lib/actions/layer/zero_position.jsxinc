@@ -1,0 +1,42 @@
+/**
+ * @name Zero Position
+ * @description Creates guide-style zero nulls for selected layers and parents each selected layer to its zero, preserving visual position.
+ * @category layer
+ * @tier block
+ * @inputs comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), prefix: string (default "z_") }
+ * @outputs number — count of zero layers created
+ * @whenToUse You want to zero out layer transforms by inserting a parent at the current position.
+ * @example var count = zeroPosition(comp);
+ */
+function zeroPosition(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) throw new Error("Zero Position: comp must be a CompItem.");
+    var o = opts || {};
+    var layers = o.layers || comp.selectedLayers;
+    var prefix = o.prefix || "z_";
+    var indices = [];
+    var total = 0;
+    var i = 0;
+    if (!layers || !layers.length) throw new Error("Zero Position: no layers selected.");
+    for (i = 0; i < layers.length; i++) {
+        indices.push(layers[i].index);
+        layers[i].selected = false;
+    }
+    setStep("create zero layers");
+    for (i = 0; i < indices.length; i++) {
+        var layer = comp.layer(indices[i]);
+        var zero = comp.layers.addShape();
+        zero.name = prefix + layer.name;
+        zero.transform.position.setValue(layer.transform.position.value);
+        zero.moveToEnd();
+        zero.enabled = false;
+        zero.guideLayer = true;
+        zero.label = 0;
+        zero.shy = true;
+        zero.threeDLayer = layer.threeDLayer;
+        zero.locked = true;
+        layer.parent = zero;
+        total += 1;
+    }
+    comp.hideShyLayers = true;
+    return total;
+}

@@ -1,0 +1,35 @@
+/**
+ * @name Enable Selected Expressions
+ * @description Enables expressions on selected properties that already contain expression code.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties) }
+ * @outputs number — count of properties updated
+ * @whenToUse You want to re-enable selected expressions that were previously disabled.
+ * @example var count = enableSelectedExpressions(comp);
+ */
+function enableSelectedExpressions(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Enable Selected Expressions: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var properties = o.properties || comp.selectedProperties;
+    var count = 0;
+    var i = 0;
+
+    if (!properties || !properties.length) {
+        throw new Error("Enable Selected Expressions: no properties selected.");
+    }
+
+    setStep("enable expressions");
+    for (i = 0; i < properties.length; i++) {
+        var property = properties[i];
+        if (property && property.propertyType === PropertyType.PROPERTY && property.canSetExpression && property.expression && property.expression.length > 0) {
+            property.expressionEnabled = true;
+            count++;
+        }
+    }
+
+    return count;
+}

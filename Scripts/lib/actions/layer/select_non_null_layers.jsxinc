@@ -1,0 +1,27 @@
+/**
+ * @name Select Non-Null Layers
+ * @description Selects all unlocked non-null layers in the comp.
+ * @category layer
+ * @tier block
+ * @inputs comp: CompItem; opts: { clearSelection: boolean (default true) }
+ * @outputs number — count of layers selected
+ * @whenToUse You want to exclude null controllers from a bulk layer operation.
+ * @example var count = selectNonNullLayers(comp);
+ */
+function selectNonNullLayers(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) throw new Error("Select Non-Null Layers: comp must be a CompItem.");
+    var o = opts || {};
+    var clearSelection = (o.clearSelection !== false);
+    var total = 0;
+    var i = 0;
+    setStep("select non-null layers");
+    for (i = comp.numLayers; i > 0; i--) {
+        var layer = comp.layer(i);
+        if (clearSelection) layer.selected = false;
+        if (!layer.locked && !layer.nullLayer) {
+            layer.selected = true;
+            total += 1;
+        }
+    }
+    return total;
+}

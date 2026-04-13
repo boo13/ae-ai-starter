@@ -1,0 +1,38 @@
+/**
+ * @name Copy Layer Markers To Composition
+ * @description Copies all markers from a source layer to the composition marker stream, preserving comment, duration, and label.
+ * @category marker
+ * @tier block
+ * @inputs comp: CompItem; opts: { layer: AVLayer (default comp.selectedLayers[0]) }
+ * @outputs number — count of markers copied to the composition
+ * @whenToUse You want layer-authored markers promoted to the comp timeline for broader timing use.
+ * @example var count = copyLayerMarkersToComposition(comp);
+ */
+function copyLayerMarkersToComposition(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Copy Layer Markers To Composition: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var layer = o.layer || comp.selectedLayers[0];
+    var markers = null;
+    var count = 0;
+    var i = 0;
+
+    if (!layer) {
+        throw new Error("Copy Layer Markers To Composition: a source layer is required.");
+    }
+    markers = layer.marker;
+
+    setStep("copy markers");
+    for (i = 1; i <= markers.numKeys; i++) {
+        var keyValue = markers.keyValue(i);
+        var markerValue = new MarkerValue(keyValue.comment);
+        markerValue.duration = keyValue.duration;
+        markerValue.label = keyValue.label;
+        comp.markerProperty.setValueAtTime(markers.keyTime(i), markerValue);
+        count++;
+    }
+
+    return count;
+}

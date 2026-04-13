@@ -1,0 +1,35 @@
+/**
+ * @name Parent Opacity
+ * @description Applies an opacity expression so each selected child layer respects both its own opacity and its parent's opacity, using the lower of the two values.
+ * @category layer
+ * @tier block
+ * @inputs comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), expression: string (default min(child,parent) opacity expression) }
+ * @outputs number — count of layers updated
+ * @whenToUse You want child layers to fade with their parent while preserving their own local opacity animation.
+ * @example var count = parentOpacity(comp);
+ */
+function parentOpacity(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Parent Opacity: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var layers = o.layers || comp.selectedLayers;
+    var expression = o.expression || "Math.min(value, thisLayer.parent.transform.opacity.value);";
+    var count = 0;
+    var i = 0;
+
+    if (!layers || !layers.length) {
+        throw new Error("Parent Opacity: no layers selected.");
+    }
+
+    setStep("apply parent opacity expression");
+    for (i = 0; i < layers.length; i++) {
+        if (layers[i].parent) {
+            layers[i].property("ADBE Transform Group").property("ADBE Opacity").expression = expression;
+            count++;
+        }
+    }
+
+    return count;
+}

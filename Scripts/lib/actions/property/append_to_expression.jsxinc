@@ -1,0 +1,42 @@
+/**
+ * @name Append To Expression
+ * @description Prepends custom expression code to selected properties that already have enabled expressions.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties), code: string (required) }
+ * @outputs number — count of properties updated
+ * @whenToUse You want to batch-insert shared expression code such as `posterizeTime()` or utility variables across selected properties.
+ * @example var count = appendToExpression(comp, { code: "posterizeTime(12);" });
+ */
+function appendToExpression(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Append To Expression: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var properties = o.properties || comp.selectedProperties;
+    var code = o.code;
+    var count = 0;
+    var i = 0;
+
+    if (!properties || !properties.length) {
+        throw new Error("Append To Expression: no properties selected.");
+    }
+    if (code === undefined || code === null || String(code).length === 0) {
+        throw new Error("Append To Expression: opts.code is required.");
+    }
+    code = String(code);
+
+    setStep("prepend expression code");
+    for (i = 0; i < properties.length; i++) {
+        var property = properties[i];
+        if (!property || property.propertyType !== PropertyType.PROPERTY || !property.canSetExpression || !property.expressionEnabled) {
+            continue;
+        }
+        var divider = (property.expression.indexOf("\r") >= 0 || property.expression.indexOf("\n") >= 0) ? "\n" : " ";
+        property.expression = code + divider + property.expression;
+        count++;
+    }
+
+    return count;
+}

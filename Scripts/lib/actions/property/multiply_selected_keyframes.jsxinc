@@ -1,0 +1,53 @@
+/**
+ * @name Multiply Selected Keyframes
+ * @description Multiplies selected keyframe values by a scalar multiplier on the selected properties.
+ * @category property
+ * @tier block
+ * @inputs comp: CompItem; opts: { properties: Property[] (default comp.selectedProperties), multiplier: number (default 2) }
+ * @outputs number — count of keyframes updated
+ * @whenToUse You want to proportionally scale selected animation values without editing each keyframe manually.
+ * @example var count = multiplySelectedKeyframes(comp, { multiplier: 1.5 });
+ */
+function multiplySelectedKeyframes(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Multiply Selected Keyframes: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var properties = o.properties || comp.selectedProperties;
+    var multiplier = (o.multiplier !== undefined) ? Number(o.multiplier) : 2;
+    var total = 0;
+    var i = 0;
+    var k = 0;
+
+    if (!properties || !properties.length) {
+        throw new Error("Multiply Selected Keyframes: no properties selected.");
+    }
+    if (isNaN(multiplier)) {
+        throw new Error("Multiply Selected Keyframes: opts.multiplier must be a number.");
+    }
+
+    setStep("multiply keyframes");
+    for (i = 0; i < properties.length; i++) {
+        var property = properties[i];
+        if (!property || property.propertyType !== PropertyType.PROPERTY || !property.canVaryOverTime || !property.selectedKeys) {
+            continue;
+        }
+        for (k = 0; k < property.selectedKeys.length; k++) {
+            var keyIndex = property.selectedKeys[k];
+            var value = property.keyValue(keyIndex);
+            if (value instanceof Array) {
+                var scaled = [];
+                var d = 0;
+                for (d = 0; d < value.length; d++) {
+                    scaled.push(value[d] * multiplier);
+                }
+                property.setValueAtKey(keyIndex, scaled);
+            } else {
+                property.setValueAtKey(keyIndex, value * multiplier);
+            }
+            total += 1;
+        }
+    }
+    return total;
+}

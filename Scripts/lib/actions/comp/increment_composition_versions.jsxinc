@@ -1,0 +1,31 @@
+/**
+ * @name Increment Composition Versions
+ * @description Increments `_vNN` style version suffixes on compositions in the project.
+ * @category comp
+ * @tier block
+ * @inputs opts: { onlySelected: boolean (default false) }
+ * @outputs number — count of compositions renamed
+ * @whenToUse You want to batch-bump comp version numbers before delivery or iteration.
+ * @example var count = incrementCompositionVersions({});
+ */
+function incrementCompositionVersions(opts) {
+    if (!app.project) throw new Error("Increment Composition Versions: no project is open.");
+    var o = opts || {};
+    var items = o.onlySelected ? app.project.selection : app.project.items;
+    var total = 0;
+    var i = 0;
+    setStep("increment versions");
+    for (i = 1; i <= items.length; i++) {
+        var item = items[i];
+        if (item instanceof CompItem && (/.*_v[0-9]*/g).test(item.name)) {
+            var oldArray = item.name.split("_v");
+            var oldString = oldArray.pop();
+            var oldInteger = Number(oldString);
+            var newInteger = oldInteger + 1;
+            var newString = (newInteger < 9) ? "0" + newInteger : String(newInteger);
+            item.name = oldArray.join("") + "_v" + newString;
+            total += 1;
+        }
+    }
+    return total;
+}

@@ -1,0 +1,31 @@
+/**
+ * @name Shift Layer Start Time
+ * @description Shifts selected layers so the earliest in-point aligns to a target time while preserving relative timing between layers.
+ * @category layer
+ * @tier block
+ * @inputs comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), targetTime: number (default comp.time) }
+ * @outputs number — count of layers shifted
+ * @whenToUse You want to move a selected layer group in time as a unit without disturbing their internal offsets.
+ * @example var count = shiftLayerStartTime(comp);
+ */
+function shiftLayerStartTime(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) throw new Error("Shift Layer Start Time: comp must be a CompItem.");
+    var o = opts || {};
+    var layers = o.layers || comp.selectedLayers;
+    var targetTime = (o.targetTime !== undefined) ? Number(o.targetTime) : comp.time;
+    var firstInPoint = null;
+    var total = 0;
+    var i = 0;
+    if (!layers || !layers.length) throw new Error("Shift Layer Start Time: no layers selected.");
+    if (isNaN(targetTime)) throw new Error("Shift Layer Start Time: opts.targetTime must be a number.");
+    for (i = 0; i < layers.length; i++) {
+        if (firstInPoint === null || layers[i].inPoint < firstInPoint) firstInPoint = layers[i].inPoint;
+    }
+    var diff = targetTime - firstInPoint;
+    setStep("shift start times");
+    for (i = 0; i < layers.length; i++) {
+        layers[i].startTime += diff;
+        total += 1;
+    }
+    return total;
+}

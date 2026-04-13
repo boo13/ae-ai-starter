@@ -1,0 +1,57 @@
+/**
+ * @name Set To Average Position
+ * @description Moves one selected layer to the average position of the selected set. By default it targets the last selected layer, matching the community script behavior.
+ * @category layer
+ * @tier block
+ * @inputs comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), target: "last"|"first" (default "last") }
+ * @outputs AVLayer — the layer that was repositioned
+ * @whenToUse You need to snap a controller or layer to the centroid of a selected group.
+ * @example var layer = setToAveragePosition(comp, { target: "first" });
+ */
+function setToAveragePosition(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Set To Average Position: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var layers = o.layers || comp.selectedLayers;
+    var targetMode = o.target || "last";
+    var sums = [0, 0, 0];
+    var count = 0;
+    var i = 0;
+
+    setStep("validate layers");
+    if (!layers || !layers.length) {
+        throw new Error("Set To Average Position: no layers selected.");
+    }
+    if (targetMode !== "last" && targetMode !== "first") {
+        throw new Error("Set To Average Position: opts.target must be first or last.");
+    }
+
+    setStep("compute average position");
+    for (i = 0; i < layers.length; i++) {
+        var value = layers[i].transform.position.value;
+        sums[0] += value[0];
+        sums[1] += value[1];
+        sums[2] += (value.length > 2) ? value[2] : 0;
+        count++;
+    }
+
+    var average = [sums[0] / count, sums[1] / count, sums[2] / count];
+    var target = (targetMode === "first") ? layers[0] : layers[layers.length - 1];
+
+    setStep("set target position");
+    if (target.transform.position.dimensionsSeparated) {
+        target.transform.xPosition.setValue(average[0]);
+        target.transform.yPosition.setValue(average[1]);
+        if (target.threeDLayer) {
+            target.transform.zPosition.setValue(average[2]);
+        }
+    } else if (target.threeDLayer) {
+        target.transform.position.setValue(average);
+    } else {
+        target.transform.position.setValue([average[0], average[1]]);
+    }
+
+    return target;
+}

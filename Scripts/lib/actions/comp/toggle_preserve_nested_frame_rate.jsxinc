@@ -1,0 +1,26 @@
+/**
+ * @name Toggle Preserve Nested Frame Rate
+ * @description Sets preserve-nested-frame-rate across all comps in the project.
+ * @category comp
+ * @tier block
+ * @inputs opts: { enabled: boolean (default true) }
+ * @outputs number — count of compositions updated
+ * @whenToUse You want all compositions to consistently preserve nested frame rate or disable that behavior project-wide.
+ * @example var count = togglePreserveNestedFrameRate({ enabled: true });
+ */
+function togglePreserveNestedFrameRate(opts) {
+    if (!app.project) throw new Error("Toggle Preserve Nested Frame Rate: no project is open.");
+    var o = opts || {};
+    var enabled = (o.enabled !== false);
+    var total = 0;
+    var i = 0;
+    setStep("toggle preserve nested frame rate");
+    for (i = app.project.numItems; i > 0; i--) {
+        var item = app.project.items[i];
+        if (item instanceof CompItem) {
+            item.preserveNestedFrameRate = enabled;
+            total += 1;
+        }
+    }
+    return total;
+}

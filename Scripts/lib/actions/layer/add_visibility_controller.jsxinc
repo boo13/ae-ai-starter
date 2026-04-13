@@ -1,0 +1,60 @@
+/**
+ * @name Add Visibility Controller
+ * @description Creates a null controller with a Checkbox Control, then links selected layer opacity to that checkbox so one toggle can show or hide the group.
+ * @category layer
+ * @tier compound
+ * @inputs comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers), controllerName: string (default "Visibility Controller"), controlName: string (default "Visible"), initialValue: boolean (default true) }
+ * @outputs Object — { controller: AVLayer, count: number }
+ * @whenToUse You want one shared visibility toggle for one or more layers instead of adding separate checkbox controls to each layer.
+ * @example var result = addVisibilityController(comp, { controllerName: "CTA Toggle" });
+ * @requires null_object.jsxinc, expression_control.jsxinc
+ */
+function addVisibilityController(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Visibility Controller: comp must be a CompItem.");
+    }
+    if (typeof addNull !== "function") {
+        throw new Error("Add Visibility Controller: addNull() is required. Include layer/null_object.jsxinc.");
+    }
+    if (typeof addExpressionControl !== "function") {
+        throw new Error("Add Visibility Controller: addExpressionControl() is required. Include property/expression_control.jsxinc.");
+    }
+
+    var o = opts || {};
+    var layers = o.layers || comp.selectedLayers;
+    var controllerName = o.controllerName || "Visibility Controller";
+    var controlName = o.controlName || "Visible";
+    var initialValue = (o.initialValue !== false);
+    var controller = null;
+    var effect = null;
+    var controlProp = null;
+    var i = 0;
+
+    setStep("validate layers");
+    if (!layers || !layers.length) {
+        throw new Error("Add Visibility Controller: no layers selected.");
+    }
+
+    setStep("create controller");
+    controller = addNull(comp, { name: controllerName });
+    effect = addExpressionControl(controller, {
+        type: "checkbox",
+        name: controlName,
+        value: initialValue ? 1 : 0
+    });
+    controlProp = effect.property(1);
+
+    setStep("link opacity");
+    for (i = 0; i < layers.length; i++) {
+        if (layers[i] === controller) {
+            continue;
+        }
+        layers[i].transform.opacity.expression =
+            "thisComp.layer(\"" + controller.name + "\").effect(\"" + controlName + "\")(\"" + controlProp.name + "\").value * value;";
+    }
+
+    return {
+        controller: controller,
+        count: layers.length
+    };
+}

@@ -1,0 +1,41 @@
+/**
+ * @name Parent Selected Layers To Layers Below
+ * @description Parents each selected layer to the layer directly below it in stacking order. Layers at the bottom of the comp are skipped.
+ * @category layer
+ * @tier block
+ * @inputs comp: CompItem; opts: { layers: AVLayer[] (default comp.selectedLayers) }
+ * @outputs number — count of layers parented
+ * @whenToUse You want to quickly create a stack-based parent chain using the current layer order.
+ * @example var count = parentSelectedLayersToLayersBelow(comp);
+ */
+function parentSelectedLayersToLayersBelow(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Parent Selected Layers To Layers Below: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var layers = o.layers || comp.selectedLayers;
+    var count = 0;
+    var i = 0;
+
+    setStep("validate layers");
+    if (!layers || !layers.length) {
+        throw new Error("Parent Selected Layers To Layers Below: no layers selected.");
+    }
+
+    setStep("parent layers");
+    for (i = 0; i < layers.length; i++) {
+        var layer = layers[i];
+        if (!layer || layer.index >= comp.numLayers) {
+            continue;
+        }
+        layer.parent = comp.layer(layer.index + 1);
+        count++;
+    }
+
+    if (!count) {
+        throw new Error("Parent Selected Layers To Layers Below: no selected layers had a layer below them.");
+    }
+
+    return count;
+}

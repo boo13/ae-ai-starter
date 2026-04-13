@@ -1,0 +1,32 @@
+/**
+ * @name Select All Children
+ * @description Selects all unlocked child layers of a single selected parent layer.
+ * @category layer
+ * @tier block
+ * @inputs comp: CompItem; opts: { parentLayer: AVLayer (default comp.selectedLayers[0]), deselectParent: boolean (default true) }
+ * @outputs number — count of child layers selected
+ * @whenToUse You want to isolate every direct child of a selected parent layer.
+ * @example var count = selectAllChildren(comp);
+ */
+function selectAllChildren(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Select All Children: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var parentLayer = o.parentLayer || comp.selectedLayers[0];
+    var deselectParent = (o.deselectParent !== false);
+    var total = 0;
+    var i = 0;
+    if (!parentLayer) throw new Error("Select All Children: a parent layer is required.");
+
+    setStep("select children");
+    if (deselectParent) parentLayer.selected = false;
+    for (i = comp.numLayers; i > 0; i--) {
+        var layer = comp.layer(i);
+        if (layer.parent && layer.parent.index === parentLayer.index && !layer.locked) {
+            layer.selected = true;
+            total += 1;
+        }
+    }
+    return total;
+}

@@ -1,0 +1,42 @@
+/**
+ * @name Find All Expressions
+ * @description Scans the whole project and returns every active expression with its comp and layer context.
+ * @category utility
+ * @tier block
+ * @inputs opts: { } (no options)
+ * @outputs Array<Object> — [{ compName, layerName, layerIndex, propertyName }]
+ * @whenToUse You want an inventory of active expressions before export, cleanup, or Lottie prep.
+ * @example var matches = findAllExpressions({});
+ */
+function _fae_getLayer(prop) {
+    while (prop && prop.parentProperty !== null) prop = prop.parentProperty;
+    return prop;
+}
+function _fae_walk(group, out) {
+    var i = 0;
+    for (i = 1; i <= group.numProperties; i++) {
+        var prop = group.property(i);
+        if (prop.propertyType === PropertyType.PROPERTY) {
+            if (prop.canSetExpression && prop.expressionEnabled) {
+                var layer = _fae_getLayer(prop);
+                out.push({ compName: layer.containingComp.name, layerName: layer.name, layerIndex: layer.index, propertyName: prop.name });
+            }
+        } else if (prop.propertyType === PropertyType.INDEXED_GROUP || prop.propertyType === PropertyType.NAMED_GROUP) {
+            _fae_walk(prop, out);
+        }
+    }
+}
+function findAllExpressions(opts) {
+    if (!app.project) throw new Error("Find All Expressions: no project is open.");
+    var out = [];
+    var i = 0;
+    var l = 0;
+    setStep("scan project expressions");
+    for (i = 1; i <= app.project.numItems; i++) {
+        var item = app.project.item(i);
+        if (item instanceof CompItem) {
+            for (l = item.numLayers; l > 0; l--) _fae_walk(item.layer(l), out);
+        }
+    }
+    return out;
+}
