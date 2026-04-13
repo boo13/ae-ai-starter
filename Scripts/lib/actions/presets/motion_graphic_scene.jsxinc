@@ -1,0 +1,145 @@
+/**
+ * @name Build Motion Graphic Scene
+ * @description Creates a complete motion graphic comp: background solid, title + subtitle text layers, accent shapes, and guide preset. Three style tokens control the palette and geometry.
+ * @category preset
+ * @tier compound
+ * @inputs opts: { name: string (default "MG Scene"), width: number (default 1920), height: number (default 1080), duration: number (default 8), fps: number (default 24), title: string (default "Title"), subtitle: string (default "Subtitle"), bgColor: [r,g,b] (overrides style default), style: "minimal"|"bold"|"tech" (default "minimal") }
+ * @outputs Object — { comp, bg, title, subtitle, accent } (layers may be null if creation fails)
+ * @whenToUse You need a production-ready motion graphic starting point without assembling every layer individually. Pick a style token and supply copy.
+ * @example var scene = buildMotionGraphicScene({ title: "Q4 Review", subtitle: "Sales & Marketing", style: "bold" });
+ * @requires create_comp.jsxinc, solid.jsxinc, text_layer.jsxinc, shape_layer.jsxinc, guide_preset.jsxinc
+ */
+
+/**
+ * Returns the palette and geometry settings for a given style token.
+ * @private
+ */
+function _mgs_getStyle(style) {
+    var s = String(style || "minimal").toLowerCase();
+    if (s === "bold") {
+        return {
+            bgColor:       [0.06, 0.06, 0.09],
+            titleColor:    [1, 1, 1],
+            subtitleColor: [0.8, 0.8, 0.8],
+            titleSize:     100,
+            subtitleSize:  40,
+            accentColor:   [1, 0.25, 0.1],
+            accentShape:   "rectangle",
+            accentSize:    [600, 8],
+            accentOffset:  [0, 70]
+        };
+    }
+    if (s === "tech") {
+        return {
+            bgColor:       [0.03, 0.05, 0.08],
+            titleColor:    [0.2, 1, 0.7],
+            subtitleColor: [0.5, 0.8, 0.6],
+            titleSize:     80,
+            subtitleSize:  32,
+            accentColor:   [0.1, 0.8, 0.5],
+            accentShape:   "rectangle",
+            accentSize:    [80, 4],
+            accentOffset:  [-260, 60]
+        };
+    }
+    // default: minimal
+    return {
+        bgColor:       [0.96, 0.96, 0.96],
+        titleColor:    [0.08, 0.08, 0.1],
+        subtitleColor: [0.35, 0.35, 0.38],
+        titleSize:     88,
+        subtitleSize:  36,
+        accentColor:   [0.1, 0.1, 0.9],
+        accentShape:   "rectangle",
+        accentSize:    [400, 4],
+        accentOffset:  [0, 60]
+    };
+}
+
+function buildMotionGraphicScene(opts) {
+    if (!app.project) {
+        throw new Error("Build Motion Graphic Scene: no project is open.");
+    }
+
+    var o = opts || {};
+    var style = o.style || "minimal";
+    var palette = _mgs_getStyle(style);
+
+    // Comp dimensions
+    var width    = o.width    || 1920;
+    var height   = o.height   || 1080;
+    var duration = o.duration || 8;
+    var fps      = o.fps      || 24;
+    var name     = o.name     || "MG Scene";
+
+    var titleText    = (o.title    !== undefined) ? String(o.title)    : "Title";
+    var subtitleText = (o.subtitle !== undefined) ? String(o.subtitle) : "Subtitle";
+    var bgColor      = o.bgColor || palette.bgColor;
+
+    // 1. Create comp
+    var comp = createCompFromValues({ name: name, width: width, height: height, duration: duration, fps: fps });
+    if (!comp) throw new Error("Build Motion Graphic Scene: failed to create comp.");
+
+    // 2. Background solid
+    var bg = null;
+    try {
+        bg = addSolid(comp, { color: bgColor, name: "BG" });
+    } catch (e) {
+        throw new Error("Build Motion Graphic Scene: failed to add background. " + e.message);
+    }
+
+    // 3. Guide preset (thirds for layout reference)
+    try { addGuidePreset(comp, { preset: "thirds" }); } catch (_) {}
+
+    // 4. Accent shape — sits between bg and text for visual hierarchy
+    var accent = null;
+    try {
+        var accentX = comp.width  / 2 + palette.accentOffset[0];
+        var accentY = comp.height / 2 + palette.accentOffset[1];
+        accent = addShapeLayer(comp, {
+            name: "Accent",
+            shape: palette.accentShape,
+            size: palette.accentSize,
+            fillColor: palette.accentColor,
+            strokeColor: null,
+            position: [accentX, accentY]
+        });
+    } catch (_) {}
+
+    // 5. Title text layer — centered, vertically above comp center
+    var titleLayer = null;
+    try {
+        titleLayer = addTextLayer(comp, {
+            name: "Title",
+            text: titleText,
+            fontSize: palette.titleSize,
+            fillColor: palette.titleColor,
+            justification: "center",
+            position: [comp.width / 2, comp.height / 2 - 30]
+        });
+    } catch (e) {
+        throw new Error("Build Motion Graphic Scene: failed to add title. " + e.message);
+    }
+
+    // 6. Subtitle text layer — below title
+    var subtitleLayer = null;
+    try {
+        var subtitleSpacing = Math.round(palette.titleSize * 0.8) + 20;
+        subtitleLayer = addTextLayer(comp, {
+            name: "Subtitle",
+            text: subtitleText,
+            fontSize: palette.subtitleSize,
+            fillColor: palette.subtitleColor,
+            justification: "center",
+            position: [comp.width / 2, comp.height / 2 + subtitleSpacing]
+        });
+    } catch (_) {}
+
+    return {
+        comp:     comp,
+        bg:       bg,
+        title:    titleLayer,
+        subtitle: subtitleLayer,
+        accent:   accent
+    };
+}

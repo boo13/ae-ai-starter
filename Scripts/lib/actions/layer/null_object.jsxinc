@@ -1,0 +1,29 @@
+/**
+ * @name Add Null
+ * @description Creates a null object layer for use as a controller, parent anchor, or expression target.
+ * @category layer
+ * @inputs comp: CompItem; opts: { name: string (default "Null Controller"), position: [x,y] (default comp center), is3D: boolean (default false) }
+ * @outputs AVLayer — the newly created null layer
+ * @tier block
+ * @whenToUse You need an invisible controller layer for parenting, expressions, or camera rigs.
+ * @example var ctrl = addNull(comp, { name: "Camera CTRL", is3D: true });
+ */
+function addNull(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Null: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var name = o.name || "Null Controller";
+    var is3D = o.is3D ? true : false;
+    var position = o.position || [comp.width / 2, comp.height / 2];
+
+    var layer = comp.layers.addNull();
+    layer.name = name;
+    if (is3D) {
+        try { layer.threeDLayer = true; } catch (_) {}
+    }
+    try {
+        layer.property("Transform").property("Position").setValue(position);
+    } catch (_) {}
+    return layer;
+}

@@ -1,80 +1,24 @@
 /**
  * @name Add Film Damage Treatment
- * @description Adds a four-layer adjustment stack simulating film damage: gate weave, grain, flicker, and color grade.
- * @category layer
- * @inputs comp: CompItem; opts: { } (no opts for v1 — effect values are opinionated)
+ * @description Composes gate_weave + grain + flicker + color_grade into a four-layer film damage look.
+ * @category preset
+ * @tier compound
+ * @inputs comp: CompItem; opts: { } (no opts for v1 — pass opts to individual blocks for fine control)
  * @outputs Object — { gateWeave, grain, flicker, colorGrade } (the four adjustment layers)
- * @whenToUse You want an instant analog/film-damage look applied on top of existing comp layers.
+ * @whenToUse You want an instant analog/film-damage look applied on top of existing comp layers without choosing individual effects.
  * @example var layers = addFilmDamageTreatment(comp);
- * @note Requires: ADBE Geometry (Transform effect), ADBE Noise, ADBE Gaussian Blur 2, ADBE Unsharp Mask,
- *   ADBE Exposure, ADBE Glo2 (Glow), CS Vignette (3rd-party), ADBE Easy Levels. Missing effects throw.
+ * @requires gate_weave.jsxinc, grain.jsxinc, flicker.jsxinc, color_grade.jsxinc
+ * @pluginDeps ADBE Geometry, ADBE Noise, ADBE Gaussian Blur 2, ADBE Unsharp Mask, ADBE Exposure, ADBE Glo2, CS Vignette, ADBE Easy Levels
+ * @note CS Vignette is a third-party plugin required by the color_grade block. Replace color_grade.jsxinc with a custom implementation if not available.
  */
 function addFilmDamageTreatment(comp, opts) {
     if (!comp || !(comp instanceof CompItem)) {
         throw new Error("Add Film Damage Treatment: comp must be a CompItem.");
     }
-
-    var width = comp.width;
-    var height = comp.height;
-    var pixelAspect = comp.pixelAspect;
-    var duration = comp.duration;
-    var targetOrder = ["GATE WEAVE", "GRAIN", "FLICKER", "COLOR GRADE"];
-    var added = {};
-
-    setStep("create adjustment layers");
-    for (var idx = targetOrder.length - 1; idx >= 0; idx -= 1) {
-        var layerName = targetOrder[idx];
-        var solid = comp.layers.addSolid([1, 1, 1], layerName, width, height, pixelAspect, duration);
-        solid.adjustmentLayer = true;
-        solid.blendingMode = BlendingMode.NORMAL;
-        added[layerName] = solid;
-    }
-
-    setStep("apply gate weave transform");
-    var gateLayer = added["GATE WEAVE"];
-    var gateFx = gateLayer.property("ADBE Effect Parade").addProperty("ADBE Geometry");
-    gateFx.property("ADBE Geometry-0011").setValue(1);
-    gateFx.property("ADBE Geometry-0003").setValue(101.5);
-    gateFx.property("ADBE Geometry-0002").expression = "x = wiggle(12, .5)[0]; y = wiggle(3, .15, 3, 4)[1]; [x, y];";
-
-    setStep("apply grain stack");
-    var grainLayer = added["GRAIN"];
-    var noiseFx = grainLayer.property("ADBE Effect Parade").addProperty("ADBE Noise");
-    noiseFx.property("ADBE Noise-0001").setValue(10);
-
-    var blurFx = grainLayer.property("ADBE Effect Parade").addProperty("ADBE Gaussian Blur 2");
-    blurFx.property("ADBE Gaussian Blur 2-0001").setValue(6);
-
-    var unsharpFx = grainLayer.property("ADBE Effect Parade").addProperty("ADBE Unsharp Mask");
-    unsharpFx.property("ADBE Unsharp Mask-0001").setValue(300);
-    unsharpFx.property("ADBE Unsharp Mask-0002").setValue(3);
-
-    setStep("add flicker exposure");
-    var flickerLayer = added["FLICKER"];
-    var exposureFx = flickerLayer.property("ADBE Effect Parade").addProperty("ADBE Exposure");
-    exposureFx.property("ADBE Exposure-0003").expression = "wiggle(12, .1)";
-
-    setStep("build color grade stack");
-    var colorLayer = added["COLOR GRADE"];
-    var colorParade = colorLayer.property("ADBE Effect Parade");
-
-    var glowFx = colorParade.addProperty("ADBE Glo2");
-    glowFx.property("ADBE Glo2-0002").setValue(50);
-    glowFx.property("ADBE Glo2-0003").setValue(500);
-    glowFx.property("ADBE Glo2-0004").setValue(0.2);
-    glowFx.property("ADBE Glo2-0006").setValue(2);
-
-    var vignetteFx = colorParade.addProperty("CS Vignette");
-    vignetteFx.property("CS Vignette-0001").setValue(50);
-
-    var levelsFx = colorParade.addProperty("ADBE Easy Levels");
-    levelsFx.property("ADBE Easy Levels-0006").setValue(10);
-    levelsFx.property("ADBE Easy Levels-0007").setValue(235);
-
     return {
-        gateWeave: added["GATE WEAVE"],
-        grain: added["GRAIN"],
-        flicker: added["FLICKER"],
-        colorGrade: added["COLOR GRADE"]
+        gateWeave:  addGateWeave(comp),
+        grain:      addGrain(comp),
+        flicker:    addFlicker(comp),
+        colorGrade: addColorGrade(comp)
     };
 }

@@ -1,0 +1,92 @@
+/**
+ * @name Set Keyframes
+ * @description Sets one or more keyframes on an animatable property, with configurable easing. Validates canVaryOverTime, sorts keyframes by time, and maps easing strings to KeyframeInterpolationType + KeyframeEase.
+ * @category property
+ * @inputs prop: Property; opts: { keyframes: Array<{time: number, value: *}> (required), easing: "linear"|"easeIn"|"easeOut"|"easeInOut"|"hold" (default "linear") }
+ * @outputs number — count of keyframes added
+ * @tier block
+ * @whenToUse You need to set keyframe values on any animatable property with consistent easing. Handles both temporal and spatial properties.
+ * @example var count = setKeyframes(layer.property("Transform").property("Opacity"), { keyframes: [{time: 0, value: 0}, {time: 1, value: 100}], easing: "easeInOut" });
+ */
+
+/**
+ * Maps an easing string to in/out KeyframeInterpolationType values.
+ * @private
+ */
+function _kf_getInterpolationTypes(easing) {
+    var KIT = KeyframeInterpolationType;
+    var e = easing ? String(easing).toLowerCase() : "linear";
+    if (e === "hold")      return { inType: KIT.HOLD,    outType: KIT.HOLD };
+    if (e === "easein")    return { inType: KIT.BEZIER,  outType: KIT.LINEAR };
+    if (e === "easeout")   return { inType: KIT.LINEAR,  outType: KIT.BEZIER };
+    if (e === "easeinout") return { inType: KIT.BEZIER,  outType: KIT.BEZIER };
+    return { inType: KIT.LINEAR, outType: KIT.LINEAR };
+}
+
+/**
+ * Sorts an array of {time, value} keyframe objects ascending by time, in place.
+ * @private
+ */
+function _kf_sortByTime(kfs) {
+    for (var i = 0; i < kfs.length - 1; i++) {
+        for (var j = i + 1; j < kfs.length; j++) {
+            if (kfs[j].time < kfs[i].time) {
+                var tmp = kfs[i];
+                kfs[i] = kfs[j];
+                kfs[j] = tmp;
+            }
+        }
+    }
+}
+
+function setKeyframes(prop, opts) {
+    if (!prop) {
+        throw new Error("Set Keyframes: prop is required.");
+    }
+    if (prop.propertyType !== PropertyType.PROPERTY) {
+        throw new Error("Set Keyframes: prop must be a PROPERTY type (not a group).");
+    }
+    if (!prop.canVaryOverTime) {
+        throw new Error("Set Keyframes: property \"" + prop.name + "\" cannot be animated.");
+    }
+
+    var o = opts || {};
+    var keyframes = o.keyframes;
+    if (!keyframes || !keyframes.length) {
+        throw new Error("Set Keyframes: opts.keyframes must be a non-empty array of {time, value} objects.");
+    }
+    var easing = o.easing || "linear";
+
+    // Sort keyframes ascending by time (AE requires keys in order)
+    var kfs = [];
+    for (var i = 0; i < keyframes.length; i++) {
+        kfs.push(keyframes[i]);
+    }
+    _kf_sortByTime(kfs);
+
+    // Add all keyframes first
+    for (var i = 0; i < kfs.length; i++) {
+        prop.setValueAtTime(kfs[i].time, kfs[i].value);
+    }
+
+    // Apply interpolation — skip for linear (already the default)
+    var types = _kf_getInterpolationTypes(easing);
+    var KIT = KeyframeInterpolationType;
+    var isLinear = (types.inType === KIT.LINEAR && types.outType === KIT.LINEAR);
+    if (!isLinear) {
+        var ease = new KeyframeEase(0, 33.33);
+        for (var k = 1; k <= prop.numKeys; k++) {
+            try {
+                prop.setInterpolationTypeAtKey(k, types.inType, types.outType);
+            } catch (_) {}
+            // Apply temporal easing for Bezier keys only
+            if (types.inType === KIT.BEZIER || types.outType === KIT.BEZIER) {
+                try {
+                    prop.setEasingAtKey(k, [ease], [ease]);
+                } catch (_) {}
+            }
+        }
+    }
+
+    return prop.numKeys;
+}

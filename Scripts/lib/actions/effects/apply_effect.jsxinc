@@ -1,0 +1,62 @@
+/**
+ * @name Apply Effect
+ * @description Applies an effect to a layer by ADBE match name, then sets any specified property values. Validates the layer type and provides a clear error if the effect match name is not found (e.g. missing third-party plugin).
+ * @category effect
+ * @inputs layer: AVLayer; opts: { matchName: string (required, ADBE match name), properties: Object (matchName or display name -> value pairs, optional), name: string (optional display name override) }
+ * @outputs PropertyGroup — the newly applied effect group
+ * @tier block
+ * @whenToUse You need to apply any built-in or third-party effect to a layer by match name. Use this instead of hard-coding effect application logic. Warn the user if their project may not have required third-party plugins.
+ * @example var blur = applyEffect(layer, { matchName: "ADBE Gaussian Blur 2", properties: { "ADBE Gaussian Blur 2-0001": 20 } });
+ */
+function applyEffect(layer, opts) {
+    if (!layer) {
+        throw new Error("Apply Effect: layer is required.");
+    }
+
+    var o = opts || {};
+    var matchName = o.matchName;
+    if (!matchName) {
+        throw new Error("Apply Effect: opts.matchName is required (e.g. \"ADBE Gaussian Blur 2\").");
+    }
+
+    // Access the effect parade using the ADBE match name for reliability
+    var effectParade = null;
+    try {
+        effectParade = layer.property("ADBE Effect Parade");
+    } catch (e) {
+        throw new Error("Apply Effect: could not access effect parade on layer \"" + layer.name + "\". Layer may not support effects.");
+    }
+    if (!effectParade) {
+        throw new Error("Apply Effect: layer \"" + layer.name + "\" does not have an effect parade (wrong layer type?).");
+    }
+
+    var effect = null;
+    try {
+        effect = effectParade.addProperty(matchName);
+    } catch (e) {
+        throw new Error("Apply Effect: failed to apply effect \"" + matchName + "\". The effect may not be installed. Original error: " + e.message);
+    }
+    if (!effect) {
+        throw new Error("Apply Effect: addProperty returned null for \"" + matchName + "\". The effect is likely not installed.");
+    }
+
+    // Rename if requested
+    if (o.name) {
+        try { effect.name = o.name; } catch (_) {}
+    }
+
+    // Set property values
+    if (o.properties) {
+        for (var key in o.properties) {
+            if (!o.properties.hasOwnProperty(key)) continue;
+            try {
+                effect.property(key).setValue(o.properties[key]);
+            } catch (e) {
+                // Non-fatal: log via setStep if available, but don't abort
+                try { setStep("apply_effect: set property \"" + key + "\""); } catch (_) {}
+            }
+        }
+    }
+
+    return effect;
+}

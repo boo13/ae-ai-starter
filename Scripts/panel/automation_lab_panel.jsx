@@ -10,14 +10,14 @@
 #include "../lib/prop-walker.jsxinc"
 #include "../lib/result-writer.jsxinc"
 
-#include "../lib/actions/create_comp.jsxinc"
-#include "../lib/actions/guide_preset.jsxinc"
-#include "../lib/actions/backdrop.jsxinc"
-#include "../lib/actions/title_stack.jsxinc"
-#include "../lib/actions/camera_rig.jsxinc"
-#include "../lib/actions/beat_markers.jsxinc"
-#include "../lib/actions/queue_comp.jsxinc"
-#include "../lib/actions/demo_scene.jsxinc"
+#include "../lib/actions/comp/create_comp.jsxinc"
+#include "../lib/actions/comp/guide_preset.jsxinc"
+#include "../lib/actions/scene/backdrop.jsxinc"
+#include "../lib/actions/scene/title_stack.jsxinc"
+#include "../lib/actions/scene/camera_rig.jsxinc"
+#include "../lib/actions/marker/beat_markers.jsxinc"
+#include "../lib/actions/render/queue_comp.jsxinc"
+#include "../lib/actions/presets/demo_scene.jsxinc"
 
 (function (thisObj) {
     var PANEL_TITLE = "AE Automation Lab";

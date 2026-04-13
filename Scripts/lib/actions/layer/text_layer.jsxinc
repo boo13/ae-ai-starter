@@ -1,0 +1,79 @@
+/**
+ * @name Add Text Layer
+ * @description Creates a text layer with full styling control. Applies all required AE TextDocument rules: applyFill before fillColor, explicit justification, anchor reset to [0,0], full property path access.
+ * @category layer
+ * @inputs comp: CompItem; opts: { text: string (default ""), fontSize: number (default 48), fillColor: [r,g,b] (default [1,1,1]), font: string, justification: "left"|"center"|"right" (default "center"), position: [x,y] (default comp center), name: string, tracking: number, leading: number }
+ * @outputs TextLayer — the newly created text layer
+ * @tier block
+ * @whenToUse You need a text layer with reliable styling. Prevents common pitfalls: applyFill, justification, anchor drift, and property path issues.
+ * @example var layer = addTextLayer(comp, { text: "Hello World", fontSize: 72, fillColor: [1, 1, 0], justification: "center" });
+ */
+
+/**
+ * Maps a justification string to the ParagraphJustification enum value.
+ * @private
+ */
+function _tl_getJustification(val) {
+    if (!val) return ParagraphJustification.CENTER_JUSTIFY;
+    var v = String(val).toLowerCase();
+    if (v === "left")   return ParagraphJustification.LEFT_JUSTIFY;
+    if (v === "right")  return ParagraphJustification.RIGHT_JUSTIFY;
+    return ParagraphJustification.CENTER_JUSTIFY;
+}
+
+function addTextLayer(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Text Layer: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var text = (o.text !== undefined) ? String(o.text) : "";
+    var fontSize = o.fontSize || 48;
+    var fillColor = o.fillColor || [1, 1, 1];
+    var justification = o.justification || "center";
+    var position = o.position || [comp.width / 2, comp.height / 2];
+    var name = o.name || text || "Text Layer";
+
+    // Create the text layer
+    var layer = comp.layers.addText(text);
+    layer.name = name;
+
+    // Apply styling via TextDocument using full property path
+    var sourceProp = null;
+    try {
+        sourceProp = layer.property("Text").property("Source Text");
+    } catch (_) {}
+
+    if (sourceProp) {
+        try {
+            var doc = sourceProp.value;
+            doc.text = text;
+            try { doc.fontSize = fontSize; } catch (_) {}
+            // Must set applyFill = true BEFORE fillColor — AE throws otherwise
+            try { doc.applyFill = true; } catch (_) {}
+            try { doc.fillColor = fillColor; } catch (_) {}
+            try { doc.justification = _tl_getJustification(justification); } catch (_) {}
+            if (o.font) {
+                try { doc.font = o.font; } catch (_) {}
+            }
+            if (o.tracking !== undefined) {
+                try { doc.tracking = o.tracking; } catch (_) {}
+            }
+            if (o.leading !== undefined) {
+                try { doc.leading = o.leading; } catch (_) {}
+            }
+            sourceProp.setValue(doc);
+        } catch (_) {}
+    }
+
+    // Reset anchor point to [0,0] — prevents text anchor drift across AE versions
+    try {
+        layer.property("Transform").property("Anchor Point").setValue([0, 0]);
+    } catch (_) {}
+
+    // Position the layer
+    try {
+        layer.property("Transform").property("Position").setValue(position);
+    } catch (_) {}
+
+    return layer;
+}

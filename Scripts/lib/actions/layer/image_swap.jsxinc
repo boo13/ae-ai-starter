@@ -4,9 +4,10 @@
  * @category layer
  * @inputs comp: CompItem; opts: { layerNameOrIndex: string|number, footageFile: File, fitMode: "fit"|"fill" }
  * @outputs boolean — true if the source was successfully replaced
+ * @tier block
  * @whenToUse You need to import external images and swap layer sources with proper fit/fill scaling.
  * @example replaceLayerSource(comp, { layerNameOrIndex: "Photo", footageFile: new File("/path/img.jpg"), fitMode: "fill" });
- * @requires helpers.jsxinc — for isSupportedImageExtension
+ * @requires helpers.jsxinc
  */
 
 /**

@@ -1,0 +1,50 @@
+/**
+ * @name Add Expression Rig
+ * @description Creates a null controller layer loaded with expression control effects (sliders, colors, checkboxes, etc.) for driving expressions across a comp. Returns the null layer and an array of the applied control effects.
+ * @category preset
+ * @tier compound
+ * @inputs comp: CompItem; opts: { controls: Array<{ name: string, type: "slider"|"angle"|"checkbox"|"color"|"point"|"point3d"|"dropdown", value: * }> (required), nullName: string (default "Expression Controls") }
+ * @outputs Object — { null: AVLayer, controls: PropertyGroup[] }
+ * @whenToUse You need a single controller null with multiple expression controls so expressions throughout the comp can reference one authoritative source.
+ * @example var rig = addExpressionRig(comp, { controls: [{ name: "Speed", type: "slider", value: 50 }, { name: "Primary Color", type: "color", value: [1, 0.5, 0] }] });
+ * @requires null_object.jsxinc, expression_control.jsxinc
+ */
+function addExpressionRig(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Expression Rig: comp must be a CompItem.");
+    }
+
+    var o = opts || {};
+    var nullName = o.nullName || "Expression Controls";
+    var controls = o.controls;
+
+    if (!controls || !controls.length) {
+        throw new Error("Add Expression Rig: opts.controls must be a non-empty array of { name, type, value } objects.");
+    }
+
+    // Create the null controller
+    var nullLayer = addNull(comp, { name: nullName });
+    if (!nullLayer) {
+        throw new Error("Add Expression Rig: failed to create null layer.");
+    }
+
+    // Apply each expression control effect
+    var appliedControls = [];
+    for (var i = 0; i < controls.length; i++) {
+        var ctrl = controls[i];
+        if (!ctrl || !ctrl.type) {
+            throw new Error("Add Expression Rig: controls[" + i + "] must have a type property.");
+        }
+        var effect = addExpressionControl(nullLayer, {
+            type: ctrl.type,
+            name: ctrl.name || ctrl.type,
+            value: ctrl.value
+        });
+        appliedControls.push(effect);
+    }
+
+    return {
+        "null": nullLayer,
+        controls: appliedControls
+    };
+}

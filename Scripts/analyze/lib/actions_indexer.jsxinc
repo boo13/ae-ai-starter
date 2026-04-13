@@ -1,7 +1,7 @@
 /**
  * actions_indexer.jsxinc
  *
- * Parses JSDoc headers from Scripts/lib/actions/*.jsxinc and writes
+ * Parses JSDoc headers from Scripts/lib/actions/**\/*.jsxinc and writes
  * Scripts/lib/actions/index.json — the machine-readable catalog of
  * all available vetted actions.
  *
@@ -81,7 +81,44 @@ function _ai_extractFunctionName(file) {
 }
 
 /**
- * Walks Scripts/lib/actions/, parses every *.jsxinc JSDoc header,
+ * Splits a comma-separated tag value into a trimmed array.
+ * Strips trailing notes after " --" or " —" (em dash).
+ *
+ * @param {string} str - Raw tag value string.
+ * @returns {string[]} Array of trimmed, non-empty values.
+ */
+function _ai_splitTagList(str) {
+    if (!str) return [];
+    var parts = str.split(",");
+    var result = [];
+    for (var i = 0; i < parts.length; i++) {
+        // Strip trailing notes like " -- for setTextDocValue" or " — reason"
+        var cleaned = parts[i].replace(/\s*(--|—).*$/, "").replace(/^\s+|\s+$/g, "");
+        if (cleaned) result.push(cleaned);
+    }
+    return result;
+}
+
+/**
+ * Recursively collects all *.jsxinc files from a folder and its subfolders.
+ *
+ * @param {Folder} folder - Root folder to walk.
+ * @param {File[]} result - Accumulator array (mutated in place).
+ */
+function _ai_collectJsxincFiles(folder, result) {
+    var items = folder.getFiles();
+    for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        if (item instanceof Folder) {
+            _ai_collectJsxincFiles(item, result);
+        } else if (item instanceof File && /\.jsxinc$/i.test(item.name)) {
+            result.push(item);
+        }
+    }
+}
+
+/**
+ * Walks Scripts/lib/actions/ recursively, parses every *.jsxinc JSDoc header,
  * and writes Scripts/lib/actions/index.json.
  *
  * Callers MUST resolve actionsDir and outFile themselves using $.fileName
@@ -102,15 +139,20 @@ function buildActionsIndex(actionsDir, outFile) {
     var warnings = [];
     var actions = [];
 
-    var files = actionsDir.getFiles ? actionsDir.getFiles("*.jsxinc") : [];
+    // Collect all .jsxinc files recursively
+    var files = [];
+    _ai_collectJsxincFiles(actionsDir, files);
+
     // Sort for stable output
     files.sort(function (a, b) {
-        var na = String(a.name).toLowerCase();
-        var nb = String(b.name).toLowerCase();
+        var na = String(a.fsName).toLowerCase();
+        var nb = String(b.fsName).toLowerCase();
         if (na < nb) return -1;
         if (na > nb) return 1;
         return 0;
     });
+
+    var actionsDirPath = actionsDir.fsName;
 
     for (var i = 0; i < files.length; i++) {
         var f = files[i];
@@ -128,18 +170,45 @@ function buildActionsIndex(actionsDir, outFile) {
             continue;
         }
 
-        // Build relative file path: "Scripts/lib/actions/filename.jsxinc"
-        var relPath = "Scripts/lib/actions/" + f.name;
+        // Build relative file path from actions root, normalizing separators
+        var absPath = f.fsName;
+        var relFromActions = absPath.substring(actionsDirPath.length).replace(/\\/g, "/");
+        // Remove leading slash if present
+        if (relFromActions.charAt(0) === "/") {
+            relFromActions = relFromActions.substring(1);
+        }
+        var relPath = "Scripts/lib/actions/" + relFromActions;
+
+        // Extract tier — default to "block"; auto-detect "compound" if @requires is non-empty
+        var requiresStr = _ai_extractTag(block, "requires");
+        var requiresList = _ai_splitTagList(requiresStr);
+        var tier = _ai_extractTag(block, "tier");
+        if (!tier) {
+            tier = (requiresList.length > 0) ? "compound" : "block";
+            if (!tier) warnings.push(f.name + ": missing @tier — defaulting to \"" + tier + "\"");
+        }
+
+        // Validate compound has @requires
+        if (tier === "compound" && requiresList.length === 0) {
+            warnings.push(f.name + ": tier is compound but @requires is empty");
+        }
+
+        var pluginDepsStr = _ai_extractTag(block, "pluginDeps");
+        var pluginDepsList = _ai_splitTagList(pluginDepsStr);
+
         actions.push({
             name:        name,
             "function":  _ai_extractFunctionName(f) || "",
             file:        relPath,
             description: description,
             category:    _ai_extractTag(block, "category") || "other",
+            tier:        tier,
             inputs:      _ai_extractTag(block, "inputs") || "",
             outputs:     _ai_extractTag(block, "outputs") || "",
             whenToUse:   _ai_extractTag(block, "whenToUse") || "",
-            example:     _ai_extractTag(block, "example") || ""
+            example:     _ai_extractTag(block, "example") || "",
+            requires:    requiresList,
+            pluginDeps:  pluginDepsList
         });
     }
 
@@ -152,9 +221,38 @@ function buildActionsIndex(actionsDir, outFile) {
         return 0;
     });
 
+    // Build categories summary
+    var categoryMap = {};
+    var categorySummaries = {
+        "comp":    "Composition-level operations: create comp, add guides, settings",
+        "effect":  "Visual effects applied as adjustment layers: grain, flicker, glow, gate weave, etc.",
+        "layer":   "Individual layer creation and manipulation: footage import, shape layers",
+        "marker":  "Timeline markers and beat grids",
+        "preset":  "Compound actions composing multiple blocks into curated looks or scenes",
+        "render":  "Render queue and output operations",
+        "scene":   "Multi-layer scene building blocks: backdrops, title stacks, camera rigs",
+        "utility": "Data processing, timing calculations, and non-AE helpers",
+        "other":   "Miscellaneous actions"
+    };
+    for (var j = 0; j < actions.length; j++) {
+        var cat = actions[j].category || "other";
+        if (!categoryMap[cat]) categoryMap[cat] = 0;
+        categoryMap[cat] += 1;
+    }
+    var categories = {};
+    for (var cat in categoryMap) {
+        if (categoryMap.hasOwnProperty(cat)) {
+            categories[cat] = {
+                count:   categoryMap[cat],
+                summary: categorySummaries[cat] || cat
+            };
+        }
+    }
+
     writeJsonFile(outFile, {
         generatedAt:  formatTimestampISO(new Date()),
         actionCount:  actions.length,
+        categories:   categories,
         actions:      actions
     });
 

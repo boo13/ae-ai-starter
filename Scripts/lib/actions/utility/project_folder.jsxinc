@@ -1,0 +1,50 @@
+/**
+ * @name Ensure Project Folder
+ * @description Finds or creates a folder in the AE Project panel. Supports nested paths using "/" as a separator (e.g. "Assets/Images" creates "Assets" at the root, then "Images" inside it). A parentFolder can be passed to resolve the path relative to an existing folder.
+ * @category utility
+ * @inputs opts: { name: string (required, may contain "/" for nested paths), parentFolder: FolderItem (default: project root) }
+ * @outputs FolderItem — the deepest folder in the path (created if it did not exist)
+ * @tier block
+ * @whenToUse You need to organize imported footage, comps, or other items into project panel folders. Safely re-uses existing folders; never creates duplicates.
+ * @example var folder = ensureProjectFolder({ name: "Assets/Images" });
+ * @example var folder = ensureProjectFolder({ name: "Renders", parentFolder: existingFolder });
+ */
+
+/**
+ * Finds or creates a single folder inside the given parent FolderItem.
+ * @private
+ */
+function _pf_findOrCreate(parent, folderName) {
+    for (var i = 1; i <= parent.numItems; i++) {
+        var item = parent.item(i);
+        if (item instanceof FolderItem && item.name === folderName) {
+            return item;
+        }
+    }
+    return parent.items.addFolder(folderName);
+}
+
+function ensureProjectFolder(opts) {
+    if (!app.project) {
+        throw new Error("Ensure Project Folder: no active AE project.");
+    }
+    var o = opts || {};
+    if (!o.name) {
+        throw new Error("Ensure Project Folder: opts.name is required.");
+    }
+
+    var root = o.parentFolder instanceof FolderItem
+        ? o.parentFolder
+        : app.project.rootFolder;
+
+    // Support slash-separated nested paths
+    var parts = String(o.name).split("/");
+    var current = root;
+    for (var i = 0; i < parts.length; i++) {
+        var part = parts[i];
+        // Skip empty segments (e.g. leading/trailing slashes)
+        if (!part || part === "") continue;
+        current = _pf_findOrCreate(current, part);
+    }
+    return current;
+}

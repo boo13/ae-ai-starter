@@ -4,6 +4,7 @@
  * @category marker
  * @inputs comp: CompItem; opts: { spacingSeconds: number (default 1.0, minimum 0.25) }
  * @outputs number — count of markers added
+ * @tier block
  * @whenToUse You want a regular beat grid on the timeline for timing reference or music sync.
  * @example var count = addBeatMarkers(comp, { spacingSeconds: 0.5 });
  */

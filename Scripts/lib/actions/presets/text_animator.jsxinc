@@ -1,0 +1,228 @@
+/**
+ * @name Add Text Animator
+ * @description Adds a text animator preset to a text layer: typeOn (opacity reveal), fadeUp (opacity + position), trackingIn (tracking collapse), or scaleBounce (scale reveal with overshoot). Uses Range Selectors and keyframes for time-based animation.
+ * @category preset
+ * @tier compound
+ * @inputs layer: TextLayer; opts: { preset: "typeOn"|"fadeUp"|"trackingIn"|"scaleBounce" (default "typeOn"), duration: number (seconds, default 1.0), stagger: number (0-1 smoothness, default 0.05) }
+ * @outputs PropertyGroup — the newly added text animator
+ * @whenToUse You need a quick entrance animation on a text layer without manually building animators and range selectors.
+ * @example var anim = addTextAnimator(layer, { preset: "fadeUp", duration: 0.8 });
+ * @requires set_keyframes.jsxinc
+ */
+
+/**
+ * Adds a range selector to an animator and returns it.
+ * @private
+ */
+function _ta_addRangeSelector(animator) {
+    var selectors = animator.property("ADBE Text Selectors");
+    if (!selectors) throw new Error("Add Text Animator: could not access Selectors group.");
+    var selector = selectors.addProperty("ADBE Text Selector");
+    if (!selector) throw new Error("Add Text Animator: failed to add Range Selector.");
+    return selector;
+}
+
+/**
+ * Applies smoothness to a range selector based on the stagger value.
+ * stagger=0 → crisp per-character edge; stagger=1 → fully smooth crossfade.
+ * @private
+ */
+function _ta_applyStagger(selector, stagger) {
+    // ADBE Text Range Smoothness: 0 = hard edge, 100 = smooth
+    var smoothness = Math.min(100, Math.max(0, stagger * 200));
+    try {
+        selector.property("ADBE Text Range Smoothness").setValue(smoothness);
+    } catch (_) {}
+}
+
+/**
+ * typeOn preset: Characters revealed by animating range selector End 0→100%.
+ * Opacity = 0 on animator so unrevealed characters are invisible.
+ * @private
+ */
+function _ta_typeOn(animators, duration, stagger) {
+    var animator = animators.addProperty("ADBE Text Animator");
+    if (!animator) throw new Error("Add Text Animator: failed to add animator.");
+    animator.name = "Type On";
+
+    var props = animator.property("ADBE Text Animator Properties");
+    if (!props) throw new Error("Add Text Animator: could not access animator Properties.");
+    var opacProp = props.addProperty("ADBE Text Opacity");
+    if (opacProp) {
+        try { opacProp.setValue(0); } catch (_) {}
+    }
+
+    var selector = _ta_addRangeSelector(animator);
+    _ta_applyStagger(selector, stagger);
+
+    var endProp = null;
+    try { endProp = selector.property("ADBE Text Percent End"); } catch (_) {}
+    if (endProp) {
+        setKeyframes(endProp, {
+            keyframes: [
+                { time: 0, value: 0 },
+                { time: duration, value: 100 }
+            ],
+            easing: "linear"
+        });
+    }
+
+    return animator;
+}
+
+/**
+ * fadeUp preset: Characters fade in and rise from below.
+ * Opacity = 0 and Position Y offset on animator; range selector End animates 0→100%.
+ * @private
+ */
+function _ta_fadeUp(animators, duration, stagger) {
+    var animator = animators.addProperty("ADBE Text Animator");
+    if (!animator) throw new Error("Add Text Animator: failed to add animator.");
+    animator.name = "Fade Up";
+
+    var props = animator.property("ADBE Text Animator Properties");
+    if (!props) throw new Error("Add Text Animator: could not access animator Properties.");
+
+    var opacProp = props.addProperty("ADBE Text Opacity");
+    if (opacProp) {
+        try { opacProp.setValue(0); } catch (_) {}
+    }
+
+    var posProp = props.addProperty("ADBE Text Position");
+    if (posProp) {
+        // Offset downward — revealed characters animate up from +40px
+        try { posProp.setValue([0, 40]); } catch (_) {}
+    }
+
+    var selector = _ta_addRangeSelector(animator);
+    _ta_applyStagger(selector, stagger);
+
+    var endProp = null;
+    try { endProp = selector.property("ADBE Text Percent End"); } catch (_) {}
+    if (endProp) {
+        setKeyframes(endProp, {
+            keyframes: [
+                { time: 0, value: 0 },
+                { time: duration, value: 100 }
+            ],
+            easing: "easeInOut"
+        });
+    }
+
+    return animator;
+}
+
+/**
+ * trackingIn preset: Tracking collapses from wide to normal over duration.
+ * No range selector needed — applies uniformly to all characters.
+ * @private
+ */
+function _ta_trackingIn(animators, duration) {
+    var animator = animators.addProperty("ADBE Text Animator");
+    if (!animator) throw new Error("Add Text Animator: failed to add animator.");
+    animator.name = "Tracking In";
+
+    var props = animator.property("ADBE Text Animator Properties");
+    if (!props) throw new Error("Add Text Animator: could not access animator Properties.");
+
+    var trackProp = props.addProperty("ADBE Text Tracking Amount");
+    if (!trackProp) throw new Error("Add Text Animator: failed to add Tracking Amount property.");
+
+    setKeyframes(trackProp, {
+        keyframes: [
+            { time: 0, value: 100 },
+            { time: duration, value: 0 }
+        ],
+        easing: "easeOut"
+    });
+
+    return animator;
+}
+
+/**
+ * scaleBounce preset: Characters scale in with an overshoot (0→120→100).
+ * Range selector End animates 0→100% to stagger reveal across characters.
+ * @private
+ */
+function _ta_scaleBounce(animators, duration, stagger) {
+    var animator = animators.addProperty("ADBE Text Animator");
+    if (!animator) throw new Error("Add Text Animator: failed to add animator.");
+    animator.name = "Scale Bounce";
+
+    var props = animator.property("ADBE Text Animator Properties");
+    if (!props) throw new Error("Add Text Animator: could not access animator Properties.");
+
+    var scaleProp = props.addProperty("ADBE Text Scale");
+    if (!scaleProp) throw new Error("Add Text Animator: failed to add Scale property.");
+
+    // Animate scale from 0 → 120 → 100 for an overshoot bounce
+    var overshootTime = duration * 0.6;
+    var settleTime = duration;
+    setKeyframes(scaleProp, {
+        keyframes: [
+            { time: 0, value: [0, 0] },
+            { time: overshootTime, value: [120, 120] },
+            { time: settleTime, value: [100, 100] }
+        ],
+        easing: "easeInOut"
+    });
+
+    var selector = _ta_addRangeSelector(animator);
+    _ta_applyStagger(selector, stagger);
+
+    // Reveal one character at a time by animating End over a fraction of duration
+    var revealEnd = duration * 0.8;
+    var endProp = null;
+    try { endProp = selector.property("ADBE Text Percent End"); } catch (_) {}
+    if (endProp) {
+        setKeyframes(endProp, {
+            keyframes: [
+                { time: 0, value: 0 },
+                { time: revealEnd, value: 100 }
+            ],
+            easing: "easeOut"
+        });
+    }
+
+    return animator;
+}
+
+function addTextAnimator(layer, opts) {
+    if (!layer) {
+        throw new Error("Add Text Animator: layer is required.");
+    }
+
+    var textProp = null;
+    try { textProp = layer.property("Text"); } catch (_) {}
+    if (!textProp) {
+        throw new Error("Add Text Animator: layer must be a text layer with a Text property.");
+    }
+
+    var animators = null;
+    try { animators = textProp.property("Animators"); } catch (_) {}
+    if (!animators) {
+        throw new Error("Add Text Animator: could not access text Animators group.");
+    }
+
+    var o = opts || {};
+    var preset = o.preset || "typeOn";
+    var duration = (o.duration !== undefined) ? Number(o.duration) : 1.0;
+    var stagger  = (o.stagger  !== undefined) ? Number(o.stagger)  : 0.05;
+
+    if (duration <= 0) {
+        throw new Error("Add Text Animator: duration must be greater than 0.");
+    }
+
+    var p = String(preset).toLowerCase();
+    if (p === "typeon") {
+        return _ta_typeOn(animators, duration, stagger);
+    } else if (p === "fadeup") {
+        return _ta_fadeUp(animators, duration, stagger);
+    } else if (p === "trackingin") {
+        return _ta_trackingIn(animators, duration);
+    } else if (p === "scalebounce") {
+        return _ta_scaleBounce(animators, duration, stagger);
+    } else {
+        throw new Error("Add Text Animator: unknown preset \"" + preset + "\". Use typeOn, fadeUp, trackingIn, or scaleBounce.");
+    }
+}

@@ -1,0 +1,61 @@
+/**
+ * @name Pre Compose
+ * @description Pre-composes a set of layers within a comp by 1-based index. Sorts indices ascending (required by AE), validates range, and returns the new CompItem.
+ * @category comp
+ * @inputs comp: CompItem; opts: { layerIndices: number[] (required, 1-based), name: string (default "Pre-comp"), moveAttributes: boolean (default true) }
+ * @outputs CompItem — the newly created pre-composition
+ * @tier block
+ * @whenToUse You need to collapse layers into a nested comp programmatically. Always pass indices as 1-based integers.
+ * @example var precomp = preCompose(comp, { layerIndices: [1, 2, 3], name: "BG Elements" });
+ */
+
+function preCompose(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Pre Compose: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    if (!o.layerIndices || !o.layerIndices.length) {
+        throw new Error("Pre Compose: opts.layerIndices is required and must be a non-empty array.");
+    }
+
+    var name = (o.name !== undefined && o.name !== null) ? String(o.name) : "Pre-comp";
+    var moveAttributes = (o.moveAttributes !== undefined) ? !!o.moveAttributes : true;
+
+    // Validate and collect indices
+    var indices = [];
+    for (var i = 0; i < o.layerIndices.length; i++) {
+        var idx = parseInt(o.layerIndices[i], 10);
+        if (isNaN(idx) || idx < 1 || idx > comp.numLayers) {
+            throw new Error(
+                "Pre Compose: layer index " + o.layerIndices[i] +
+                " is out of range (comp has " + comp.numLayers + " layers)."
+            );
+        }
+        indices.push(idx);
+    }
+
+    // Sort ascending — AE requires indices in ascending order
+    indices.sort(function (a, b) { return a - b; });
+
+    // Remove duplicates
+    var unique = [indices[0]];
+    for (var j = 1; j < indices.length; j++) {
+        if (indices[j] !== indices[j - 1]) {
+            unique.push(indices[j]);
+        }
+    }
+
+    var step = "precompose";
+    var precompLayer;
+    try {
+        precompLayer = comp.layers.precompose(unique, name, moveAttributes);
+    } catch (e) {
+        throw new Error("Pre Compose: precompose failed at [" + step + "]: " + e.message);
+    }
+
+    if (!precompLayer || !precompLayer.source) {
+        throw new Error("Pre Compose: precompose did not return a valid layer or source comp.");
+    }
+
+    return precompLayer.source;
+}

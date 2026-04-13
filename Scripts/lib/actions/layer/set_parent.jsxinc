@@ -1,0 +1,63 @@
+/**
+ * @name Set Layer Parent
+ * @description Sets the parent of a child layer within a comp by layer name or index. Pass null as parent to unparent. Prevents self-parenting.
+ * @category layer
+ * @inputs comp: CompItem; opts: { child: string|number (layer name or 1-based index, required), parent: string|number|null (layer name or 1-based index; null to unparent) }
+ * @outputs boolean — true if the parent was set (or cleared) successfully
+ * @tier block
+ * @whenToUse You need to parent one layer to another (e.g. camera to null, logo to controller). Use null as parent to break an existing parent link.
+ * @example setLayerParent(comp, { child: "Logo", parent: "Null Controller" });
+ * @example setLayerParent(comp, { child: "Logo", parent: null }); // unparent
+ */
+
+/**
+ * Resolves a layer by name or 1-based index within a comp.
+ * @private
+ */
+function _sp_resolveLayer(comp, nameOrIndex) {
+    if (nameOrIndex === null || nameOrIndex === undefined) return null;
+    if (typeof nameOrIndex === "number") {
+        try { return comp.layer(nameOrIndex); } catch (_) { return null; }
+    }
+    var s = String(nameOrIndex);
+    // Try as name first
+    try { return comp.layer(s); } catch (_) {}
+    // Try as numeric string (1-based index)
+    var n = parseInt(s, 10);
+    if (!isNaN(n)) {
+        try { return comp.layer(n); } catch (_) {}
+    }
+    return null;
+}
+
+function setLayerParent(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Set Layer Parent: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    if (o.child === undefined || o.child === null) {
+        throw new Error("Set Layer Parent: opts.child is required (layer name or index).");
+    }
+
+    var childLayer = _sp_resolveLayer(comp, o.child);
+    if (!childLayer) {
+        throw new Error("Set Layer Parent: child layer \"" + o.child + "\" not found in comp.");
+    }
+
+    // Unparent case
+    if (o.parent === null || o.parent === undefined) {
+        childLayer.parent = null;
+        return true;
+    }
+
+    var parentLayer = _sp_resolveLayer(comp, o.parent);
+    if (!parentLayer) {
+        throw new Error("Set Layer Parent: parent layer \"" + o.parent + "\" not found in comp.");
+    }
+    if (parentLayer === childLayer) {
+        throw new Error("Set Layer Parent: a layer cannot be its own parent.");
+    }
+
+    childLayer.parent = parentLayer;
+    return true;
+}

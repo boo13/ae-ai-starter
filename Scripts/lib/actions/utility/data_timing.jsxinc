@@ -1,12 +1,13 @@
 /**
  * @name Data Timing
  * @description Calculates and recalculates display durations for data-driven text elements using a words-per-second model. Exposes three primary functions: computeDurationFromText, resolveElementDuration, recalculateDurationsOnJson.
- * @category other
+ * @category utility
+ * @tier block
  * @inputs data: Object (with elements/messages array); targetSecondsPerWord: number; targetMinDuration: number
  * @outputs boolean — true if any durations were changed
  * @whenToUse Display duration should vary based on text length (subtitle timing, auto-paced slideshows, narration sync).
  * @example var changed = recalculateDurationsOnJson(data, 0.38, 1.5);
- * @requires helpers.jsxinc — for countWords
+ * @requires helpers.jsxinc
  */
 
 // Default timing values (mirrors data-timing recipe Config defaults)

@@ -1,7 +1,8 @@
 /**
  * @name Add Star Trim Animation
  * @description Adds an animated 5-point star shape layer with a trim-paths draw-on animation over 1 second.
- * @category layer
+ * @category effect
+ * @tier block
  * @inputs comp: CompItem; opts: { points: number, innerRadius: number, outerRadius: number } (all optional)
  * @outputs ShapeLayer — the newly created star layer
  * @whenToUse You want a shape-layer star with a trim-paths reveal animation as a motion design element.

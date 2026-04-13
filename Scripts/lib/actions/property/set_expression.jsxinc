@@ -1,0 +1,33 @@
+/**
+ * @name Set Expression
+ * @description Applies an expression string to an animatable property with three-guard validation: PROPERTY type check, canSetExpression check, and expression string check.
+ * @category property
+ * @inputs prop: Property; opts: { expression: string (required) }
+ * @outputs boolean — true if the expression was applied successfully
+ * @tier block
+ * @whenToUse You need to apply an expression to a property. Guards against non-property groups and properties that don't support expressions.
+ * @example var ok = setExpression(layer.property("Transform").property("Opacity"), { expression: "wiggle(2, 10)" });
+ */
+function setExpression(prop, opts) {
+    if (!prop) {
+        throw new Error("Set Expression: prop is required.");
+    }
+    // Guard 1: must be a leaf property, not a group
+    if (prop.propertyType !== PropertyType.PROPERTY) {
+        throw new Error("Set Expression: \"" + prop.name + "\" is a property group, not an animatable property.");
+    }
+    // Guard 2: property must support expressions
+    if (!prop.canSetExpression) {
+        throw new Error("Set Expression: property \"" + prop.name + "\" does not support expressions.");
+    }
+
+    var o = opts || {};
+    var expression = o.expression;
+    if (expression === undefined || expression === null) {
+        throw new Error("Set Expression: opts.expression is required.");
+    }
+    expression = String(expression);
+
+    prop.expression = expression;
+    return prop.expressionEnabled;
+}

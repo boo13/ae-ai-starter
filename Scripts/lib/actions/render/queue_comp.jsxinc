@@ -4,6 +4,7 @@
  * @category render
  * @inputs comp: CompItem
  * @outputs undefined
+ * @tier block
  * @whenToUse You want to programmatically send a comp to the render queue without touching the UI.
  * @example queueComp(comp);
  */

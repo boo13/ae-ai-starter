@@ -1,0 +1,77 @@
+/**
+ * @name Add Light
+ * @description Creates a light layer of the specified type (point, spot, parallel, ambient) with configurable intensity, color, and shadow options.
+ * @category layer
+ * @inputs comp: CompItem; opts: { type: "point"|"spot"|"parallel"|"ambient" (default "point"), name: string (default "Light"), position: [x,y,z] (default comp center, z=-600), intensity: number (default 100), color: [r,g,b] (default [1,1,1]), coneAngle: number (spot only, default 90), castsShadows: boolean (default false) }
+ * @outputs LightLayer — the newly created light layer
+ * @tier block
+ * @whenToUse You need a 3D scene light. Maps type strings to LightType enum; only sets cone angle for spot lights.
+ * @example var light = addLight(comp, { type: "spot", intensity: 120, coneAngle: 60, castsShadows: true });
+ */
+
+/**
+ * Maps a string type name to the AE LightType enum value.
+ * @private
+ */
+function _lt_getLightType(val) {
+    if (!val) return LightType.POINT;
+    var v = String(val).toLowerCase();
+    if (v === "spot")     return LightType.SPOT;
+    if (v === "parallel") return LightType.PARALLEL;
+    if (v === "ambient")  return LightType.AMBIENT;
+    return LightType.POINT;
+}
+
+function addLight(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Light: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var type = o.type || "point";
+    var name = o.name || "Light";
+    var intensity = (o.intensity !== undefined) ? o.intensity : 100;
+    var color = o.color || [1, 1, 1];
+    var castsShadows = o.castsShadows ? true : false;
+    var defaultPosition = [comp.width / 2, comp.height / 2];
+
+    var layer = comp.layers.addLight(name, defaultPosition);
+
+    // Set light type
+    try { layer.lightType = _lt_getLightType(type); } catch (_) {}
+
+    // Position: support [x,y] or [x,y,z]
+    if (o.position) {
+        try {
+            layer.property("Transform").property("Position").setValue(o.position);
+        } catch (_) {}
+    } else {
+        // Default z depth for a visible light
+        try {
+            layer.property("Transform").property("Position").setValue([comp.width / 2, comp.height / 2, -600]);
+        } catch (_) {}
+    }
+
+    // Light options — use ADBE match names for reliability
+    try {
+        layer.property("ADBE Light Options Group").property("ADBE Light Intensity").setValue(intensity);
+    } catch (_) {}
+
+    try {
+        layer.property("ADBE Light Options Group").property("ADBE Light Color").setValue(color);
+    } catch (_) {}
+
+    if (castsShadows) {
+        try {
+            layer.property("ADBE Light Options Group").property("ADBE Light Casts Shadows").setValue(1);
+        } catch (_) {}
+    }
+
+    // Cone angle only applies to spot lights
+    if (String(type).toLowerCase() === "spot" && o.coneAngle !== undefined) {
+        try {
+            layer.property("ADBE Light Options Group").property("ADBE Light Cone Angle").setValue(o.coneAngle);
+        } catch (_) {}
+    }
+
+    return layer;
+}

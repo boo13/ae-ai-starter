@@ -1,0 +1,28 @@
+/**
+ * @name Add Solid
+ * @description Creates a solid color layer with configurable color, dimensions, duration, and adjustment layer mode.
+ * @category layer
+ * @inputs comp: CompItem; opts: { color: [r,g,b] (default [1,1,1]), name: string (default "Solid"), width: number (default comp.width), height: number (default comp.height), duration: number (default comp.duration), isAdjustment: boolean (default false) }
+ * @outputs AVLayer — the newly created solid layer
+ * @tier block
+ * @whenToUse You need a solid color layer for backgrounds, mattes, color fills, or adjustment layer bases.
+ * @example var layer = addSolid(comp, { color: [0.07, 0.09, 0.14], name: "BG Dark", isAdjustment: false });
+ */
+function addSolid(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Solid: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var color = o.color || [1, 1, 1];
+    var name = o.name || "Solid";
+    var width = (o.width !== undefined) ? Math.round(o.width) : comp.width;
+    var height = (o.height !== undefined) ? Math.round(o.height) : comp.height;
+    var duration = (o.duration !== undefined) ? o.duration : comp.duration;
+    var isAdjustment = o.isAdjustment ? true : false;
+
+    var layer = comp.layers.addSolid(color, name, width, height, comp.pixelAspect, duration);
+    if (isAdjustment) {
+        try { layer.adjustmentLayer = true; } catch (_) {}
+    }
+    return layer;
+}

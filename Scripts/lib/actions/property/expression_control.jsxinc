@@ -1,0 +1,79 @@
+/**
+ * @name Add Expression Control
+ * @description Adds an expression control effect to a layer (Slider, Angle, Checkbox, Color, Point, 3D Point, or Dropdown). Maps type strings to correct ADBE match names and sets the initial value on the correct sub-property.
+ * @category property
+ * @inputs layer: AVLayer; opts: { type: "slider"|"angle"|"checkbox"|"color"|"point"|"point3d"|"dropdown" (required), name: string (optional display name), value: * (optional initial value) }
+ * @outputs PropertyGroup — the newly applied expression control effect
+ * @tier block
+ * @whenToUse You need a slider, color picker, checkbox, or other control on a null or adjustment layer for expression linking.
+ * @example var ctrl = addExpressionControl(nullLayer, { type: "slider", name: "Speed", value: 50 });
+ * @example var clr = addExpressionControl(nullLayer, { type: "color", name: "Brand Color", value: [1, 0.5, 0] });
+ */
+
+/**
+ * Maps a type string to { matchName, subProperty } for the expression control.
+ * @private
+ */
+function _ec_getControlInfo(type) {
+    var t = String(type).toLowerCase();
+    if (t === "slider")   return { matchName: "ADBE Slider Control",    subProp: "Slider" };
+    if (t === "angle")    return { matchName: "ADBE Angle Control",     subProp: "Angle" };
+    if (t === "checkbox") return { matchName: "ADBE Checkbox Control",  subProp: "Checkbox" };
+    if (t === "color")    return { matchName: "ADBE Color Control",     subProp: "Color" };
+    if (t === "point")    return { matchName: "ADBE Point Control",     subProp: "Point" };
+    if (t === "point3d")  return { matchName: "ADBE 3D Point Control",  subProp: "3D Point" };
+    if (t === "dropdown") return { matchName: "ADBE Dropdown Control",  subProp: "Menu" };
+    return null;
+}
+
+function addExpressionControl(layer, opts) {
+    if (!layer) {
+        throw new Error("Add Expression Control: layer is required.");
+    }
+
+    var o = opts || {};
+    var type = o.type;
+    if (!type) {
+        throw new Error("Add Expression Control: opts.type is required (slider|angle|checkbox|color|point|point3d|dropdown).");
+    }
+
+    var info = _ec_getControlInfo(type);
+    if (!info) {
+        throw new Error("Add Expression Control: unknown type \"" + type + "\". Use slider, angle, checkbox, color, point, point3d, or dropdown.");
+    }
+
+    // Apply the effect
+    var effectParade = null;
+    try {
+        effectParade = layer.property("ADBE Effect Parade");
+    } catch (e) {
+        throw new Error("Add Expression Control: layer \"" + layer.name + "\" does not support effects.");
+    }
+    if (!effectParade) {
+        throw new Error("Add Expression Control: layer \"" + layer.name + "\" has no effect parade.");
+    }
+
+    var effect = null;
+    try {
+        effect = effectParade.addProperty(info.matchName);
+    } catch (e) {
+        throw new Error("Add Expression Control: failed to add " + type + " control. Error: " + e.message);
+    }
+    if (!effect) {
+        throw new Error("Add Expression Control: addProperty returned null for \"" + info.matchName + "\".");
+    }
+
+    // Set display name
+    if (o.name) {
+        try { effect.name = o.name; } catch (_) {}
+    }
+
+    // Set initial value on the sub-property
+    if (o.value !== undefined) {
+        try {
+            effect.property(info.subProp).setValue(o.value);
+        } catch (_) {}
+    }
+
+    return effect;
+}

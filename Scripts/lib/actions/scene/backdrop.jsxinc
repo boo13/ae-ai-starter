@@ -4,6 +4,7 @@
  * @category scene
  * @inputs comp: CompItem; opts: { } (no opts for v1 — defaults are opinionated)
  * @outputs Array<AVLayer> — [bg, warmBand, topLine]
+ * @tier block
  * @whenToUse You want a quick tone-setting backdrop for a demo or presentation comp.
  * @example var layers = addBackdrop(comp);
  */

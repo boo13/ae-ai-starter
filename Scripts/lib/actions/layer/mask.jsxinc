@@ -1,0 +1,184 @@
+/**
+ * @name Add Mask
+ * @description Adds a mask to a layer with rectangle, ellipse, or custom bezier shape. Uses verified ADBE match names (ADBE Mask Parade, ADBE Mask Atom, ADBE Mask Shape, ADBE Mask Feather, ADBE Mask Opacity, ADBE Mask Offset).
+ * @category layer
+ * @inputs layer: AVLayer; opts: { shape: "rectangle"|"ellipse"|"custom" (default "rectangle"), rect: [x,y,w,h] (rectangle/ellipse, default full comp bounds), vertices: [x,y][] (custom only), inTangents: [x,y][] (custom), outTangents: [x,y][] (custom), mode: "add"|"subtract"|"intersect"|"lighten"|"darken"|"difference"|"none" (default "add"), feather: [fx,fy] (default [0,0]), opacity: number (0–100, default 100), expansion: number (default 0), inverted: boolean (default false), name: string (optional display name) }
+ * @outputs MaskPropertyGroup — the newly created mask group
+ * @tier block
+ * @whenToUse You need to add a rectangular, elliptical, or custom bezier mask to any layer. Coordinates are in comp space.
+ * @example var mask = addMask(layer, { shape: "rectangle", rect: [100, 100, 800, 400], feather: [20, 20] });
+ * @example var mask = addMask(layer, { shape: "ellipse", rect: [0, 0, 1920, 1080], mode: "subtract" });
+ * @refs Scripts/verified/properties/mask.json
+ */
+
+/**
+ * Builds a rectangular Shape from [x, y, w, h].
+ * Vertices go clockwise from top-left.
+ * @private
+ */
+function _mk_rectShape(rect) {
+    var x = rect[0], y = rect[1], w = rect[2], h = rect[3];
+    var s = new Shape();
+    s.vertices    = [[x, y], [x + w, y], [x + w, y + h], [x, y + h]];
+    s.inTangents  = [[0, 0], [0, 0], [0, 0], [0, 0]];
+    s.outTangents = [[0, 0], [0, 0], [0, 0], [0, 0]];
+    s.closed      = true;
+    return s;
+}
+
+/**
+ * Builds an elliptical Shape from [x, y, w, h] bounding rect.
+ * Uses the standard cubic bezier approximation (k ≈ 0.5523).
+ * @private
+ */
+function _mk_ellipseShape(rect) {
+    var x = rect[0], y = rect[1], w = rect[2], h = rect[3];
+    var cx = x + w / 2;
+    var cy = y + h / 2;
+    var rx = w / 2;
+    var ry = h / 2;
+    var k  = 0.5522847498;
+    // Vertices at top, right, bottom, left (clockwise)
+    var s = new Shape();
+    s.vertices = [
+        [cx,      cy - ry],
+        [cx + rx, cy     ],
+        [cx,      cy + ry],
+        [cx - rx, cy     ]
+    ];
+    s.outTangents = [
+        [ rx * k,  0      ],
+        [ 0,       ry * k ],
+        [-rx * k,  0      ],
+        [ 0,      -ry * k ]
+    ];
+    s.inTangents = [
+        [-rx * k,  0      ],
+        [ 0,      -ry * k ],
+        [ rx * k,  0      ],
+        [ 0,       ry * k ]
+    ];
+    s.closed = true;
+    return s;
+}
+
+/**
+ * Maps a mode string to the MaskMode enum.
+ * @private
+ */
+function _mk_modeEnum(modeStr) {
+    var m = String(modeStr).toLowerCase();
+    if (m === "subtract")   return MaskMode.SUBTRACT;
+    if (m === "intersect")  return MaskMode.INTERSECT;
+    if (m === "lighten")    return MaskMode.LIGHTEN;
+    if (m === "darken")     return MaskMode.DARKEN;
+    if (m === "difference") return MaskMode.DIFFERENCE;
+    if (m === "none")       return MaskMode.NONE;
+    return MaskMode.ADD; // default
+}
+
+function addMask(layer, opts) {
+    if (!layer || !layer.property) {
+        throw new Error("Add Mask: layer must be a valid AE layer.");
+    }
+    var o = opts || {};
+
+    var shapeType = o.shape ? String(o.shape).toLowerCase() : "rectangle";
+    var mode      = o.mode  ? String(o.mode).toLowerCase()  : "add";
+    var feather   = o.feather   || [0, 0];
+    var opacity   = (o.opacity  !== undefined) ? Number(o.opacity)   : 100;
+    var expansion = (o.expansion !== undefined) ? Number(o.expansion) : 0;
+    var inverted  = !!o.inverted;
+
+    // Build shape
+    var shape;
+    if (shapeType === "ellipse") {
+        var eRect = o.rect;
+        if (!eRect) {
+            // Default: full-comp ellipse (requires layer to be in a comp)
+            try {
+                var eComp = layer.containingComp;
+                eRect = [0, 0, eComp.width, eComp.height];
+            } catch (_) {
+                eRect = [0, 0, 1920, 1080];
+            }
+        }
+        shape = _mk_ellipseShape(eRect);
+
+    } else if (shapeType === "custom") {
+        if (!o.vertices || !o.vertices.length) {
+            throw new Error("Add Mask: opts.vertices is required for shape \"custom\".");
+        }
+        var zeros = [];
+        for (var z = 0; z < o.vertices.length; z++) { zeros.push([0, 0]); }
+        shape = new Shape();
+        shape.vertices    = o.vertices;
+        shape.inTangents  = o.inTangents  || zeros;
+        shape.outTangents = o.outTangents || zeros;
+        shape.closed      = (o.closed !== undefined) ? !!o.closed : true;
+
+    } else {
+        // rectangle (default)
+        var rRect = o.rect;
+        if (!rRect) {
+            try {
+                var rComp = layer.containingComp;
+                rRect = [0, 0, rComp.width, rComp.height];
+            } catch (_) {
+                rRect = [0, 0, 1920, 1080];
+            }
+        }
+        shape = _mk_rectShape(rRect);
+    }
+
+    // Add the mask property group
+    var maskParade;
+    try {
+        maskParade = layer.property("ADBE Mask Parade");
+    } catch (e) {
+        throw new Error("Add Mask: could not access mask parade on layer: " + e.message);
+    }
+    if (!maskParade) {
+        throw new Error("Add Mask: layer does not support masks.");
+    }
+
+    var step = "addProperty";
+    var maskGroup;
+    try {
+        maskGroup = maskParade.addProperty("ADBE Mask Atom");
+    } catch (e) {
+        throw new Error("Add Mask: could not add mask atom at [" + step + "]: " + e.message);
+    }
+
+    // Set shape
+    step = "setShape";
+    maskGroup.property("ADBE Mask Shape").setValue(shape);
+
+    // Set mode
+    step = "setMode";
+    maskGroup.maskMode = _mk_modeEnum(mode);
+
+    // Set feather
+    step = "setFeather";
+    maskGroup.property("ADBE Mask Feather").setValue(feather);
+
+    // Set opacity
+    step = "setOpacity";
+    maskGroup.property("ADBE Mask Opacity").setValue(opacity);
+
+    // Set expansion
+    step = "setExpansion";
+    maskGroup.property("ADBE Mask Offset").setValue(expansion);
+
+    // Set inverted
+    step = "setInverted";
+    maskGroup.inverted = inverted;
+
+    // Optionally rename
+    if (o.name) {
+        step = "setName";
+        try { maskGroup.name = String(o.name); } catch (_) {}
+    }
+
+    return maskGroup;
+}

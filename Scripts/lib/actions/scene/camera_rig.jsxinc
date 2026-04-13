@@ -4,6 +4,7 @@
  * @category scene
  * @inputs comp: CompItem; opts: { } (no opts for v1)
  * @outputs Array<AVLayer> — [camera, controller]
+ * @tier block
  * @whenToUse You want a 3D camera that slowly orbits the scene over the comp's duration.
  * @example var layers = addCameraRig(comp);
  */

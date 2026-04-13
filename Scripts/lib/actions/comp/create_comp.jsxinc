@@ -4,6 +4,7 @@
  * @category comp
  * @inputs opts: { name: string, width: number, height: number, duration: number, fps: number }
  * @outputs CompItem — the newly created composition
+ * @tier block
  * @whenToUse You need to create a new comp programmatically with specific dimensions. Does NOT require an existing comp.
  * @example var comp = createCompFromValues({ name: "My Comp", width: 1920, height: 1080, duration: 8, fps: 24 });
  */

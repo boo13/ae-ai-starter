@@ -4,6 +4,7 @@
  * @category comp
  * @inputs comp: CompItem; opts: { preset: "thirds"|"safe"|"center" }
  * @outputs number — count of guides added (0 if preset name is unrecognized)
+ * @tier block
  * @whenToUse You need standard guide layouts in a comp. Requires AE 16.1+ (comp.addGuide).
  * @example var count = addGuidePreset(comp, { preset: "thirds" });
  */

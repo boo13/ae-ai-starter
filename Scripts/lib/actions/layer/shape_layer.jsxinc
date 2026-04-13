@@ -1,0 +1,119 @@
+/**
+ * @name Add Shape Layer
+ * @description Creates a shape layer with rectangle, ellipse, polygon, or star geometry, plus optional fill and stroke. Uses correct ADBE match-name nesting to avoid property-path pitfalls.
+ * @category layer
+ * @inputs comp: CompItem; opts: { name: string, position: [x,y] (default comp center), shape: "rectangle"|"ellipse"|"polygon"|"star" (default "rectangle"), size: [w,h] (default [200,200]), points: number (polygon/star), innerRadius: number (star), outerRadius: number (star/polygon), fillColor: [r,g,b] (null = no fill), strokeColor: [r,g,b] (null = no stroke), strokeWidth: number (default 2), roundness: number (rectangle only) }
+ * @outputs ShapeLayer — the newly created shape layer
+ * @tier block
+ * @whenToUse You need a shape layer with a specific geometry. Handles correct ADBE nesting and sets star type before inner radius to prevent AE errors.
+ * @example var layer = addShapeLayer(comp, { shape: "rectangle", size: [400, 200], fillColor: [0.2, 0.4, 1] });
+ */
+
+/**
+ * Adds a rectangle path to a shape group's vectors.
+ * @private
+ */
+function _sl_addRect(vectors, size, roundness) {
+    var path = vectors.addProperty("ADBE Vector Shape - Rect");
+    if (!path) throw new Error("Add Shape Layer: failed to add rectangle path.");
+    try { path.property("ADBE Vector Rect Size").setValue(size); } catch (_) {}
+    if (roundness !== undefined) {
+        try { path.property("ADBE Vector Rect Roundness").setValue(roundness); } catch (_) {}
+    }
+    return path;
+}
+
+/**
+ * Adds an ellipse path to a shape group's vectors.
+ * @private
+ */
+function _sl_addEllipse(vectors, size) {
+    var path = vectors.addProperty("ADBE Vector Shape - Ellipse");
+    if (!path) throw new Error("Add Shape Layer: failed to add ellipse path.");
+    try { path.property("ADBE Vector Ellipse Size").setValue(size); } catch (_) {}
+    return path;
+}
+
+/**
+ * Adds a star or polygon path to a shape group's vectors.
+ * @private
+ */
+function _sl_addStar(vectors, opts, isStar) {
+    var path = vectors.addProperty("ADBE Vector Shape - Star");
+    if (!path) throw new Error("Add Shape Layer: failed to add star/polygon path.");
+    // Set star type BEFORE accessing inner-radius — some AE versions default to Polygon
+    // and inner radius returns null if type hasn't been set first.
+    var starType = isStar ? 1 : 2;
+    try { path.property("ADBE Vector Star Type").setValue(starType); } catch (_) {}
+    try { path.property("ADBE Vector Star Points").setValue(opts.points || (isStar ? 5 : 6)); } catch (_) {}
+    try { path.property("ADBE Vector Star Outer Radius").setValue(opts.outerRadius || (opts.size ? opts.size[0] / 2 : 100)); } catch (_) {}
+    if (isStar) {
+        try { path.property("ADBE Vector Star Inner Radius").setValue(opts.innerRadius || (opts.size ? opts.size[0] / 4 : 50)); } catch (_) {}
+    }
+    return path;
+}
+
+function addShapeLayer(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Shape Layer: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var name = o.name || "Shape Layer";
+    var position = o.position || [comp.width / 2, comp.height / 2];
+    var shape = o.shape || "rectangle";
+    var size = o.size || [200, 200];
+    var fillColor = (o.fillColor !== undefined) ? o.fillColor : [1, 1, 1];
+    var strokeColor = (o.strokeColor !== undefined) ? o.strokeColor : null;
+    var strokeWidth = (o.strokeWidth !== undefined) ? o.strokeWidth : 2;
+
+    var layer = comp.layers.addShape();
+    layer.name = name;
+    layer.property("Transform").property("Position").setValue(position);
+
+    // Root Vectors Group → Vector Group → ADBE Vectors Group (shape contents + appearance)
+    var contents = layer.property("ADBE Root Vectors Group");
+    if (!contents) throw new Error("Add Shape Layer: failed to get root vectors group.");
+
+    var group = contents.addProperty("ADBE Vector Group");
+    if (!group) throw new Error("Add Shape Layer: failed to add vector group.");
+    group.name = shape.charAt(0).toUpperCase() + shape.slice(1);
+
+    var vectors = group.property("ADBE Vectors Group");
+    if (!vectors) throw new Error("Add Shape Layer: failed to get vectors group.");
+
+    // Add the shape path
+    var s = String(shape).toLowerCase();
+    if (s === "rectangle") {
+        _sl_addRect(vectors, size, o.roundness);
+    } else if (s === "ellipse") {
+        _sl_addEllipse(vectors, size);
+    } else if (s === "polygon") {
+        _sl_addStar(vectors, o, false);
+    } else if (s === "star") {
+        _sl_addStar(vectors, o, true);
+    } else {
+        throw new Error("Add Shape Layer: unknown shape type \"" + shape + "\". Use rectangle, ellipse, polygon, or star.");
+    }
+
+    // Add fill (if fillColor provided)
+    if (fillColor) {
+        var fill = vectors.addProperty("ADBE Vector Graphic - Fill");
+        if (fill) {
+            try { fill.property("ADBE Vector Fill Color").setValue([fillColor[0], fillColor[1], fillColor[2], 1]); } catch (_) {}
+        }
+    }
+
+    // Add stroke (if strokeColor provided)
+    if (strokeColor) {
+        var stroke = vectors.addProperty("ADBE Vector Graphic - Stroke");
+        if (stroke) {
+            try { stroke.property("ADBE Vector Stroke Color").setValue([strokeColor[0], strokeColor[1], strokeColor[2], 1]); } catch (_) {}
+            try { stroke.property("ADBE Vector Stroke Width").setValue(strokeWidth); } catch (_) {}
+        }
+    }
+
+    // Deselect all layers to leave the comp in a clean state
+    try { layer.selected = false; } catch (_) {}
+
+    return layer;
+}

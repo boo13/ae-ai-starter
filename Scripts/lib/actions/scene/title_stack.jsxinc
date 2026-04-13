@@ -4,9 +4,10 @@
  * @category scene
  * @inputs comp: CompItem; opts: { title: string, subtitle: string } (both optional — defaults to demo copy)
  * @outputs Array<TextLayer> — [titleLayer, subtitleLayer]
+ * @tier block
  * @whenToUse You want a quick hero text layout with entrance animation for demo or presentation comps.
  * @example var layers = addTitleStack(comp, { title: "My Project", subtitle: "A short description" });
- * @requires helpers.jsxinc — for setTextDocValue
+ * @requires helpers.jsxinc
  */
 function addTitleStack(comp, opts) {
     if (!comp || !(comp instanceof CompItem)) {

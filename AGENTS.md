@@ -7,7 +7,13 @@
 ## AI Workflow
 
 1. Read `Scripts/reports/analysis.json` (preferred) or `analysis.md` to understand the AE project — use the `propertyPaths` key for exact ADBE match-names; trust `[VERIFIED]` and `[DOCS]` tags
-2. Read `Scripts/lib/actions/index.json` — before writing any automation code, check if a vetted action already covers the task; use `whenToUse` to disambiguate. Prefer calling an existing action over re-implementing it.
+2. Read `Scripts/lib/actions/index.json` — before writing any automation code, check if a vetted action already covers the task. **Discovery protocol:**
+   1. Scan the `categories` object at the top to identify 1-2 relevant categories
+   2. Read `whenToUse` for actions in those categories to find candidates
+   3. Prefer **compound** actions (`"tier": "compound"`, lives in `presets/`) for complete looks or scenes; prefer **block** actions (`"tier": "block"`) for individual effects or fine control
+   4. To customize a compound, check its `requires` array — those are the blocks to call individually
+   5. Check `pluginDeps` — entries not starting with `"ADBE"` are third-party plugins; warn the user if they may not have them
+   6. When writing a script, `#include` the action file using its `file` path (e.g., `#include "../lib/actions/effects/grain.jsxinc"`) plus any entries in its `requires` array
 3. Write ScriptUI panels (primary) or headless scripts using `Scripts/lib/` helpers and actions — see Required Reliability Pattern below
 4. User runs scripts in AE via File > Scripts > Run Script File
 5. Read `Scripts/runs/last_run.json` — verify `scriptName`, check `status`, read `diff` entries
@@ -29,7 +35,7 @@ The panel pattern hooks into the `runAction` wrapper that every panel should hav
 #include "../lib/io.jsxinc"
 #include "../lib/prop-walker.jsxinc"
 #include "../lib/result-writer.jsxinc"
-// #include "../lib/actions/action_name.jsxinc"  // add per action used
+// #include "../lib/actions/effects/grain.jsxinc"  // add per action used (use path from index.json)
 
 // runAction — wrap every button's onClick with this
 function runAction(label, fn) {

@@ -1,0 +1,35 @@
+/**
+ * @name Add Camera
+ * @description Creates a camera layer with configurable zoom and depth of field settings.
+ * @category layer
+ * @inputs comp: CompItem; opts: { name: string (default "Camera"), zoom: number (optional, pixels — AE default if omitted), depthOfField: boolean (default false) }
+ * @outputs CameraLayer — the newly created camera layer
+ * @tier block
+ * @whenToUse You need a standalone camera layer without a full orbit rig. Use addCameraRig for an animated orbit rig.
+ * @example var cam = addCamera(comp, { name: "Main Camera", depthOfField: true });
+ */
+function addCamera(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Camera: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var name = o.name || "Camera";
+    var depthOfField = o.depthOfField ? true : false;
+    var centerPoint = [comp.width / 2, comp.height / 2];
+
+    var layer = comp.layers.addCamera(name, centerPoint);
+
+    if (o.zoom !== undefined) {
+        try {
+            layer.property("ADBE Camera Options Group").property("ADBE Camera Zoom").setValue(o.zoom);
+        } catch (_) {}
+    }
+
+    if (depthOfField) {
+        try {
+            layer.property("ADBE Camera Options Group").property("ADBE Camera Depth of Field").setValue(1);
+        } catch (_) {}
+    }
+
+    return layer;
+}

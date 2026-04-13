@@ -1,7 +1,8 @@
 /**
  * @name Build Demo Scene
  * @description Creates a fully composed demo scene: new comp + backdrop + guides (thirds + safe) + title stack + camera rig + beat markers.
- * @category scene
+ * @category preset
+ * @tier compound
  * @inputs opts: { name: string, width: number, height: number, duration: number, fps: number, spacingSeconds: number }
  * @outputs CompItem — the newly created composition
  * @whenToUse You want to build a complete demo comp with all standard building blocks in one call.
