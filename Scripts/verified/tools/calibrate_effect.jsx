@@ -1,25 +1,29 @@
-// Verified AE Knowledge Base -- Effect Enum Calibration Probe
+// Verified AE Knowledge Base -- Effect Enum Calibration Probe (batch)
 // Run in After Effects via File > Scripts > Run Script File
 //
-// Empirically captures the integer values behind effect dropdown/enum controls
-// (and flags controls that only write unreadable CUSTOM_VALUE blobs) by diffing
-// the effect's property tree before and after ONE maintainer-made UI change.
+// Captures the integer values behind effect dropdown/enum controls in ONE pass.
+// No baseline, no per-change round trips.
 //
-// Workflow (per effect):
-//   1. Select the layer, then select the effect in Effect Controls.
-//   2. Run this script. It captures a baseline snapshot and tells you so.
-//   3. Change exactly ONE control in the UI (e.g. Fractal Type -> Dynamic).
-//   4. Run this script again. It diffs against the baseline, asks for the
-//      label of the change you made, records the verified mapping, then
-//      re-baselines so you can capture the next value.
+// Workflow:
+//   1. Apply the effect(s) and set each dropdown to the option you want to
+//      capture (e.g. Fractal Type -> Dynamic, Tones -> Pentone).
+//   2. In Effect Controls, SELECT the property names you set (click a name;
+//      Cmd-click to add more). You can select properties across several effects
+//      and several layers at once.
+//   3. Run this script. It lists every selected dropdown value in one dialog.
+//      Type the UI label next to each, then click Save.
 //
-// Output: verified/effects/calibration/<safe-matchName>.json -- a machine-
-// readable label->integer map plus an "unsupported" list for controls whose
-// change only touched an unreadable CUSTOM_VALUE property. The generator
-// (generate-knowledge.mjs) merges these sidecars into the effect records.
+// To capture a second option of the same dropdown (e.g. Smeary as well as
+// Dynamic), switch the dropdown, re-select it, and run again -- it merges.
 //
-// Nothing is guessed. Only values the maintainer actually set in the UI are
-// recorded, against the installed AE version.
+// CUSTOM_VALUE properties (Lumetri looks/curves/toning) cannot be read; selecting
+// one lets you record it as UNSUPPORTED (label it, leave it routed to unsupported).
+//
+// Output: verified/effects/calibration/<safe-matchName>.json -- one file per
+// effect, a label->integer map plus an "unsupported" list. The downstream
+// generator (generate-knowledge.mjs) merges these into the effect records.
+//
+// Nothing is guessed. Only values set in the UI on the installed AE version.
 
 (function () {
     // ---- folders ----------------------------------------------------------
@@ -42,9 +46,6 @@
     function sidecarFile(matchName) {
         return new File(calibrationFolder().fsName + "/" + safeFileName(matchName) + ".json");
     }
-    function baselineFile(matchName) {
-        return new File(Folder.temp.fsName + "/ae-calibration-baseline-" + safeFileName(matchName) + ".json");
-    }
 
     // ---- json io ----------------------------------------------------------
     function readJson(file) {
@@ -54,11 +55,7 @@
         var text = file.read();
         file.close();
         if (!text) return null;
-        try {
-            return JSON.parse(text);
-        } catch (e) {
-            return null;
-        }
+        try { return JSON.parse(text); } catch (e) { return null; }
     }
     function writeJson(file, obj) {
         file.encoding = "UTF-8";
@@ -69,78 +66,22 @@
 
     // ---- value type mapping ----------------------------------------------
     function mapValueType(pvt) {
-        if (pvt === PropertyValueType.NO_VALUE) return "NO_VALUE";
-        if (pvt === PropertyValueType.ThreeD_SPATIAL) return "ThreeD_SPATIAL";
-        if (pvt === PropertyValueType.ThreeD) return "ThreeD";
-        if (pvt === PropertyValueType.TwoD_SPATIAL) return "TwoD_SPATIAL";
-        if (pvt === PropertyValueType.TwoD) return "TwoD";
         if (pvt === PropertyValueType.OneD) return "OneD";
-        if (pvt === PropertyValueType.COLOR) return "COLOR";
         if (pvt === PropertyValueType.CUSTOM_VALUE) return "CUSTOM_VALUE";
-        if (pvt === PropertyValueType.MARKER) return "MARKER";
+        if (pvt === PropertyValueType.COLOR) return "COLOR";
+        if (pvt === PropertyValueType.TwoD) return "TwoD";
+        if (pvt === PropertyValueType.TwoD_SPATIAL) return "TwoD_SPATIAL";
+        if (pvt === PropertyValueType.ThreeD) return "ThreeD";
+        if (pvt === PropertyValueType.ThreeD_SPATIAL) return "ThreeD_SPATIAL";
         if (pvt === PropertyValueType.LAYER_INDEX) return "LAYER_INDEX";
-        if (pvt === PropertyValueType.MASK_INDEX) return "MASK_INDEX";
-        if (pvt === PropertyValueType.SHAPE) return "SHAPE";
-        if (pvt === PropertyValueType.TEXT_DOCUMENT) return "TEXT_DOCUMENT";
-        return "UNKNOWN_" + String(pvt);
+        if (pvt === PropertyValueType.NO_VALUE) return "NO_VALUE";
+        return "OTHER";
+    }
+    function readInt(prop) {
+        try { return parseInt(prop.value, 10); } catch (e) { return null; }
     }
 
-    function serializeValue(v) {
-        try {
-            if (v instanceof Array) {
-                var parts = [];
-                for (var i = 0; i < v.length; i++) parts.push(String(v[i]));
-                return "[" + parts.join(",") + "]";
-            }
-            return String(v);
-        } catch (e) {
-            return null;
-        }
-    }
-
-    function readLeafValue(prop, valueType) {
-        if (valueType === "CUSTOM_VALUE" || valueType === "NO_VALUE") return null;
-        try {
-            return serializeValue(prop.value);
-        } catch (e) {
-            return null;
-        }
-    }
-
-    // ---- snapshot (recurses into real sub-groups) -------------------------
-    function snapshot(group, leaves, depth) {
-        if (depth > 8) return;
-        for (var i = 1; i <= group.numProperties; i++) {
-            var prop = group.property(i);
-            if (prop.matchName === "ADBE Effect Built In Params") continue;
-
-            if (prop.propertyType === PropertyType.PROPERTY) {
-                var vt = mapValueType(prop.propertyValueType);
-                leaves.push({
-                    matchName: prop.matchName,
-                    name: String(prop.name || ""),
-                    valueType: vt,
-                    value: readLeafValue(prop, vt)
-                });
-            } else {
-                snapshot(prop, leaves, depth + 1);
-            }
-        }
-    }
-
-    function snapshotEffect(fx) {
-        var leaves = [];
-        snapshot(fx, leaves, 0);
-        return leaves;
-    }
-
-    function indexByMatchName(leaves) {
-        var map = {};
-        for (var i = 0; i < leaves.length; i++) map[leaves[i].matchName] = leaves[i];
-        return map;
-    }
-
-    // ---- effect resolution from selection --------------------------------
+    // ---- effect resolution -----------------------------------------------
     function climbToEffect(prop) {
         var cur = prop;
         var guard = 0;
@@ -155,185 +96,201 @@
         return null;
     }
 
-    function resolveEffect(layer) {
-        var sel = [];
-        try { sel = layer.selectedProperties; } catch (e) { sel = []; }
-        for (var i = 0; i < sel.length; i++) {
-            var fx = climbToEffect(sel[i]);
-            if (fx) return fx;
+    // Collect OneD / CUSTOM_VALUE leaves from a selected property (or a selected
+    // group, expanded to its leaf children). Each row carries its owning effect.
+    function collectFromProp(prop, rows, depth) {
+        if (depth > 8 || rows.length >= 80) return;
+        if (prop.propertyType === PropertyType.PROPERTY) {
+            var vt = mapValueType(prop.propertyValueType);
+            if (vt !== "OneD" && vt !== "CUSTOM_VALUE") return;
+            var fx = climbToEffect(prop);
+            if (!fx) return;
+            rows.push({
+                effectName: String(fx.name || ""),
+                effectMatchName: String(fx.matchName || ""),
+                propName: String(prop.name || ""),
+                matchName: String(prop.matchName || ""),
+                valueType: vt,
+                value: vt === "OneD" ? readInt(prop) : null
+            });
+        } else {
+            for (var i = 1; i <= prop.numProperties; i++) {
+                collectFromProp(prop.property(i), rows, depth + 1);
+            }
+        }
+    }
+
+    function dedupeRows(rows) {
+        var seen = {};
+        var out = [];
+        for (var i = 0; i < rows.length; i++) {
+            var key = rows[i].effectMatchName + "|" + rows[i].matchName;
+            if (seen[key]) continue;
+            seen[key] = true;
+            out.push(rows[i]);
+        }
+        return out;
+    }
+
+    // ---- batch label dialog ----------------------------------------------
+    function showDialog(rows) {
+        var dlg = new Window("dialog", "Calibrate Enum Values");
+        dlg.alignChildren = "fill";
+        dlg.margins = 14;
+        dlg.spacing = 10;
+
+        var info = dlg.add("statictext", undefined,
+            "Type the exact UI label for each value, then click Save. Leave a row " +
+            "blank to skip it. CUSTOM_VALUE rows are recorded as UNSUPPORTED.",
+            { multiline: true });
+        info.preferredSize = [520, 34];
+
+        var panel = dlg.add("panel");
+        panel.alignChildren = "left";
+        panel.margins = 12;
+        panel.spacing = 6;
+
+        var fields = [];
+        for (var i = 0; i < rows.length; i++) {
+            var r = rows[i];
+            var grp = panel.add("group");
+            grp.orientation = "row";
+            grp.alignment = "left";
+            var shown = r.effectName + " / " + r.propName + "  " +
+                (r.valueType === "CUSTOM_VALUE" ? "[CUSTOM_VALUE]" : "= " + r.value) + "   ->";
+            var st = grp.add("statictext", undefined, shown);
+            st.preferredSize.width = 360;
+            var et = grp.add("edittext", undefined, "");
+            et.characters = 18;
+            fields.push(et);
         }
 
-        var parade = layer.property("ADBE Effect Parade");
-        if (!parade || parade.numProperties === 0) return null;
-        if (parade.numProperties === 1) return parade.property(1);
+        var btns = dlg.add("group");
+        btns.alignment = "right";
+        btns.add("button", undefined, "Cancel", { name: "cancel" });
+        var okBtn = btns.add("button", undefined, "Save", { name: "ok" });
 
-        var listing = [];
-        for (var j = 1; j <= parade.numProperties; j++) {
-            listing.push(j + ": " + parade.property(j).name);
+        var saved = false;
+        okBtn.onClick = function () {
+            for (var j = 0; j < rows.length; j++) {
+                rows[j].label = String(fields[j].text || "");
+            }
+            saved = true;
+            dlg.close();
+        };
+
+        dlg.show();
+        return saved ? rows : null;
+    }
+
+    // ---- write sidecars ---------------------------------------------------
+    function recordRows(rows) {
+        var aeVersion = "unknown";
+        try { aeVersion = app.version; } catch (e) {}
+
+        // Group by effect so each effect gets one merged sidecar.
+        var byEffect = {};
+        for (var i = 0; i < rows.length; i++) {
+            var r = rows[i];
+            var label = (r.label || "").replace(/^\s+|\s+$/g, "");
+            if (!label) continue;
+            if (!byEffect[r.effectMatchName]) {
+                byEffect[r.effectMatchName] = { effectName: r.effectName, rows: [] };
+            }
+            r.label = label;
+            byEffect[r.effectMatchName].rows.push(r);
         }
-        var answer = prompt(
-            "No effect selected. Enter the effect number to calibrate:\n\n" + listing.join("\n"),
-            "1"
-        );
-        if (!answer) return null;
-        var idx = parseInt(answer, 10);
-        if (!(idx >= 1 && idx <= parade.numProperties)) return null;
-        return parade.property(idx);
+
+        var summary = [];
+        var recorded = 0;
+        for (var matchName in byEffect) {
+            if (!byEffect.hasOwnProperty(matchName)) continue;
+            var grp = byEffect[matchName];
+            var file = sidecarFile(matchName);
+            var sidecar = readJson(file);
+            if (!sidecar || sidecar.matchName !== matchName) {
+                sidecar = {
+                    displayName: grp.effectName,
+                    matchName: matchName,
+                    verifiedAEVersion: aeVersion,
+                    enums: {},
+                    unsupported: []
+                };
+            }
+            sidecar.verifiedAEVersion = aeVersion;
+            if (!sidecar.enums) sidecar.enums = {};
+            if (!sidecar.unsupported) sidecar.unsupported = [];
+
+            for (var k = 0; k < grp.rows.length; k++) {
+                var row = grp.rows[k];
+                if (row.valueType === "CUSTOM_VALUE") {
+                    sidecar.unsupported.push({
+                        label: row.label,
+                        note: row.propName + " is CUSTOM_VALUE; not scriptable."
+                    });
+                    summary.push(grp.effectName + " / " + row.propName + " -> \"" +
+                        row.label + "\" UNSUPPORTED");
+                } else {
+                    if (!sidecar.enums[row.matchName]) {
+                        sidecar.enums[row.matchName] = {
+                            name: row.propName,
+                            valueType: "OneD",
+                            values: {}
+                        };
+                    }
+                    sidecar.enums[row.matchName].values[row.label] = row.value;
+                    summary.push(grp.effectName + " / " + row.propName + " -> \"" +
+                        row.label + "\" = " + row.value);
+                }
+                recorded++;
+            }
+            writeJson(file, sidecar);
+        }
+        return { recorded: recorded, summary: summary };
     }
 
     // ---- main -------------------------------------------------------------
     var comp = app.project.activeItem;
     if (!(comp instanceof CompItem)) {
-        alert("Open a composition and select a layer with the effect to calibrate.");
-        return;
-    }
-    var layer = comp.selectedLayers[0];
-    if (!layer) {
-        alert("Select the layer that has the effect to calibrate.");
+        alert("Open a composition with the effect(s) to calibrate.");
         return;
     }
 
-    var fx = resolveEffect(layer);
-    if (!fx) {
-        alert("Could not resolve an effect. Select the effect in Effect Controls and try again.");
+    var layers = comp.selectedLayers;
+    if (!layers || layers.length === 0) {
+        alert("Select the layer(s) holding the effects, then select the dropdown " +
+              "properties in Effect Controls.");
         return;
     }
 
-    var effectDisplayName = fx.name;
-    var effectMatchName = fx.matchName;
-    var aeVersion = "unknown";
-    try { aeVersion = app.version; } catch (e) {}
-
-    var current = snapshotEffect(fx);
-    var baseFile = baselineFile(effectMatchName);
-    var baseline = readJson(baseFile);
-
-    // ---- first pass: capture baseline ------------------------------------
-    if (!baseline || baseline.matchName !== effectMatchName) {
-        writeJson(baseFile, { matchName: effectMatchName, leaves: current });
-        alert(
-            "Baseline captured for:\n" + effectDisplayName + " (" + effectMatchName + ")\n\n" +
-            "Now change EXACTLY ONE control in the UI, then run this script again."
-        );
-        return;
-    }
-
-    // ---- second pass: diff ------------------------------------------------
-    var before = indexByMatchName(baseline.leaves);
-    var changedReadable = [];
-    var customCount = 0;
-
-    for (var k = 0; k < current.length; k++) {
-        var leaf = current[k];
-        var prev = before[leaf.matchName];
-        if (!prev) continue;
-
-        if (leaf.valueType === "CUSTOM_VALUE") {
-            customCount++;
-            continue;
-        }
-        if (leaf.value !== prev.value) {
-            changedReadable.push({
-                matchName: leaf.matchName,
-                name: leaf.name,
-                valueType: leaf.valueType,
-                before: prev.value,
-                after: leaf.value
-            });
+    var rows = [];
+    for (var li = 0; li < layers.length; li++) {
+        var sel = [];
+        try { sel = layers[li].selectedProperties; } catch (e) { sel = []; }
+        for (var si = 0; si < sel.length; si++) {
+            collectFromProp(sel[si], rows, 0);
         }
     }
+    rows = dedupeRows(rows);
 
-    // Re-baseline regardless, so the next change can be captured cleanly.
-    writeJson(baseFile, { matchName: effectMatchName, leaves: current });
-
-    // ---- load / init sidecar ---------------------------------------------
-    var outFile = sidecarFile(effectMatchName);
-    var sidecar = readJson(outFile);
-    if (!sidecar || sidecar.matchName !== effectMatchName) {
-        sidecar = {
-            displayName: effectDisplayName,
-            matchName: effectMatchName,
-            verifiedAEVersion: aeVersion,
-            enums: {},
-            unsupported: []
-        };
-    }
-    sidecar.verifiedAEVersion = aeVersion;
-
-    // ---- no readable change: unsupported / CUSTOM_VALUE only -------------
-    if (changedReadable.length === 0) {
-        var label0 = prompt(
-            "No readable property changed.\n\n" +
-            "If you DID change a control, it only modified an unreadable " +
-            "CUSTOM_VALUE property (e.g. a Lumetri look / curve / toning blob) " +
-            "and is NOT scriptable.\n\n" +
-            "Enter a label to record this control as UNSUPPORTED (or Cancel):",
-            ""
-        );
-        if (label0) {
-            sidecar.unsupported.push({
-                label: label0,
-                note: "Changing this control did not alter any readable property (" +
-                    customCount + " CUSTOM_VALUE properties present); not scriptable."
-            });
-            writeJson(outFile, sidecar);
-            alert("Recorded UNSUPPORTED: \"" + label0 + "\"\nSaved to:\n" + outFile.fsName);
-        } else {
-            alert("No change detected and nothing recorded.\nRe-baselined; change one control and run again.");
-        }
+    if (rows.length === 0) {
+        alert("No dropdown/enum properties are selected.\n\n" +
+              "In Effect Controls, click the NAME of each dropdown you set " +
+              "(Cmd-click to add more), then run this script again.");
         return;
     }
 
-    // ---- one or more readable changes ------------------------------------
-    var oneD = [];
-    for (var c = 0; c < changedReadable.length; c++) {
-        if (changedReadable[c].valueType === "OneD") oneD.push(changedReadable[c]);
-    }
+    var labeled = showDialog(rows);
+    if (!labeled) return; // cancelled
 
-    var summaryLines = [];
-    for (var s = 0; s < changedReadable.length; s++) {
-        var ch = changedReadable[s];
-        summaryLines.push(ch.name + " (" + ch.matchName + ", " + ch.valueType + "): " +
-            ch.before + " -> " + ch.after);
-    }
-
-    if (oneD.length !== 1) {
-        alert(
-            "Detected " + changedReadable.length + " changed propert(ies); " +
-            "need exactly one OneD/enum change to record a mapping.\n\n" +
-            summaryLines.join("\n") + "\n\n" +
-            "Change only ONE dropdown/enum control at a time, then run again. " +
-            "(Re-baselined.)"
-        );
+    var result = recordRows(labeled);
+    if (result.recorded === 0) {
+        alert("Nothing recorded (all rows left blank).");
         return;
     }
 
-    var target = oneD[0];
-    var label = prompt(
-        "Changed control:\n" + target.name + " (" + target.matchName + ")\n" +
-        "Value is now: " + target.after + "\n\n" +
-        "Enter the EXACT UI label for this option (e.g. \"Dynamic\"):",
-        ""
-    );
-    if (!label) {
-        alert("No label entered; mapping not recorded. (Re-baselined.)");
-        return;
-    }
-
-    if (!sidecar.enums[target.matchName]) {
-        sidecar.enums[target.matchName] = {
-            name: target.name,
-            valueType: target.valueType,
-            values: {}
-        };
-    }
-    var intVal = parseInt(target.after, 10);
-    sidecar.enums[target.matchName].values[label] = isNaN(intVal) ? target.after : intVal;
-    writeJson(outFile, sidecar);
-
-    alert(
-        "Recorded:\n" + target.name + " -> \"" + label + "\" = " + target.after + "\n\n" +
-        "Saved to:\n" + outFile.fsName + "\n\n" +
-        "Change the NEXT option (or a different control) and run again."
-    );
+    alert("Calibration saved (" + result.recorded + " value(s)):\n\n" +
+          result.summary.join("\n") + "\n\n" +
+          "Saved to:\n" + calibrationFolder().fsName + "\n\n" +
+          "Re-run generate-knowledge.mjs to merge.");
 })();

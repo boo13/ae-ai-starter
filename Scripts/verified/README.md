@@ -40,22 +40,25 @@ To verify shape layer properties:
 
 `discover_effect.jsx` records a dropdown's *default* integer but cannot read the
 list of menu labels — After Effects exposes no scripting API for that. To map a
-UI label (e.g. Fractal Type "Dynamic") to its integer, capture it empirically:
+UI label (e.g. Fractal Type "Dynamic") to its integer, capture it empirically.
+`tools/calibrate_effect.jsx` does this in **one batch** — no per-change round
+trips:
 
-1. Apply the effect to a layer, select the layer, and select the effect in
-   Effect Controls.
-2. Run `tools/calibrate_effect.jsx` — it captures a baseline snapshot.
-3. Change **exactly one** control in the UI (e.g. Fractal Type → Dynamic).
-4. Run the script again. It diffs against the baseline, asks for the label you
-   just set, and records `label → integer` to
-   `effects/calibration/<safe-matchName>.json`. Then it re-baselines so you can
-   immediately capture the next option.
-5. Repeat step 3–4 for each option you care about.
+1. Apply the effect(s) and set each dropdown to the option you want to capture
+   (e.g. Fractal Type → Dynamic, Tones → Pentone, Set Alpha to Source →
+   Luminance). You can set several controls across several effects/layers.
+2. In Effect Controls, **select the property names** you set (click a name;
+   Cmd-click to add more). Select the layer(s) too.
+3. Run `tools/calibrate_effect.jsx`. It lists every selected dropdown value in
+   one dialog — type each label, click **Save**. It writes
+   `effects/calibration/<safe-matchName>.json` (one file per effect, merged).
 
-If a control changes **no** readable property, the script reports it as
-**unsupported** — the change lives in an unreadable `CUSTOM_VALUE` blob (Lumetri
-looks, curves, color wheels, split toning) and is **not scriptable**. Record it
-as unsupported rather than guessing an integer.
+To capture a second option of the same dropdown (e.g. Smeary as well as
+Dynamic), switch the dropdown, re-select it, and run again.
+
+If you select a `CUSTOM_VALUE` property (Lumetri looks, curves, color wheels,
+split toning), the dialog flags it and records it as **unsupported** — those
+blobs are **not scriptable**. Record them as unsupported rather than guessing.
 
 Never hand-edit calibration files with un-verified integers. Only values set
 through the UI on the installed AE version belong here.
