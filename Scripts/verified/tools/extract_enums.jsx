@@ -26,6 +26,14 @@
     var MAX_EFFECTS = 0;         // 0 = no limit
     var MAX_MENU_ITEMS = 256;    // safety cap per dropdown
     var SUMMARY_FILE_NAME = "_enum-extraction-summary.txt";
+    // Effects that pop a modal dialog (or error) on bare apply -- skipped so the
+    // run doesn't block. Pseudo/* effects also can't be added directly.
+    var SKIP_MATCHNAMES = {
+        "ADBE Path Text": true,    // modal font dialog
+        "ADBE Numbers": true,      // modal dialog
+        "ADBE Numbers2": true,     // modal dialog
+        "ADBE PM System 2": true   // requires setup; errors on bare apply
+    };
     // ==========================================
 
     // ---- folders ----------------------------------------------------------
@@ -241,6 +249,10 @@
     for (var t = 0; t < targets.length; t++) {
         if (MAX_EFFECTS > 0 && processed >= MAX_EFFECTS) break;
         var matchName = targets[t];
+        if (SKIP_MATCHNAMES[matchName] || matchName.indexOf("Pseudo/") === 0) {
+            appendSummary("SKIP " + matchName + " - dialog/setup prompt");
+            continue;
+        }
         if (SKIP_EXISTING && sidecarFile(matchName).exists) continue;
 
         var solid = null;
