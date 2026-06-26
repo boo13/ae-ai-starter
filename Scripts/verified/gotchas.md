@@ -93,3 +93,17 @@ Many AE effect enum properties are **1-indexed**, not 0-indexed. Do not assume
 
 **Fix:** Always check enum values in the verified effect JSON. If the effect
 hasn't been discovered yet, test empirically before writing code.
+
+**Labels are not readable from script.** After Effects exposes no API to list a
+dropdown's menu labels — `discover_effect.jsx` only captures the *default*
+integer. Never guess which integer a named option maps to (e.g. Fractal Type
+"Dynamic", CC Toner "Pentone"). Map it empirically with
+`tools/calibrate_effect.jsx`: set the option in the UI, and the probe records the
+exact integer. Verified maps land in `effects/calibration/`.
+
+**Some controls only write unreadable CUSTOM_VALUE blobs.** A control whose value
+type is `CUSTOM_VALUE` cannot be read or set via scripting. Lumetri Color's
+Creative Look (data lives in `LookAsset`, CUSTOM_VALUE), curves, color wheels, and
+Split Toning are all CUSTOM_VALUE — they are **not scriptable**. Do not fabricate
+a numeric assignment for them; report them as unsupported and have the user set
+them manually.

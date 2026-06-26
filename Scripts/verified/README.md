@@ -13,6 +13,9 @@ in CLAUDE.md for the full workflow.
 ## Directory Structure
 
 - `effects/` — One JSON file per verified effect (e.g., `ADBE-AudSpect.json`)
+- `effects/calibration/` — Sidecar JSON mapping dropdown/enum UI labels to their
+  verified integer values (from `tools/calibrate_effect.jsx`). The downstream
+  `generate-knowledge.mjs` merges these into the effect records.
 - `properties/` — Property trees for non-effect elements (e.g., `shape-layer.json`)
 - `gotchas.md` — Runtime pitfalls and lessons learned
 - `tools/` — Discovery and diagnostic scripts (maintainer use)
@@ -32,3 +35,27 @@ To verify shape layer properties:
 1. Run `tools/discover_shape_properties.jsx` in AE
 2. Output goes to `properties/shape-layer.json`
 3. Commit the JSON file
+
+## Calibrating Enum / Dropdown Values
+
+`discover_effect.jsx` records a dropdown's *default* integer but cannot read the
+list of menu labels — After Effects exposes no scripting API for that. To map a
+UI label (e.g. Fractal Type "Dynamic") to its integer, capture it empirically:
+
+1. Apply the effect to a layer, select the layer, and select the effect in
+   Effect Controls.
+2. Run `tools/calibrate_effect.jsx` — it captures a baseline snapshot.
+3. Change **exactly one** control in the UI (e.g. Fractal Type → Dynamic).
+4. Run the script again. It diffs against the baseline, asks for the label you
+   just set, and records `label → integer` to
+   `effects/calibration/<safe-matchName>.json`. Then it re-baselines so you can
+   immediately capture the next option.
+5. Repeat step 3–4 for each option you care about.
+
+If a control changes **no** readable property, the script reports it as
+**unsupported** — the change lives in an unreadable `CUSTOM_VALUE` blob (Lumetri
+looks, curves, color wheels, split toning) and is **not scriptable**. Record it
+as unsupported rather than guessing an integer.
+
+Never hand-edit calibration files with un-verified integers. Only values set
+through the UI on the installed AE version belong here.
