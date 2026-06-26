@@ -38,27 +38,33 @@ To verify shape layer properties:
 
 ## Calibrating Enum / Dropdown Values
 
-`discover_effect.jsx` records a dropdown's *default* integer but cannot read the
-list of menu labels — After Effects exposes no scripting API for that. To map a
-UI label (e.g. Fractal Type "Dynamic") to its integer, capture it empirically.
-`tools/calibrate_effect.jsx` does this in **one batch** — no per-change round
-trips:
+Enum/dropdown properties are stored as integers (e.g. Fractal Type "Dynamic" is
+some number). We need the `label → integer` map.
 
-1. Apply the effect(s) and set each dropdown to the option you want to capture
-   (e.g. Fractal Type → Dynamic, Tones → Pentone, Set Alpha to Source →
-   Luminance). You can set several controls across several effects/layers.
-2. In Effect Controls, **select the property names** you set (click a name;
-   Cmd-click to add more). Select the layer(s) too.
-3. Run `tools/calibrate_effect.jsx`. It lists every selected dropdown value in
-   one dialog — type each label, click **Save**. It writes
-   `effects/calibration/<safe-matchName>.json` (one file per effect, merged).
+### Automated (After Effects 26.0+) — preferred
 
-To capture a second option of the same dropdown (e.g. Smeary as well as
-Dynamic), switch the dropdown, re-select it, and run again.
+AE 26.0 added `Property.propertyParameters` (the dropdown's item strings) and
+`Property.valueText` (the current selection's label). `tools/extract_enums.jsx`
+uses them to read every dropdown's map **with no manual input**:
 
-If you select a `CUSTOM_VALUE` property (Lumetri looks, curves, color wheels,
-split toning), the dialog flags it and records it as **unsupported** — those
-blobs are **not scriptable**. Record them as unsupported rather than guessing.
+1. Run `tools/extract_enums.jsx`. It applies each effect to a temp layer, sweeps
+   every dropdown reading the label AE reports for each integer, and writes
+   `effects/calibration/<safe-matchName>.json` for all of them.
+2. Re-run `generate-knowledge.mjs` to merge.
+
+Defaults to every effect already in `effects/`; edit `TARGET_MODE`/`MAX_EFFECTS`
+at the top to scope it. A `_enum-extraction-summary.txt` lists what was captured.
+
+### Manual fallback (pre-26, or popups the API misses)
+
+If `extract_enums.jsx` reports 0 dropdowns, use `tools/calibrate_effect.jsx`:
+set each dropdown in the UI, select those property names in Effect Controls, run
+once, type the labels in one dialog, Save. Selecting a `CUSTOM_VALUE` property
+records it as **unsupported**.
+
+`CUSTOM_VALUE` controls (Lumetri looks, curves, color wheels, split toning)
+cannot be read or set by either tool — they are **not scriptable**. Document them
+as unsupported rather than guessing.
 
 Never hand-edit calibration files with un-verified integers. Only values set
 through the UI on the installed AE version belong here.
