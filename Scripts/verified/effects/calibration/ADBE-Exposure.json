@@ -1,0 +1,1 @@
+{  "displayName": "Exposure",  "matchName": "ADBE Exposure",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Exposure-0001": {      "name": "Channels:",      "valueType": "OneD",      "values": {        "Master": 1,        "Individual Channels": 2      }    }  },  "unsupported": [      ]}

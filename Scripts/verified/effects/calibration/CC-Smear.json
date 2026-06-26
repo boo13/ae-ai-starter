@@ -1,0 +1,1 @@
+{  "displayName": "CC Smear",  "matchName": "CC Smear",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "CC Smear-0005": {      "name": "Tip Type",      "valueType": "OneD",      "values": {        "Classic": 1,        "Round": 2,        "Bell": 3,        "Wizard": 4      }    }  },  "unsupported": [      ]}

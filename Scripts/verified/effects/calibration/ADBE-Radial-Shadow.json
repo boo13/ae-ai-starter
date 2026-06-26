@@ -1,0 +1,1 @@
+{  "displayName": "Radial Shadow",  "matchName": "ADBE Radial Shadow",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Radial Shadow-0006": {      "name": "Render",      "valueType": "OneD",      "values": {        "Regular": 1,        "Glass Edge": 2      }    }  },  "unsupported": [      ]}

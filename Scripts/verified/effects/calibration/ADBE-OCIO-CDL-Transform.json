@@ -1,0 +1,1 @@
+{  "displayName": "OCIO CDL Transform",  "matchName": "ADBE OCIO CDL Transform",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE OCIO CDL Transform-0002": {      "name": "CCCID",      "valueType": "OneD",      "values": {        "None": 1      }    }  },  "unsupported": [      ]}

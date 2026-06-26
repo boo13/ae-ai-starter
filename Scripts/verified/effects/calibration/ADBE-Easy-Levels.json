@@ -1,0 +1,1 @@
+{  "displayName": "Levels",  "matchName": "ADBE Easy Levels",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Easy Levels-0001": {      "name": "Channel:",      "valueType": "OneD",      "values": {        "RGB": 1,        "Red": 2,        "Green": 3,        "Blue": 4,        "Alpha": 5      }    }  },  "unsupported": [      ]}

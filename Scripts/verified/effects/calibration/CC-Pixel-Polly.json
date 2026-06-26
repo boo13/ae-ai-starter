@@ -1,0 +1,1 @@
+{  "displayName": "CC Pixel Polly",  "matchName": "CC Pixel Polly",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "CC Pixel Polly-0008": {      "name": "Object",      "valueType": "OneD",      "values": {        "Polygon": 1,        "Textured Polygon": 2,        "Square": 4,        "Textured Square": 5      }    }  },  "unsupported": [      ]}

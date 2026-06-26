@@ -1,0 +1,1 @@
+{  "displayName": "CC Flo Motion",  "matchName": "CC Flo Motion",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "CC Flo Motion-0007": {      "name": "Antialiasing",      "valueType": "OneD",      "values": {        "Low": 1,        "Medium": 2,        "High": 3      }    }  },  "unsupported": [      ]}

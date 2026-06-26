@@ -1,0 +1,1 @@
+{  "displayName": "VR Glow",  "matchName": "Mettle SkyBox Glow",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "Mettle SkyBox Glow-0008": {      "name": "Frame Layout",      "valueType": "OneD",      "values": {        "Monoscopic": 1,        "Stereoscopic - Over/Under": 2,        "Stereoscopic - Side-by-Side": 3      }    }  },  "unsupported": [      ]}

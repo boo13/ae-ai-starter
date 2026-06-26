@@ -1,0 +1,1 @@
+{  "displayName": "CC Threshold",  "matchName": "CC Threshold",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "CC Threshold-0002": {      "name": "Channel",      "valueType": "OneD",      "values": {        "Luminance": 1,        "RGB": 2,        "Saturation": 3,        "Alpha": 4      }    }  },  "unsupported": [      ]}

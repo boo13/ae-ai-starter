@@ -1,0 +1,1 @@
+{  "displayName": "CC Radial Fast Blur",  "matchName": "CC Radial Fast Blur",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "CC Radial Fast Blur-0003": {      "name": "Zoom",      "valueType": "OneD",      "values": {        "Standard": 1,        "Brightest": 2,        "Darkest": 3      }    }  },  "unsupported": [      ]}

@@ -1,0 +1,1 @@
+{  "displayName": "IDentifier",  "matchName": "IDentifier",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "IDentifier-0003": {      "name": "Display",      "valueType": "OneD",      "values": {        "Colors": 1,        "Luma Matte": 2,        "Alpha Matte": 3,        "Raw": 4      }    }  },  "unsupported": [      ]}

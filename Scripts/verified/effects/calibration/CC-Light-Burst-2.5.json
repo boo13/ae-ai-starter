@@ -1,0 +1,1 @@
+{  "displayName": "CC Light Burst 2.5",  "matchName": "CC Light Burst 2.5",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "CC Light Burst 2.5-0004": {      "name": "Burst",      "valueType": "OneD",      "values": {        "Straight": 1,        "Fade": 2,        "Center": 3      }    }  },  "unsupported": [      ]}

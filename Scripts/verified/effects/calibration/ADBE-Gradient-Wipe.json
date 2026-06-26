@@ -1,0 +1,1 @@
+{  "displayName": "Gradient Wipe",  "matchName": "ADBE Gradient Wipe",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Gradient Wipe-0004": {      "name": "Gradient Placement",      "valueType": "OneD",      "values": {        "Tile Gradient": 1,        "Center Gradient": 2,        "Stretch Gradient to Fit": 3      }    }  },  "unsupported": [      ]}

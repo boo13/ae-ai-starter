@@ -1,0 +1,1 @@
+{  "displayName": "CC Bender",  "matchName": "CC Bender",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "CC Bender-0002": {      "name": "Style",      "valueType": "OneD",      "values": {        "Bend": 1,        "Marilyn": 2,        "Sharp": 3,        "Boxer": 4      }    }  },  "unsupported": [      ]}

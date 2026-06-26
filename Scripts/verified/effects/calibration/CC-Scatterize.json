@@ -1,0 +1,1 @@
+{  "displayName": "CC Scatterize",  "matchName": "CC Scatterize",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "CC Scatterize-0004": {      "name": "Transfer Mode",      "valueType": "OneD",      "values": {        "Composite": 1,        "Screen": 2,        "Add": 3,        "Alpha Add": 4      }    }  },  "unsupported": [      ]}

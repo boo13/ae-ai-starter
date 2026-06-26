@@ -1,0 +1,1 @@
+{  "displayName": "Lens Flare",  "matchName": "ADBE Lens Flare",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Lens Flare-0004": {      "name": "Lens Type",      "valueType": "OneD",      "values": {        "50-300mm Zoom": 1,        "35mm Prime": 2,        "105mm Prime": 3      }    }  },  "unsupported": [      ]}

@@ -1,0 +1,1 @@
+{  "displayName": "CC Color Offset",  "matchName": "CC Color Offset",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "CC Color Offset-0004": {      "name": "Overflow",      "valueType": "OneD",      "values": {        "Wrap": 1,        "Solarize": 2,        "Polarize": 3      }    }  },  "unsupported": [      ]}

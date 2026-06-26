@@ -1,0 +1,1 @@
+{  "displayName": "Photoshop Inner Glow",  "matchName": "ADBE PSL Inner Glow",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE PSL Inner Glow-0004": {      "name": "Glow Type",      "valueType": "OneD",      "values": {        "Center": 1,        "Edge": 2      }    }  },  "unsupported": [      ]}

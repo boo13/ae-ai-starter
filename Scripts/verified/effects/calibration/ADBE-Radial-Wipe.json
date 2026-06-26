@@ -1,0 +1,1 @@
+{  "displayName": "Radial Wipe",  "matchName": "ADBE Radial Wipe",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Radial Wipe-0004": {      "name": "Wipe",      "valueType": "OneD",      "values": {        "Clockwise": 1,        "Counterclockwise": 2,        "Both": 3      }    }  },  "unsupported": [      ]}

@@ -1,0 +1,1 @@
+{  "displayName": "Transform",  "matchName": "ADBE Geometry",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Geometry-0012": {      "name": "Sampling",      "valueType": "OneD",      "values": {        "Bilinear": 1,        "Bicubic": 2      }    }  },  "unsupported": [      ]}

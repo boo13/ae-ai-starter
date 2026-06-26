@@ -1,0 +1,1 @@
+{  "displayName": "Texturize",  "matchName": "ADBE Texturize",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Texturize-0004": {      "name": "Texture Placement",      "valueType": "OneD",      "values": {        "Tile Texture": 1,        "Center Texture": 2,        "Stretch Texture to Fit": 3      }    }  },  "unsupported": [      ]}

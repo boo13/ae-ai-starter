@@ -1,0 +1,1 @@
+{  "displayName": "Unmult",  "matchName": "ADBE Unmult",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Unmult-0030": {      "name": "Background Color",      "valueType": "OneD",      "values": {        "Black": 1,        "White": 2      }    }  },  "unsupported": [      ]}

@@ -1,0 +1,1 @@
+{  "displayName": "Modulator",  "matchName": "ADBE Aud Modulator",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Aud Modulator-0001": {      "name": "Modulation Type",      "valueType": "OneD",      "values": {        "Sine": 1,        "Triangle": 2      }    }  },  "unsupported": [      ]}

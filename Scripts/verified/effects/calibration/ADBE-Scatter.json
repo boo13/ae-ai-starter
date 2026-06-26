@@ -1,0 +1,1 @@
+{  "displayName": "Scatter",  "matchName": "ADBE Scatter",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Scatter-0002": {      "name": "Grain",      "valueType": "OneD",      "values": {        "Both": 1,        "Horizontal": 2,        "Vertical": 3      }    }  },  "unsupported": [      ]}

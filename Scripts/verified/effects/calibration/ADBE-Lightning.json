@@ -1,0 +1,1 @@
+{  "displayName": "Lightning",  "matchName": "ADBE Lightning",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Lightning-0024": {      "name": "Blending Mode",      "valueType": "OneD",      "values": {        "Normal": 1,        "Add": 2,        "Screen": 3      }    }  },  "unsupported": [      ]}

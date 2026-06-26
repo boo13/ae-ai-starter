@@ -1,0 +1,1 @@
+{  "displayName": "Cineon Converter",  "matchName": "ADBE Cineon Converter2",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Cineon Converter2-0001": {      "name": "Conversion Type",      "valueType": "OneD",      "values": {        "Linear to Log": 1,        "Log to Linear": 2,        "Log to Log": 3      }    }  },  "unsupported": [      ]}

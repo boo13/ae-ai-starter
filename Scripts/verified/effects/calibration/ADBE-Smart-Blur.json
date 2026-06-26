@@ -1,0 +1,1 @@
+{  "displayName": "Smart Blur",  "matchName": "ADBE Smart Blur",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Smart Blur-0003": {      "name": "Mode",      "valueType": "OneD",      "values": {        "Normal": 1,        "Edge Only": 2,        "Overlay Edge": 3      }    }  },  "unsupported": [      ]}

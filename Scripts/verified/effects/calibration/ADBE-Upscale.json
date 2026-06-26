@@ -1,0 +1,1 @@
+{  "displayName": "Detail-preserving Upscale",  "matchName": "ADBE Upscale",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Upscale-0005": {      "name": "Alpha",      "valueType": "OneD",      "values": {        "Detail-preserving": 1,        "Bicubic": 2      }    }  },  "unsupported": [      ]}

@@ -1,0 +1,1 @@
+{  "displayName": "HDR Compander",  "matchName": "ADBE Compander",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Compander-0001": {      "name": "Mode:",      "valueType": "OneD",      "values": {        "Compress Range": 1,        "Expand Range": 2      }    }  },  "unsupported": [      ]}

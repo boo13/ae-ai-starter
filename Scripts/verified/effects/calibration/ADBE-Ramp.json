@@ -1,0 +1,1 @@
+{  "displayName": "Gradient Ramp",  "matchName": "ADBE Ramp",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Ramp-0005": {      "name": "Ramp Shape",      "valueType": "OneD",      "values": {        "Linear Ramp": 1,        "Radial Ramp": 2      }    }  },  "unsupported": [      ]}

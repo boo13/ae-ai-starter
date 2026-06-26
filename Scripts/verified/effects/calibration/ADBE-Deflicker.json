@@ -1,0 +1,1 @@
+{  "displayName": "Color Stabilizer",  "matchName": "ADBE Deflicker",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Deflicker-0001": {      "name": "Stabilize",      "valueType": "OneD",      "values": {        "Brightness": 1,        "Levels": 2,        "Curves": 3      }    }  },  "unsupported": [      ]}

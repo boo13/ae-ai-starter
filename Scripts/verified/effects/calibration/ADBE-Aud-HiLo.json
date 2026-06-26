@@ -1,0 +1,1 @@
+{  "displayName": "High-Low Pass",  "matchName": "ADBE Aud HiLo",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Aud HiLo-0001": {      "name": "Filter Options",      "valueType": "OneD",      "values": {        "High Pass": 1,        "Low Pass": 2      }    }  },  "unsupported": [      ]}

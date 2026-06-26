@@ -1,0 +1,1 @@
+{  "displayName": "CC Toner",  "matchName": "CC Toner",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "CC Toner-0005": {      "name": "Tones",      "valueType": "OneD",      "values": {        "Duotone": 1,        "Tritone": 2,        "Pentone": 3,        "Solid": 5      }    }  },  "unsupported": [      ]}

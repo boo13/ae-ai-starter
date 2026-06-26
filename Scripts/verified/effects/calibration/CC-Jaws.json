@@ -1,0 +1,1 @@
+{  "displayName": "CC Jaws",  "matchName": "CC Jaws",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "CC Jaws-0006": {      "name": "Shape",      "valueType": "OneD",      "values": {        "Spikes": 1,        "RoboJaw": 2,        "Block": 3,        "Waves": 4      }    }  },  "unsupported": [      ]}

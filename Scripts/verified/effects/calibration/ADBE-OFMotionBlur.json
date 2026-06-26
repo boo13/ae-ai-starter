@@ -1,0 +1,1 @@
+{  "displayName": "Pixel Motion Blur",  "matchName": "ADBE OFMotionBlur",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE OFMotionBlur-0001": {      "name": "Shutter Control",      "valueType": "OneD",      "values": {        "Manual": 1,        "Automatic": 2      }    }  },  "unsupported": [      ]}

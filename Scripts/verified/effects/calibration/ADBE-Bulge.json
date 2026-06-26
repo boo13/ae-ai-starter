@@ -1,0 +1,1 @@
+{  "displayName": "Bulge",  "matchName": "ADBE Bulge",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Bulge-0006": {      "name": "Antialiasing (Best Qual Only)",      "valueType": "OneD",      "values": {        "Low": 1,        "High": 2      }    }  },  "unsupported": [      ]}

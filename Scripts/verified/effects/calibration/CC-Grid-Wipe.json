@@ -1,0 +1,1 @@
+{  "displayName": "CC Grid Wipe",  "matchName": "CC Grid Wipe",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "CC Grid Wipe-0006": {      "name": "Shape",      "valueType": "OneD",      "values": {        "Doors": 1,        "Radial": 2,        "Rectangular": 3      }    }  },  "unsupported": [      ]}

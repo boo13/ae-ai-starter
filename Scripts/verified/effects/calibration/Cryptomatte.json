@@ -1,0 +1,1 @@
+{  "displayName": "Cryptomatte",  "matchName": "Cryptomatte",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "Cryptomatte-0002": {      "name": "Output",      "valueType": "OneD",      "values": {        "Colors": 1,        "Matted Colors": 2,        "Matted RGBA": 3,        "Matte Only": 4      }    }  },  "unsupported": [      ]}

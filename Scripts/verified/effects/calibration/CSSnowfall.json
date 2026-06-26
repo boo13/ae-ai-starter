@@ -1,0 +1,1 @@
+{  "displayName": "CC Snowfall",  "matchName": "CSSnowfall",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "CSSnowfall-0025": {      "name": "Transfer Mode",      "valueType": "OneD",      "values": {        "Composite": 1,        "Lighten": 2      }    }  },  "unsupported": [      ]}

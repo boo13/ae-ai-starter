@@ -1,0 +1,1 @@
+{  "displayName": "Color Range",  "matchName": "ADBE Color Range",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Color Range-0003": {      "name": "Color Space",      "valueType": "OneD",      "values": {        "Lab": 1,        "YUV": 2,        "RGB": 3      }    }  },  "unsupported": [      ]}

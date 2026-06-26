@@ -1,0 +1,1 @@
+{  "displayName": "CC Light Wipe",  "matchName": "CC Light Wipe",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "CC Light Wipe-0004": {      "name": "Shape",      "valueType": "OneD",      "values": {        "Doors": 1,        "Round": 2,        "Square": 3      }    }  },  "unsupported": [      ]}

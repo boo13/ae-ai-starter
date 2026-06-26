@@ -1,0 +1,1 @@
+{  "displayName": "Gaussian Blur",  "matchName": "ADBE Gaussian Blur 2",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Gaussian Blur 2-0002": {      "name": "Blur Dimensions",      "valueType": "OneD",      "values": {        "Horizontal and Vertical": 1,        "Horizontal": 2,        "Vertical": 3      }    }  },  "unsupported": [      ]}

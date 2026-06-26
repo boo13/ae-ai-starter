@@ -1,0 +1,1 @@
+{  "displayName": "Equalize",  "matchName": "ADBE Equalize",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Equalize-0001": {      "name": "Equalize",      "valueType": "OneD",      "values": {        "RGB": 1,        "Brightness": 2,        "Photoshop Style": 3      }    }  },  "unsupported": [      ]}

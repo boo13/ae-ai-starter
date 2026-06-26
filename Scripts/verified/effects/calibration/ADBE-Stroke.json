@@ -1,0 +1,1 @@
+{  "displayName": "Stroke",  "matchName": "ADBE Stroke",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Stroke-0007": {      "name": "Paint Style",      "valueType": "OneD",      "values": {        "On Original Image": 1,        "On Transparent": 2,        "Reveal Original Image": 3      }    }  },  "unsupported": [      ]}

@@ -1,0 +1,1 @@
+{  "displayName": "Tone",  "matchName": "ADBE Aud Tone",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE Aud Tone-0001": {      "name": "Waveform options",      "valueType": "OneD",      "values": {        "Sine": 1,        "Triangle": 2,        "Saw": 3,        "Square": 4,        "White Noise": 5      }    }  },  "unsupported": [      ]}

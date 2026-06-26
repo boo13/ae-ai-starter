@@ -1,0 +1,1 @@
+{  "displayName": "Puppet",  "matchName": "ADBE FreePin3",  "verifiedAEVersion": "26.2.1x2",  "enums": {    "ADBE FreePin3 Puppet Engine": {      "name": "Puppet Engine",      "valueType": "OneD",      "values": {        "Legacy": 1,        "Advanced": 2      }    }  },  "unsupported": [      ]}
