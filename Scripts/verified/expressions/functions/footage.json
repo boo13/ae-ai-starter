@@ -1,0 +1,178 @@
+[
+  {
+    "name": "dataKeyCount",
+    "object": "Footage",
+    "signature": "footage(\"myFile\").dataKeyCount(dataPath)",
+    "params": [
+      {
+        "name": "\"myFile\").dataKeyCount(dataPath",
+        "type": "unknown",
+        "description": "",
+        "optional": false
+      }
+    ],
+    "returns": "The number of samples in the dynamic data stream.",
+    "appliesTo": [
+      "Footage"
+    ],
+    "minVersion": null,
+    "example": "footage(\"sample.mgjson\").dataKeyCount([0])",
+    "pitfalls": [],
+    "keywords": [
+      "datakeycount",
+      "footage",
+      "returns",
+      "number",
+      "samples",
+      "specificed",
+      "dynamic",
+      "data",
+      "stream",
+      "mgjson",
+      "file",
+      "accepts"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/footage.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "dataKeyTimes",
+    "object": "Footage",
+    "signature": "footage(\"myFile\").dataKeyTimes(dataPath[, t0=startTime][, t1=endTime])",
+    "params": [
+      {
+        "name": "\"myFile\").dataKeyTimes(dataPath",
+        "type": "unknown",
+        "description": "",
+        "optional": false
+      },
+      {
+        "name": "t0",
+        "type": "Number",
+        "description": "Optional. The start time, in seconds, of the span from which to return samples. Defaults to startTime.",
+        "optional": true
+      },
+      {
+        "name": "t1",
+        "type": "Number",
+        "description": "Optional. The end time, in seconds, of the span from which to return samples. Defaults to endTime.",
+        "optional": true
+      }
+    ],
+    "returns": "Array of numbers representing the sample times.",
+    "appliesTo": [
+      "Footage"
+    ],
+    "minVersion": null,
+    "example": "footage(\"sample.mgjson\").dataKeyTimes([0], 1, 3)",
+    "pitfalls": [],
+    "keywords": [
+      "datakeytimes",
+      "footage",
+      "returns",
+      "time",
+      "seconds",
+      "samples",
+      "specificed",
+      "dynamic",
+      "data",
+      "stream",
+      "mgjson",
+      "file"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/footage.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "dataKeyValues",
+    "object": "Footage",
+    "signature": "footage(\"myFile\").dataKeyValues(dataPath[, t0=startTime][, t1=endTime])",
+    "params": [
+      {
+        "name": "\"myFile\").dataKeyValues(dataPath",
+        "type": "unknown",
+        "description": "",
+        "optional": false
+      },
+      {
+        "name": "t0",
+        "type": "Number",
+        "description": "Optional. The start time, in seconds, of the span from which to return samples. Defaults to startTime.",
+        "optional": true
+      },
+      {
+        "name": "t1",
+        "type": "Number",
+        "description": "Optional. The end time, in seconds, of the span from which to return samples. Defaults to endTime.",
+        "optional": true
+      }
+    ],
+    "returns": "Array of numbers representing the sample values.",
+    "appliesTo": [
+      "Footage"
+    ],
+    "minVersion": null,
+    "example": "footage(\"sample.mgjson\").dataKeyValues([0], 1, 3)",
+    "pitfalls": [],
+    "keywords": [
+      "datakeyvalues",
+      "footage",
+      "returns",
+      "values",
+      "samples",
+      "specificed",
+      "dynamic",
+      "data",
+      "stream",
+      "mgjson",
+      "file",
+      "optionally"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/footage.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "dataValue",
+    "object": "Footage",
+    "signature": "footage(\"myFile\").dataValue(dataPath)",
+    "params": [
+      {
+        "name": "\"myFile\").dataValue(dataPath",
+        "type": "unknown",
+        "description": "",
+        "optional": false
+      }
+    ],
+    "returns": "The value of the data stream.",
+    "appliesTo": [
+      "Footage"
+    ],
+    "minVersion": null,
+    "example": "footage(\"sample.mgjson\").dataValue([0])",
+    "pitfalls": [],
+    "keywords": [
+      "datavalue",
+      "footage",
+      "returns",
+      "value",
+      "specificed",
+      "static",
+      "dynamic",
+      "data",
+      "stream",
+      "mgjson",
+      "file",
+      "accepts"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/footage.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  }
+]

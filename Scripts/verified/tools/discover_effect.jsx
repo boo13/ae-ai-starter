@@ -114,6 +114,14 @@ function discoverEffect(matchName, targetComp) {
             if (prop.propertyType === PropertyType.PROPERTY) {
                 entry.valueType = mapValueType(prop.propertyValueType);
                 entry.defaultValue = safeReadValue(prop);
+                try {
+                    entry.hasMin = prop.hasMin;
+                    if (prop.hasMin) entry.minValue = prop.minValue;
+                } catch (e) {}
+                try {
+                    entry.hasMax = prop.hasMax;
+                    if (prop.hasMax) entry.maxValue = prop.maxValue;
+                } catch (e) {}
             } else {
                 entry.valueType = "GROUP";
                 entry.numChildren = prop.numProperties;

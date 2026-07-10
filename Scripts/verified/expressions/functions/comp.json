@@ -1,0 +1,78 @@
+[
+  {
+    "name": "layer",
+    "object": "Comp",
+    "signature": "thisComp.layer(index)",
+    "params": [
+      {
+        "name": "index",
+        "type": "Number",
+        "description": "Layer name or index to get.",
+        "optional": false
+      }
+    ],
+    "returns": "Layer, Light, or Camera object",
+    "appliesTo": [
+      "Comp"
+    ],
+    "minVersion": null,
+    "example": "thisComp.layer(3)",
+    "pitfalls": [],
+    "keywords": [
+      "layer",
+      "comp",
+      "return",
+      "object",
+      "with",
+      "specified",
+      "index",
+      "name",
+      "value",
+      "refers",
+      "order",
+      "timeline"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/comp.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "layerByComment",
+    "object": "Comp",
+    "signature": "thisComp.layerByComment(comment)",
+    "params": [
+      {
+        "name": "comment",
+        "type": "String",
+        "description": "The comment to find a layer from",
+        "optional": false
+      }
+    ],
+    "returns": "Layer, Light, or Camera object",
+    "appliesTo": [
+      "Comp"
+    ],
+    "minVersion": null,
+    "example": "// note this will match a layer with a comment \"Controller\" or \"Motion Control\"\nthisComp.layerByComment(\"Control\");",
+    "pitfalls": [],
+    "keywords": [
+      "layerbycomment",
+      "comp",
+      "retrieves",
+      "layer",
+      "matching",
+      "comment",
+      "parameter",
+      "value",
+      "column",
+      "matches",
+      "simple",
+      "text"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/comp.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  }
+]

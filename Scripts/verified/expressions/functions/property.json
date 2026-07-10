@@ -1,0 +1,760 @@
+[
+  {
+    "name": "param",
+    "object": "Effect",
+    "signature": "thisLayer.effect(\"Bulge\").param(name)",
+    "params": [
+      {
+        "name": "\"Bulge\").param(name",
+        "type": "unknown",
+        "description": "",
+        "optional": false
+      }
+    ],
+    "returns": "Property object",
+    "appliesTo": [
+      "Effect"
+    ],
+    "minVersion": null,
+    "example": "thisLayer.effect(\"Bulge\").param(\"Bulge Height\");",
+    "pitfalls": [],
+    "keywords": [
+      "param",
+      "effect",
+      "property",
+      "returns",
+      "within",
+      "control",
+      "points",
+      "always",
+      "layer",
+      "space",
+      "this",
+      "method"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/effect.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "key",
+    "object": "Property",
+    "signature": "thisLayer.position.key(index) | thisLayer.position.key(markerName)",
+    "params": [
+      {
+        "name": "index",
+        "type": "Number",
+        "description": "The key (or MarkerKey) index number",
+        "optional": false
+      }
+    ],
+    "returns": "Key or MarkerKey",
+    "appliesTo": [
+      "Property"
+    ],
+    "minVersion": null,
+    "example": "thisLayer.scale.key(1);",
+    "pitfalls": [],
+    "keywords": [
+      "key",
+      "property",
+      "returns",
+      "markerkey",
+      "object",
+      "index",
+      "number"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "loopIn",
+    "object": "Property",
+    "signature": "thisLayer.position.loopIn([type=\"cycle\"][, numKeyframes=0])",
+    "params": [
+      {
+        "name": "type",
+        "type": "Predefined string as defined in Loop Types",
+        "description": "Optional. The loop type to use. Defaults to \"cycle\"",
+        "optional": true
+      },
+      {
+        "name": "numKeyframes",
+        "type": "Number",
+        "description": "Optional. The segment to loop, from keyframe #1 to keyframe #numKeyframes + 1. If unspecified (or 0), all keyframes loop. Defaults to 0.",
+        "optional": true
+      }
+    ],
+    "returns": "A looped value of the same property type as this current property.",
+    "appliesTo": [
+      "Property"
+    ],
+    "minVersion": null,
+    "example": "loopIn(\"cycle\", 3);",
+    "pitfalls": [
+      "Requires at least two keyframes on the property."
+    ],
+    "keywords": [
+      "loopin",
+      "property",
+      "loops",
+      "segment",
+      "time",
+      "that",
+      "measured",
+      "from",
+      "first",
+      "keyframe",
+      "layer",
+      "forward"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "loopInDuration",
+    "object": "Property",
+    "signature": "thisLayer.position.loopInDuration([type=\"cycle\"][, duration=0])",
+    "params": [
+      {
+        "name": "type",
+        "type": "Predefined string as defined in Loop Types",
+        "description": "Optional. The loop type to use. Defaults to \"cycle\"",
+        "optional": true
+      },
+      {
+        "name": "duration",
+        "type": "Number",
+        "description": "Optional. The number of composition seconds in a segment to loop, measured from the first keyframe. If unspecified (or 0), the segment to loop begins at the layer Out point. Defaults to 0.",
+        "optional": true
+      }
+    ],
+    "returns": "A looped value of the same property type as this current property.",
+    "appliesTo": [
+      "Property"
+    ],
+    "minVersion": null,
+    "example": "loopInDuration(\"cycle\", 1);",
+    "pitfalls": [
+      "Requires at least two keyframes on the property."
+    ],
+    "keywords": [
+      "loopinduration",
+      "property",
+      "loops",
+      "segment",
+      "time",
+      "that",
+      "measured",
+      "from",
+      "first",
+      "keyframe",
+      "layer",
+      "forward"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "loopOut",
+    "object": "Property",
+    "signature": "thisLayer.position.loopOut([type=\"cycle\"][, numKeyframes=0])",
+    "params": [
+      {
+        "name": "type",
+        "type": "Predefined string as defined in Loop Types",
+        "description": "Optional. The loop type to use. Defaults to \"cycle\"",
+        "optional": true
+      },
+      {
+        "name": "numKeyframes",
+        "type": "Number",
+        "description": "Optional. The segment to loop, measured backward from the last keyframe. If unspecified (or 0), all keyframes loop. Defaults to 0.",
+        "optional": true
+      }
+    ],
+    "returns": "A looped value of the same property type as this current property.",
+    "appliesTo": [
+      "Property"
+    ],
+    "minVersion": null,
+    "example": "loopOut(\"cycle\", 1);",
+    "pitfalls": [
+      "Requires at least two keyframes on the property."
+    ],
+    "keywords": [
+      "loopout",
+      "property",
+      "loops",
+      "segment",
+      "time",
+      "that",
+      "measured",
+      "from",
+      "last",
+      "keyframe",
+      "layer",
+      "back"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "loopOutDuration",
+    "object": "Property",
+    "signature": "thisLayer.position.loopOutDuration([type=\"cycle\"][, duration=0])",
+    "params": [
+      {
+        "name": "type",
+        "type": "Predefined string as defined in Loop Types",
+        "description": "Optional. The loop type to use. Defaults to \"cycle\"",
+        "optional": true
+      },
+      {
+        "name": "duration",
+        "type": "Number",
+        "description": "Optional. The number of composition seconds in a segment to loop, measured backward from the last keyframe. If unspecified (or 0), the segment to loop begins at the layer In point. Defaults to 0.",
+        "optional": true
+      }
+    ],
+    "returns": "A looped value of the same property type as this current property.",
+    "appliesTo": [
+      "Property"
+    ],
+    "minVersion": null,
+    "example": "loopOutDuration(\"cycle\", 1);",
+    "pitfalls": [
+      "Requires at least two keyframes on the property."
+    ],
+    "keywords": [
+      "loopoutduration",
+      "property",
+      "loops",
+      "segment",
+      "time",
+      "that",
+      "measured",
+      "from",
+      "last",
+      "keyframe",
+      "layer",
+      "back"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "nearestKey",
+    "object": "Property",
+    "signature": "thisLayer.position.nearestKey(t)",
+    "params": [
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "The time to find the nearest key from",
+        "optional": false
+      }
+    ],
+    "returns": "Key or MarkerKey",
+    "appliesTo": [
+      "Property"
+    ],
+    "minVersion": null,
+    "example": "const twoSecondKey = thisLayer.scale.nearestKey(2);\n\n// and then, to get the value of that key:\ntwoSecondKey.value;",
+    "pitfalls": [],
+    "keywords": [
+      "nearestkey",
+      "property",
+      "returns",
+      "markerkey",
+      "object",
+      "nearest",
+      "designated",
+      "time"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "nextKey",
+    "object": "Property",
+    "signature": "thisLayer.position.nextKey(time)",
+    "params": [
+      {
+        "name": "time",
+        "type": "Number",
+        "description": "The time, in seconds, to find the next key from",
+        "optional": false
+      }
+    ],
+    "returns": "Key or MarkerKey",
+    "appliesTo": [
+      "Property"
+    ],
+    "minVersion": "26.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "nextkey",
+      "property",
+      "returns",
+      "keyframe",
+      "marker",
+      "after",
+      "specified",
+      "time",
+      "last",
+      "this",
+      "method",
+      "available"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "previousKey",
+    "object": "Property",
+    "signature": "thisLayer.position.previousKey(time)",
+    "params": [
+      {
+        "name": "time",
+        "type": "Number",
+        "description": "The time, in seconds, to find the previous key from",
+        "optional": false
+      }
+    ],
+    "returns": "Key or MarkerKey",
+    "appliesTo": [
+      "Property"
+    ],
+    "minVersion": "26.0.",
+    "example": "const animDuration = key(numKeys).time - key(1).time;\nconst animTime = time - marker.previousKey(time).time;\n\nconst animRemap = linear(animTime, 0, animDuration, key(1).time, key(numKeys).time);\n\nvalueAtTime(animRemap);",
+    "pitfalls": [],
+    "keywords": [
+      "previouskey",
+      "property",
+      "returns",
+      "keyframe",
+      "marker",
+      "before",
+      "specified",
+      "time",
+      "none",
+      "exist",
+      "first",
+      "this"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "propertyGroup",
+    "object": "Property",
+    "signature": "thisLayer.position.propertyGroup([countUp=1])",
+    "params": [
+      {
+        "name": "countUp",
+        "type": "Number",
+        "description": "Optional. The number of property groups \"up\" the hierarchy to climb. Defaults to 1.",
+        "optional": true
+      }
+    ],
+    "returns": "PropertyGroup object",
+    "appliesTo": [
+      "Property"
+    ],
+    "minVersion": null,
+    "example": "thisProperty.propertyGroup(1).numProperties;",
+    "pitfalls": [],
+    "keywords": [
+      "propertygroup",
+      "property",
+      "returns",
+      "group",
+      "properties",
+      "relative",
+      "which",
+      "expression",
+      "written",
+      "example",
+      "rotation",
+      "brush"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "smooth",
+    "object": "Property",
+    "signature": "thisLayer.position.smooth([width=.2][, samples=5][, t=time])",
+    "params": [
+      {
+        "name": "width",
+        "type": "Number",
+        "description": "Optional. The range of time (in seconds) over which the filter is averaged. Defaults to 0.2.",
+        "optional": true
+      },
+      {
+        "name": "samples",
+        "type": "Number",
+        "description": "Optional. The number of discrete samples evenly spaced over time. Use a larger value for greater smoothness (but decreased performance). Defaults to 5.",
+        "optional": true
+      },
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Optional. The specified time (in comp seconds) to apply the smoothing filter to. Defaults to time (the current comp time, in seconds).",
+        "optional": true
+      }
+    ],
+    "returns": "Number or Array",
+    "appliesTo": [
+      "Property"
+    ],
+    "minVersion": null,
+    "example": "position.smooth(0.1, 5)",
+    "pitfalls": [],
+    "keywords": [
+      "smooth",
+      "property",
+      "smooths",
+      "values",
+      "over",
+      "time",
+      "converting",
+      "large",
+      "brief",
+      "deviations",
+      "value",
+      "smaller"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "speedAtTime",
+    "object": "Property",
+    "signature": "thisLayer.position.speedAtTime(t)",
+    "params": [
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "The specified time at which to get the spatial speed value.",
+        "optional": false
+      }
+    ],
+    "returns": "Number",
+    "appliesTo": [
+      "Property"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "speedattime",
+      "property",
+      "returns",
+      "spatial",
+      "speed",
+      "value",
+      "specified",
+      "time"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "temporalWiggle",
+    "object": "Property",
+    "signature": "thisLayer.position.temporalWiggle(freq, amp[, octaves=1][, ampmult=0.5][, t=time])",
+    "params": [
+      {
+        "name": "freq",
+        "type": "Number",
+        "description": "The frequency, in wiggles per second.",
+        "optional": false
+      },
+      {
+        "name": "amp",
+        "type": "Number",
+        "description": "The amplitude, in units of the property to which it is applied.",
+        "optional": false
+      },
+      {
+        "name": "octaves",
+        "type": "Number",
+        "description": "Optional. The number of octaves of noise to add together. Defaults to 1.",
+        "optional": true
+      },
+      {
+        "name": "ampmult",
+        "type": "unknown",
+        "description": "",
+        "optional": true
+      },
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Optional. The base start time. Defaults to time (the current comp time, in seconds).",
+        "optional": true
+      }
+    ],
+    "returns": "Number or Array",
+    "appliesTo": [
+      "Property"
+    ],
+    "minVersion": null,
+    "example": "scale.temporalWiggle(5, 0.2)",
+    "pitfalls": [],
+    "keywords": [
+      "temporalwiggle",
+      "property",
+      "samples",
+      "wiggled",
+      "time",
+      "this",
+      "function",
+      "meaningful",
+      "must",
+      "animated",
+      "because",
+      "alters"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "textAtTime",
+    "object": "Property",
+    "signature": "effect(\"Dropdown Menu Control\")(\"Menu\").textAtTime(time)",
+    "params": [
+      {
+        "name": "\"Dropdown Menu Control\")(\"Menu\").textAtTime(time",
+        "type": "unknown",
+        "description": "",
+        "optional": false
+      }
+    ],
+    "returns": "String",
+    "appliesTo": [
+      "Property"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "textattime",
+      "property",
+      "returns",
+      "text",
+      "string",
+      "dropdown",
+      "menu",
+      "specified",
+      "time",
+      "seconds",
+      "this",
+      "effectively"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/dropdown.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "valueAtTime",
+    "object": "Property",
+    "signature": "thisLayer.position.valueAtTime(t)",
+    "params": [
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "The time, in seconds, to get the value from",
+        "optional": false
+      }
+    ],
+    "returns": "Number or Array",
+    "appliesTo": [
+      "Property"
+    ],
+    "minVersion": null,
+    "example": "valueAtTime(random(4))",
+    "pitfalls": [],
+    "keywords": [
+      "valueattime",
+      "property",
+      "returns",
+      "value",
+      "specified",
+      "time",
+      "seconds",
+      "note",
+      "ebberts",
+      "provides",
+      "more",
+      "examples"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "velocityAtTime",
+    "object": "Property",
+    "signature": "thisLayer.position.velocityAtTime(t)",
+    "params": [
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "The time, in seconds, to get the temporal velocity from",
+        "optional": false
+      }
+    ],
+    "returns": "Number or Array",
+    "appliesTo": [
+      "Property"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "velocityattime",
+      "property",
+      "returns",
+      "temporal",
+      "velocity",
+      "value",
+      "specified",
+      "time"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "wiggle",
+    "object": "Property",
+    "signature": "thisLayer.position.wiggle(freq, amp[, octaves=1][, ampmult=0.5][, t=time])",
+    "params": [
+      {
+        "name": "freq",
+        "type": "Number",
+        "description": "Frequency, in wiggles per second.",
+        "optional": false
+      },
+      {
+        "name": "amp",
+        "type": "Number",
+        "description": "Amplitude, in units of the property to which it is applied.",
+        "optional": false
+      },
+      {
+        "name": "octaves",
+        "type": "Number",
+        "description": "Optional. Number of octaves of noise to add together. This value controls how much detail is in the wiggle.",
+        "optional": true
+      },
+      {
+        "name": "ampmult",
+        "type": "unknown",
+        "description": "",
+        "optional": true
+      },
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Optional. Base start time. This value defaults to the current time. Use this parameter if you want the output to be a wiggle of the property value sampled at a different time. Defaults to time (the current comp time, in seconds).",
+        "optional": true
+      }
+    ],
+    "returns": "Number or Array",
+    "appliesTo": [
+      "Property"
+    ],
+    "minVersion": null,
+    "example": "position.wiggle(5, 20, 3, 0.5);",
+    "pitfalls": [],
+    "keywords": [
+      "wiggle",
+      "property",
+      "randomly",
+      "shakes",
+      "wiggles",
+      "value",
+      "note",
+      "ebberts",
+      "provides",
+      "example",
+      "expression",
+      "detailed"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "propertyGroup",
+    "object": "PropertyGroup",
+    "signature": "propertyGroup([countUp=1])",
+    "params": [
+      {
+        "name": "countUp",
+        "type": "Number",
+        "description": "Optional. The number of property groups \"up\" the hierarchy to climb. Defaults to 1.",
+        "optional": true
+      }
+    ],
+    "returns": "PropertyGroup object",
+    "appliesTo": [
+      "PropertyGroup"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "propertygroup",
+      "property",
+      "returns",
+      "higher-level",
+      "group",
+      "relative",
+      "which",
+      "method",
+      "called",
+      "additional",
+      "details"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/propertygroup.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  }
+]

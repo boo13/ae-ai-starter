@@ -1,0 +1,480 @@
+[
+  {
+    "name": "add",
+    "object": "global",
+    "signature": "add(vec1, vec2)",
+    "params": [
+      {
+        "name": "vec1",
+        "type": "Array",
+        "description": "First vector to add.",
+        "optional": false
+      },
+      {
+        "name": "vec2",
+        "type": "Array",
+        "description": "Second vector to add.",
+        "optional": false
+      }
+    ],
+    "returns": "Array",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "add",
+      "global",
+      "vector math",
+      "adds",
+      "vectors"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/vector-math.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "clamp",
+    "object": "global",
+    "signature": "clamp(value, limit1, limit2)",
+    "params": [
+      {
+        "name": "value",
+        "type": "Number or Array",
+        "description": "Value to clamp.",
+        "optional": false
+      },
+      {
+        "name": "limit1",
+        "type": "Number or Array",
+        "description": "Minimum amount to clamp value to.",
+        "optional": false
+      },
+      {
+        "name": "limit2",
+        "type": "Number or Array",
+        "description": "Maximum amount to clamp value to.",
+        "optional": false
+      }
+    ],
+    "returns": "Number or Array",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "const wiggled = wiggle(0.5, 500);\nclamp(wiggled, 0, 500);",
+    "pitfalls": [],
+    "keywords": [
+      "clamp",
+      "global",
+      "vector math",
+      "value",
+      "each",
+      "component",
+      "constrained",
+      "fall",
+      "between",
+      "values",
+      "corresponding",
+      "limit1"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/vector-math.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "cross",
+    "object": "global",
+    "signature": "cross(vec1, vec2)",
+    "params": [
+      {
+        "name": "vec1",
+        "type": "Array (2- or 3-dimensional)",
+        "description": "First vector to calculate cross product of.",
+        "optional": false
+      },
+      {
+        "name": "vec2",
+        "type": "Array (2- or 3-dimensional)",
+        "description": "Second vector to calculate cross product of.",
+        "optional": false
+      }
+    ],
+    "returns": "Array (2- or 3-dimensional)",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "cross",
+      "global",
+      "vector math",
+      "returns",
+      "vector",
+      "product",
+      "vec1",
+      "vec2",
+      "refer",
+      "math",
+      "reference",
+      "javascript"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/vector-math.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "degreesToRadians",
+    "object": "global",
+    "signature": "degreesToRadians(degrees)",
+    "params": [
+      {
+        "name": "degrees",
+        "type": "Number",
+        "description": "The value (in degrees) to convert to radians",
+        "optional": false
+      }
+    ],
+    "returns": "Number",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "degreestoradians",
+      "global",
+      "vector math",
+      "converts",
+      "degrees",
+      "radians"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/other-math.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "div",
+    "object": "global",
+    "signature": "div(vec, amount)",
+    "params": [
+      {
+        "name": "vec",
+        "type": "Array",
+        "description": "The vector to divide",
+        "optional": false
+      },
+      {
+        "name": "amount",
+        "type": "Number",
+        "description": "The amount to divide by",
+        "optional": false
+      }
+    ],
+    "returns": "Array",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "div",
+      "global",
+      "vector math",
+      "divides",
+      "every",
+      "element",
+      "vector",
+      "amount"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/vector-math.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "dot",
+    "object": "global",
+    "signature": "dot(vec1, vec2)",
+    "params": [
+      {
+        "name": "vec1",
+        "type": "Array",
+        "description": "First vector to calculate dot product of.",
+        "optional": false
+      },
+      {
+        "name": "vec2",
+        "type": "Array",
+        "description": "Second vector to calculate dot product of.",
+        "optional": false
+      }
+    ],
+    "returns": "Number",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "dot",
+      "global",
+      "vector math",
+      "returns",
+      "inner",
+      "product",
+      "vector",
+      "arguments"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/vector-math.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "length",
+    "object": "global",
+    "signature": "length(vec[, point2])",
+    "params": [
+      {
+        "name": "vec",
+        "type": "Array",
+        "description": "The vector to normalize, or the first point to measure from.",
+        "optional": false
+      },
+      {
+        "name": "point2",
+        "type": "Array",
+        "description": "Optional. The second point to measure to.",
+        "optional": false
+      }
+    ],
+    "returns": "Number",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "length(position, pointOfInterest)",
+    "pitfalls": [],
+    "keywords": [
+      "length",
+      "global",
+      "vector math",
+      "returns",
+      "vector",
+      "second",
+      "argument",
+      "provided",
+      "instead",
+      "treats",
+      "first",
+      "point"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/vector-math.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "lookAt",
+    "object": "global",
+    "signature": "lookAt(fromPoint, atPoint)",
+    "params": [
+      {
+        "name": "fromPoint",
+        "type": "Array (3-dimensional)",
+        "description": "The location (in world space) of the layer to orient.",
+        "optional": false
+      },
+      {
+        "name": "atPoint",
+        "type": "Array (3-dimensional)",
+        "description": "The point (in world space) you want to point the layer at.",
+        "optional": false
+      }
+    ],
+    "returns": "Array (3-dimensional)",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "lookAt(position, thisComp.layer(1).position)",
+    "pitfalls": [],
+    "keywords": [
+      "lookat",
+      "global",
+      "vector math",
+      "orients",
+      "layer",
+      "look",
+      "given",
+      "point",
+      "from",
+      "return",
+      "value",
+      "used"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/vector-math.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "mul",
+    "object": "global",
+    "signature": "mul(vec, amount)",
+    "params": [
+      {
+        "name": "vec",
+        "type": "Array",
+        "description": "The vector to multiply",
+        "optional": false
+      },
+      {
+        "name": "amount",
+        "type": "Number",
+        "description": "The amount to multiply by",
+        "optional": false
+      }
+    ],
+    "returns": "Array",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "mul",
+      "global",
+      "vector math",
+      "multiplies",
+      "every",
+      "element",
+      "vector",
+      "amount"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/vector-math.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "normalize",
+    "object": "global",
+    "signature": "normalize(vec)",
+    "params": [
+      {
+        "name": "vec",
+        "type": "Array",
+        "description": "The vector to normalize",
+        "optional": false
+      }
+    ],
+    "returns": "Array",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "normalize",
+      "global",
+      "vector math",
+      "normalizes",
+      "vector",
+      "that",
+      "length",
+      "using",
+      "method",
+      "short",
+      "performing",
+      "operation"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/vector-math.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "radiansToDegrees",
+    "object": "global",
+    "signature": "radiansToDegrees(radians)",
+    "params": [
+      {
+        "name": "radians",
+        "type": "Number",
+        "description": "The value (in radians) to convert to degrees",
+        "optional": false
+      }
+    ],
+    "returns": "Number",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "radianstodegrees",
+      "global",
+      "vector math",
+      "converts",
+      "radians",
+      "degrees"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/other-math.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "sub",
+    "object": "global",
+    "signature": "sub(vec1, vec2)",
+    "params": [
+      {
+        "name": "vec1",
+        "type": "Array",
+        "description": "The first vector",
+        "optional": false
+      },
+      {
+        "name": "vec2",
+        "type": "Array",
+        "description": "The second vector",
+        "optional": false
+      }
+    ],
+    "returns": "Array",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "sub",
+      "global",
+      "vector math",
+      "subtracts",
+      "vectors"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/vector-math.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  }
+]

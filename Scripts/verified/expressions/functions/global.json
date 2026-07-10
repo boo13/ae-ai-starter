@@ -1,0 +1,104 @@
+[
+  {
+    "name": "comp",
+    "object": "global",
+    "signature": "comp(name)",
+    "params": [
+      {
+        "name": "name",
+        "type": "String",
+        "description": "The name of the composition to get",
+        "optional": false
+      }
+    ],
+    "returns": "Comp",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "comp",
+      "global",
+      "retrieves",
+      "another",
+      "composition",
+      "name"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/global.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "footage",
+    "object": "global",
+    "signature": "footage(name)",
+    "params": [
+      {
+        "name": "name",
+        "type": "String",
+        "description": "The name of the footage item to get",
+        "optional": false
+      }
+    ],
+    "returns": "Footage",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "footage",
+      "global",
+      "retrieves",
+      "item",
+      "name"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/global.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "posterizeTime",
+    "object": "global",
+    "signature": "posterizeTime(updatesPerSecond)",
+    "params": [
+      {
+        "name": "updatesPerSecond",
+        "type": "Number",
+        "description": "The number of times per second the expression should evaluate",
+        "optional": false
+      }
+    ],
+    "returns": "Number",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "posterizeTime(1);\n\nrandom()",
+    "pitfalls": [
+      "Affects evaluation after the call; place it before the expression result."
+    ],
+    "keywords": [
+      "posterizetime",
+      "global",
+      "this",
+      "expression",
+      "allows",
+      "frame",
+      "rate",
+      "property",
+      "lower",
+      "than",
+      "composition"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/global.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  }
+]

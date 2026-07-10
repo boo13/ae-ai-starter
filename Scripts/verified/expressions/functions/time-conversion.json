@@ -1,0 +1,298 @@
+[
+  {
+    "name": "framesToTime",
+    "object": "global",
+    "signature": "framesToTime(frames[, fps=1.0 / thisComp.frameDuration])",
+    "params": [
+      {
+        "name": "frames",
+        "type": "Number",
+        "description": "The amount of frames to convert.",
+        "optional": false
+      },
+      {
+        "name": "fps",
+        "type": "Number",
+        "description": "Optional. The number of frames per second to use to convert. Defaults to 1.0 / thisComp.frameDuration (the frame rate of the current composition).",
+        "optional": true
+      }
+    ],
+    "returns": "Number",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "framestotime",
+      "global",
+      "time conversion",
+      "returns",
+      "time",
+      "corresponding",
+      "frames",
+      "argument",
+      "doesn",
+      "have",
+      "integer",
+      "inverse"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/time-conversion.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "timeToCurrentFormat",
+    "object": "global",
+    "signature": "timeToCurrentFormat([t=time + thisComp.displayStartTime][, fps=1.0 / thisComp.frameDuration][, isDuration=false][, ntscDropFrame=thisComp.ntscDropFrame])",
+    "params": [
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Optional. The time (in seconds) to convert. Defaults to time + thisComp.displayStartTime.",
+        "optional": true
+      },
+      {
+        "name": "fps",
+        "type": "Number",
+        "description": "Optional. Defaults to 1.0 / thisComp.frameDuration (the frame rate of the current composition).",
+        "optional": true
+      },
+      {
+        "name": "isDuration",
+        "type": "Boolean",
+        "description": "Optional. Whether t represents a difference between two times, vs an absolute time. Absolute times are rounded down toward negative infinity; durations are rounded away from zero (up for positive values). Defaults to false.",
+        "optional": true
+      },
+      {
+        "name": "ntscDropFrame",
+        "type": "Boolean",
+        "description": "Optional. If false, the result is NTSC non-drop-frame timecode. If true, the result is NTSC drop-frame timecode. Defaults to thisComp.ntscDropFrame.",
+        "optional": true
+      }
+    ],
+    "returns": "String",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "timetocurrentformat",
+      "global",
+      "time conversion",
+      "converts",
+      "value",
+      "string",
+      "representing",
+      "time",
+      "current",
+      "project",
+      "settings",
+      "display"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/time-conversion.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "timeToFeetAndFrames",
+    "object": "global",
+    "signature": "timeToFeetAndFrames([t=time + thisComp.displayStartTime][, fps=1.0 / thisComp.frameDuration][, framesPerFoot=16][, isDuration=false])",
+    "params": [
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Optional. The time (in seconds) to convert. Defaults to time + thisComp.displayStartTime.",
+        "optional": true
+      },
+      {
+        "name": "fps",
+        "type": "unknown",
+        "description": "",
+        "optional": true
+      },
+      {
+        "name": "framesPerFoot",
+        "type": "Number",
+        "description": "Optional. Specifies the number of frames in one foot of film. Defaults to 16 (the most common rate for 35mm footage).",
+        "optional": true
+      },
+      {
+        "name": "isDuration",
+        "type": "Boolean",
+        "description": "Optional. Whether t represents a difference between two times, vs an absolute time. Absolute times are rounded down toward negative infinity; durations are rounded away from zero (up for positive values). Defaults to false.",
+        "optional": true
+      }
+    ],
+    "returns": "String",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "timetofeetandframes",
+      "global",
+      "time conversion",
+      "converts",
+      "value",
+      "string",
+      "representing",
+      "feet",
+      "film",
+      "frames"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/time-conversion.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "timeToFrames",
+    "object": "global",
+    "signature": "timeToFrames([t=time + thisComp.displayStartTime][, fps=1.0 / thisComp.frameDuration][, isDuration=false])",
+    "params": [
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Optional. The time (in seconds) to convert. Defaults to time + thisComp.displayStartTime.",
+        "optional": true
+      },
+      {
+        "name": "fps",
+        "type": "Number",
+        "description": "Optional. The number of frames per second to use to convert. Defaults to 1.0 / thisComp.frameDuration (the frame rate of the current composition).",
+        "optional": true
+      },
+      {
+        "name": "isDuration",
+        "type": "Boolean",
+        "description": "Optional. Whether t represents a difference between two times, vs an absolute time. Absolute times are rounded down toward negative infinity; durations are rounded away from zero (up for positive values). Defaults to false.",
+        "optional": true
+      }
+    ],
+    "returns": "Number",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "timetoframes",
+      "global",
+      "time conversion",
+      "converts",
+      "value",
+      "some",
+      "amount",
+      "time",
+      "seconds",
+      "integer",
+      "number",
+      "frames"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/time-conversion.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "timeToNTSCTimecode",
+    "object": "global",
+    "signature": "timeToNTSCTimecode([t=time + thisComp.displayStartTime][, ntscDropFrame=false][, isDuration=false])",
+    "params": [
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Optional. The time (in seconds) to convert. Defaults to time + thisComp.displayStartTime.",
+        "optional": true
+      },
+      {
+        "name": "ntscDropFrame",
+        "type": "Boolean",
+        "description": "Optional. If false, the result is NTSC non-drop-frame timecode. If true, the result is NTSC drop-frame timecode. Defaults to false.",
+        "optional": true
+      },
+      {
+        "name": "isDuration",
+        "type": "Boolean",
+        "description": "Optional. Whether t represents a difference between two times, vs an absolute time. Absolute times are rounded down toward negative infinity; durations are rounded away from zero (up for positive values). Defaults to false.",
+        "optional": true
+      }
+    ],
+    "returns": "String",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "timetontsctimecode",
+      "global",
+      "time conversion",
+      "converts",
+      "string",
+      "representing",
+      "ntsc",
+      "timecode"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/time-conversion.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "timeToTimecode",
+    "object": "global",
+    "signature": "timeToTimecode([t=time + thisComp.displayStartTime][, timecodeBase=30][, isDuration=false])",
+    "params": [
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Optional. The time (in seconds) to convert. Defaults to time + thisComp.displayStartTime.",
+        "optional": true
+      },
+      {
+        "name": "timecodeBase",
+        "type": "Number",
+        "description": "Optional. Specifies the number of frames in one second. Defaults to 30.",
+        "optional": true
+      },
+      {
+        "name": "isDuration",
+        "type": "Boolean",
+        "description": "Optional. Whether t represents a difference between two times, vs an absolute time. Absolute times are rounded down toward negative infinity; durations are rounded away from zero (up for positive values). Defaults to false.",
+        "optional": true
+      }
+    ],
+    "returns": "String",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "timetotimecode",
+      "global",
+      "time conversion",
+      "converts",
+      "value",
+      "string",
+      "representing",
+      "timecode"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/time-conversion.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  }
+]

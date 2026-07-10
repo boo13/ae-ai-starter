@@ -1,0 +1,1768 @@
+[
+  {
+    "name": "createStyle",
+    "object": "SourceText",
+    "signature": "text.sourceText.createStyle()",
+    "params": [],
+    "returns": "Empty Text Style object.",
+    "appliesTo": [
+      "SourceText"
+    ],
+    "minVersion": null,
+    "example": "text.sourceText\n    .createStyle()\n    .setFontSize(300)\n    .setFont(\"Impact\");",
+    "pitfalls": [],
+    "keywords": [
+      "createstyle",
+      "sourcetext",
+      "text",
+      "used",
+      "initialize",
+      "empty",
+      "style",
+      "object",
+      "which",
+      "manually",
+      "bake",
+      "specific"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/sourcetext.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "getStyleAt",
+    "object": "SourceText",
+    "signature": "text.sourceText.getStyleAt(charIndex[, time])",
+    "params": [
+      {
+        "name": "charIndex",
+        "type": "unknown",
+        "description": "",
+        "optional": false
+      },
+      {
+        "name": "time",
+        "type": "Number",
+        "description": "Optional. The time within the composition to get the style from. Defaults to time.",
+        "optional": false
+      }
+    ],
+    "returns": "Text Style object",
+    "appliesTo": [
+      "SourceText"
+    ],
+    "minVersion": null,
+    "example": "text.sourceText.getStyleAt(0,0);",
+    "pitfalls": [],
+    "keywords": [
+      "getstyleat",
+      "sourcetext",
+      "text",
+      "this",
+      "function",
+      "returns",
+      "style",
+      "object",
+      "particular",
+      "character",
+      "specific",
+      "time"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/sourcetext.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "replaceText",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.replaceText(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "String",
+        "description": "Required.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "// assume the value of the source text is \"Old Text\"\nconst referenceText = thisComp.layer(\"Source Layer Name\").text.sourceText;\nconst style = referenceText.getStyleAt(0,0);\n\n// This will change the text from \"Old Text\" to \"NewText\" as the first 4 characters are replaced.\nstyle.replaceText(\"New\", 0, 4);",
+    "pitfalls": [],
+    "keywords": [
+      "replacetext",
+      "textstyle",
+      "text",
+      "this",
+      "used",
+      "when",
+      "want",
+      "define",
+      "inherit",
+      "style",
+      "while",
+      "setting"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setAllCaps",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setAllCaps(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Boolean",
+        "description": "Required. Whether to enable or disable All Caps.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setallcaps",
+      "textstyle",
+      "text",
+      "used",
+      "caps",
+      "status",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless",
+      "startindex"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setApplyFill",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setApplyFill(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Boolean",
+        "description": "Required. Whether to enable or disable Fill.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setapplyfill",
+      "textstyle",
+      "text",
+      "used",
+      "whether",
+      "fill",
+      "color",
+      "enabled",
+      "value",
+      "will",
+      "entire",
+      "layer"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setApplyStroke",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setApplyStroke(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Boolean",
+        "description": "Required. Whether to enable or disable Stroke.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setapplystroke",
+      "textstyle",
+      "text",
+      "used",
+      "whether",
+      "stroke",
+      "enabled",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setAutoLeading",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setAutoLeading(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Boolean",
+        "description": "Required. Whether to enable or disable Auto Leading.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setautoleading",
+      "textstyle",
+      "text",
+      "used",
+      "auto",
+      "leading",
+      "status",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setBaselineDirection",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setBaselineDirection(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Predefined string as defined in BaselineDirection",
+        "description": "The value to set for Baseline Direction.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setbaselinedirection",
+      "textstyle",
+      "text",
+      "used",
+      "baseline",
+      "direction",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless",
+      "startindex"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setBaselineOption",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setBaselineOption(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Predefined string as defined in BaselineOption",
+        "description": "Required. The value to set for Baseline Option.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setbaselineoption",
+      "textstyle",
+      "text",
+      "used",
+      "baseline",
+      "option",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless",
+      "startindex"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setBaselineShift",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setBaselineShift(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Number",
+        "description": "Required. The Baseline Shift value to set.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setbaselineshift",
+      "textstyle",
+      "text",
+      "used",
+      "baseline",
+      "shift",
+      "specified",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setDigitSet",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setDigitSet(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Predefined string as defined in DigitSet",
+        "description": "Required. The value to use for Digit Set.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setdigitset",
+      "textstyle",
+      "text",
+      "used",
+      "digit",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless",
+      "startindex",
+      "numofcharacters"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setDirection",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setDirection(value)",
+    "params": [
+      {
+        "name": "value",
+        "type": "Predefined string as defined in Direction",
+        "description": "The desired value for Direction.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setdirection",
+      "textstyle",
+      "text",
+      "used",
+      "direction",
+      "entire",
+      "layer",
+      "either",
+      "left-to-right",
+      "right-to-left"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setEveryLineComposer",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setEveryLineComposer(value)",
+    "params": [
+      {
+        "name": "value",
+        "type": "Boolean",
+        "description": "Whether to enable or disable Every-Line Composer.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "seteverylinecomposer",
+      "textstyle",
+      "text",
+      "used",
+      "enable",
+      "disable",
+      "every-line",
+      "composer",
+      "entire",
+      "layer"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setFauxBold",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setFauxBold(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Boolean",
+        "description": "Required. Whether to enable or disable Faux Bold.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setfauxbold",
+      "textstyle",
+      "text",
+      "used",
+      "faux",
+      "bold",
+      "status",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setFauxItalic",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setFauxItalic(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Boolean",
+        "description": "Required. Whether to enable or disable Faux Italics.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setfauxitalic",
+      "textstyle",
+      "text",
+      "used",
+      "faux",
+      "italics",
+      "status",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setFillColor",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setFillColor(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Array of numbers",
+        "description": "Required. [R, G, B] with each value between 0.0 and 1.0.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setfillcolor",
+      "textstyle",
+      "text",
+      "used",
+      "fill",
+      "color",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless",
+      "startindex"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setFirstLineIndent",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setFirstLineIndent(value)",
+    "params": [
+      {
+        "name": "value",
+        "type": "Number",
+        "description": "The desired value for First Line Indent.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setfirstlineindent",
+      "textstyle",
+      "text",
+      "used",
+      "first",
+      "line",
+      "indent",
+      "layer",
+      "specified",
+      "value"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setFont",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setFont(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "String",
+        "description": "Required. The font to set.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setfont",
+      "textstyle",
+      "text",
+      "used",
+      "font",
+      "specified",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless",
+      "startindex"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setFontSize",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setFontSize(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Number",
+        "description": "Required. The Font Size to set.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setfontsize",
+      "textstyle",
+      "text",
+      "used",
+      "font",
+      "size",
+      "specified",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setHangingRoman",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setHangingRoman(value)",
+    "params": [
+      {
+        "name": "value",
+        "type": "Boolean",
+        "description": "Whether to enable or disable Roman Hanging Punctuation.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "sethangingroman",
+      "textstyle",
+      "text",
+      "used",
+      "enable",
+      "disable",
+      "hanging",
+      "roman",
+      "punctuation",
+      "entire",
+      "layer"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setHorizontalScaling",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setHorizontalScaling(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Number",
+        "description": "Required. The value to set the Horizontal Scaling.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "sethorizontalscaling",
+      "textstyle",
+      "text",
+      "used",
+      "horizontal",
+      "scaling",
+      "specified",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setJustification",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setJustification(value)",
+    "params": [
+      {
+        "name": "value",
+        "type": "Predefined string as defined in Justification",
+        "description": "The desired value for the Justification.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setjustification",
+      "textstyle",
+      "text",
+      "used",
+      "justification",
+      "entire",
+      "layer",
+      "warning",
+      "left",
+      "right",
+      "values",
+      "alignment"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setKerning",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setKerning(value, characterIndex)",
+    "params": [
+      {
+        "name": "value",
+        "type": "Number",
+        "description": "Required. The value to set the Kerning Value.",
+        "optional": false
+      },
+      {
+        "name": "characterIndex",
+        "type": "Number",
+        "description": "Required. The character index for the substring to be applied.",
+        "optional": false
+      }
+    ],
+    "returns": "None",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setkerning",
+      "textstyle",
+      "text",
+      "used",
+      "kerning",
+      "value",
+      "specifed",
+      "character",
+      "index",
+      "this",
+      "will",
+      "only"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setKerningType",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setKerningType(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "metrics or optical, as defined in KerningType.",
+        "description": "Required. The value to set for Kerning Type.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be changed. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "None",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setkerningtype",
+      "textstyle",
+      "text",
+      "used",
+      "kerning",
+      "type",
+      "value",
+      "will",
+      "applied",
+      "entire",
+      "layer",
+      "unless"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setLeading",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setLeading(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Number",
+        "description": "Required. The Leading value to set.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setleading",
+      "textstyle",
+      "text",
+      "used",
+      "leading",
+      "specified",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless",
+      "startindex"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setLeadingType",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setLeadingType(value)",
+    "params": [
+      {
+        "name": "value",
+        "type": "Predefined string as defined in LeadingType",
+        "description": "The desired value for Leading Type.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setleadingtype",
+      "textstyle",
+      "text",
+      "used",
+      "leading",
+      "type",
+      "entire",
+      "layer"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setLeftMargin",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setLeftMargin(value)",
+    "params": [
+      {
+        "name": "value",
+        "type": "Number",
+        "description": "The desired value for Left Margin.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setleftmargin",
+      "textstyle",
+      "text",
+      "used",
+      "left",
+      "margin",
+      "layer",
+      "specified",
+      "value"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setLigature",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setLigature(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Boolean",
+        "description": "Required. Whether to enable or disable ligatures.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setligature",
+      "textstyle",
+      "text",
+      "used",
+      "enable",
+      "disable",
+      "ligatures",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setLineJoin",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setLineJoin(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Predefined string as defined in LineJoin",
+        "description": "Required. The value to set for Line Join Type.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setlinejoin",
+      "textstyle",
+      "text",
+      "used",
+      "line",
+      "join",
+      "type",
+      "specified",
+      "value",
+      "will",
+      "entire",
+      "layer"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setRightMargin",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setRightMargin(value)",
+    "params": [
+      {
+        "name": "value",
+        "type": "Number",
+        "description": "The desired value for Right Margin.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setrightmargin",
+      "textstyle",
+      "text",
+      "used",
+      "right",
+      "margin",
+      "layer",
+      "specified",
+      "value"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setSmallCaps",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setSmallCaps(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Boolean",
+        "description": "Required. Whether to enable or disable Small Caps.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setsmallcaps",
+      "textstyle",
+      "text",
+      "used",
+      "small",
+      "caps",
+      "status",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setSpaceAfter",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setSpaceAfter(value)",
+    "params": [
+      {
+        "name": "value",
+        "type": "Number",
+        "description": "The desired value for the Space After attribute.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setspaceafter",
+      "textstyle",
+      "text",
+      "used",
+      "space",
+      "after",
+      "attribute",
+      "layer",
+      "specified",
+      "value"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setSpaceBefore",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setSpaceBefore(value)",
+    "params": [
+      {
+        "name": "value",
+        "type": "Number",
+        "description": "The desired value for the Space Before attribute.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setspacebefore",
+      "textstyle",
+      "text",
+      "used",
+      "space",
+      "before",
+      "attribute",
+      "layer",
+      "specified",
+      "value"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setStrokeColor",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setStrokeColor(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Array of numbers",
+        "description": "Required. [R, G, B] with each value between 0.0 and 1.0.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setstrokecolor",
+      "textstyle",
+      "text",
+      "used",
+      "stroke",
+      "color",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless",
+      "startindex"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setStrokeWidth",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setStrokeWidth(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Number",
+        "description": "Required. The value to set the Stroke Width.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setstrokewidth",
+      "textstyle",
+      "text",
+      "used",
+      "stroke",
+      "width",
+      "specified",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setText",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setText(value)",
+    "params": [
+      {
+        "name": "value",
+        "type": "String",
+        "description": "The text to set.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": null,
+    "example": "const referenceText = thisComp.layer(\"Source Layer Name\").text.sourceText;\n\nconst style = referenceText.getStyleAt(0, 0);\nstyle.setText(referenceText);",
+    "pitfalls": [],
+    "keywords": [
+      "settext",
+      "textstyle",
+      "text",
+      "this",
+      "used",
+      "when",
+      "want",
+      "define",
+      "inherit",
+      "style",
+      "while",
+      "setting"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setTracking",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setTracking(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Number",
+        "description": "Required. The Tracking value to set.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "settracking",
+      "textstyle",
+      "text",
+      "used",
+      "tracking",
+      "specified",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless",
+      "startindex"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setTsume",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setTsume(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Number",
+        "description": "Required. The value to set the Tsume, between 0 and 100.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "None",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "settsume",
+      "textstyle",
+      "text",
+      "used",
+      "tsume",
+      "specified",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless",
+      "startindex"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "setVerticalScaling",
+    "object": "TextStyle",
+    "signature": "text.sourceText.style.setVerticalScaling(value[, startIndex, numOfCharacters])",
+    "params": [
+      {
+        "name": "value",
+        "type": "Number",
+        "description": "Required. The value to set the Vertical Scaling.",
+        "optional": false
+      },
+      {
+        "name": "startIndex",
+        "type": "Number",
+        "description": "Optional. The start index for the substring to be replaced. Defaults to 0.",
+        "optional": false
+      },
+      {
+        "name": "numOfCharacters",
+        "type": "Number",
+        "description": "Optional. The length of the substring to be replaced. Defaults to the number of characters until end of the string.",
+        "optional": false
+      }
+    ],
+    "returns": "A TextStyle object.",
+    "appliesTo": [
+      "TextStyle"
+    ],
+    "minVersion": "25.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "setverticalscaling",
+      "textstyle",
+      "text",
+      "used",
+      "vertical",
+      "scaling",
+      "specified",
+      "value",
+      "will",
+      "entire",
+      "layer",
+      "unless"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/text/style.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  }
+]

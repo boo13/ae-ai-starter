@@ -1,0 +1,116 @@
+[
+  {
+    "name": "hexToRgb",
+    "object": "global",
+    "signature": "hexToRgb(hexString)",
+    "params": [
+      {
+        "name": "hexString",
+        "type": "String",
+        "description": "Hex triplet (6 digits, no alpha channel) or quartet (8 digits, includes alpha channel) containing only numerals or characters A–F.",
+        "optional": false
+      }
+    ],
+    "returns": "Array (4-dimensional)",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": "16.0.",
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "hextorgb",
+      "global",
+      "color conversion",
+      "converts",
+      "color",
+      "triplet",
+      "space",
+      "quartet",
+      "rgba",
+      "triplets",
+      "alpha",
+      "channel"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/color-conversion.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "hslToRgb",
+    "object": "global",
+    "signature": "hslToRgb(hslaArray)",
+    "params": [
+      {
+        "name": "hslaArray",
+        "type": "Array of numbers (4-dimensional)",
+        "description": "HSLA values, in the range [0.0..1.0]",
+        "optional": false
+      }
+    ],
+    "returns": "RGBA Array (4-dimensional)",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "hsltorgb",
+      "global",
+      "color conversion",
+      "converts",
+      "color",
+      "hsla",
+      "space",
+      "rgba",
+      "this",
+      "conversion",
+      "opposite",
+      "performed"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/color-conversion.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "rgbToHsl",
+    "object": "global",
+    "signature": "rgbToHsl(rgbaArray)",
+    "params": [
+      {
+        "name": "rgbaArray",
+        "type": "Array of numbers (4-dimensional)",
+        "description": "RGBA values, in the range [0.0..1.0]",
+        "optional": false
+      }
+    ],
+    "returns": "HSLA Array (4-dimensional)",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "rgbToHsl.effect(\"Change Color\")(\"Color To Change\")",
+    "pitfalls": [],
+    "keywords": [
+      "rgbtohsl",
+      "global",
+      "color conversion",
+      "converts",
+      "color",
+      "rgba",
+      "space",
+      "hsla",
+      "input",
+      "array",
+      "normalized",
+      "green"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/color-conversion.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  }
+]

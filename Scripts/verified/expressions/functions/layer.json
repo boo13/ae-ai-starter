@@ -1,0 +1,579 @@
+[
+  {
+    "name": "effect",
+    "object": "Layer",
+    "signature": "thisLayer.effect(name)",
+    "params": [
+      {
+        "name": "name",
+        "type": "String",
+        "description": "Effect name or index to get.",
+        "optional": false
+      }
+    ],
+    "returns": "Effect",
+    "appliesTo": [
+      "Layer"
+    ],
+    "minVersion": null,
+    "example": "thisLayer.effect(\"Fast Blur\")",
+    "pitfalls": [],
+    "keywords": [
+      "effect",
+      "layer",
+      "name",
+      "value",
+      "will",
+      "have",
+      "after",
+      "effects",
+      "find",
+      "controls",
+      "panel",
+      "default"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/layer/sub-objects.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "fromComp",
+    "object": "Layer",
+    "signature": "thisLayer.fromComp(point[, t=time])",
+    "params": [
+      {
+        "name": "point",
+        "type": "Array (2- or 3-dimensional)",
+        "description": "The point to convert",
+        "optional": false
+      },
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Optional. The time at which to sample the point at. Defaults to time.",
+        "optional": true
+      }
+    ],
+    "returns": "unspecified",
+    "appliesTo": [
+      "Layer"
+    ],
+    "minVersion": null,
+    "example": "fromComp(thisComp.layer(2).position)",
+    "pitfalls": [],
+    "keywords": [
+      "fromcomp",
+      "layer",
+      "transforms",
+      "point",
+      "from",
+      "composition",
+      "space",
+      "resulting",
+      "have",
+      "nonzero",
+      "value",
+      "even"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/layer/layer-space-transforms.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "fromCompToSurface",
+    "object": "Layer",
+    "signature": "thisLayer.fromCompToSurface(point[, t=time])",
+    "params": [
+      {
+        "name": "point",
+        "type": "Array (2- or 3-dimensional)",
+        "description": "The point to convert",
+        "optional": false
+      },
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Optional. The time at which to sample the point at. Defaults to time.",
+        "optional": true
+      }
+    ],
+    "returns": "unspecified",
+    "appliesTo": [
+      "Layer"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "fromcomptosurface",
+      "layer",
+      "projects",
+      "point",
+      "located",
+      "composition",
+      "space",
+      "surface",
+      "zero",
+      "z-value",
+      "location",
+      "where"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/layer/layer-space-transforms.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "fromCompVec",
+    "object": "Layer",
+    "signature": "thisLayer.fromCompVec(vec[, t=time])",
+    "params": [
+      {
+        "name": "vec",
+        "type": "Array (2- or 3-dimensional)",
+        "description": "",
+        "optional": false
+      },
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "",
+        "optional": true
+      }
+    ],
+    "returns": "unspecified",
+    "appliesTo": [
+      "Layer"
+    ],
+    "minVersion": null,
+    "example": "const dir = sub(position, thisComp.layer(2).position);\nfromCompVec(dir)",
+    "pitfalls": [],
+    "keywords": [
+      "fromcompvec",
+      "layer",
+      "transforms",
+      "vector",
+      "from",
+      "composition",
+      "space"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/layer/layer-space-transforms.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "fromWorld",
+    "object": "Layer",
+    "signature": "thisLayer.fromWorld(point[, t=time])",
+    "params": [
+      {
+        "name": "point",
+        "type": "Array (2- or 3-dimensional)",
+        "description": "The point to convert",
+        "optional": false
+      },
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Optional. The time at which to sample the point at. Defaults to time.",
+        "optional": true
+      }
+    ],
+    "returns": "unspecified",
+    "appliesTo": [
+      "Layer"
+    ],
+    "minVersion": null,
+    "example": "fromWorld(thisComp.layer(2).position)",
+    "pitfalls": [],
+    "keywords": [
+      "fromworld",
+      "layer",
+      "transforms",
+      "point",
+      "from",
+      "world",
+      "space"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/layer/layer-space-transforms.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "fromWorldVec",
+    "object": "Layer",
+    "signature": "thisLayer.fromWorldVec(vec[, t=time])",
+    "params": [
+      {
+        "name": "vec",
+        "type": "Array (2- or 3-dimensional)",
+        "description": "",
+        "optional": false
+      },
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "",
+        "optional": true
+      }
+    ],
+    "returns": "unspecified",
+    "appliesTo": [
+      "Layer"
+    ],
+    "minVersion": null,
+    "example": "fromWorld(thisComp.layer(2).position)",
+    "pitfalls": [],
+    "keywords": [
+      "fromworldvec",
+      "layer",
+      "transforms",
+      "vector",
+      "from",
+      "world",
+      "space"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/layer/layer-space-transforms.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "mask",
+    "object": "Layer",
+    "signature": "thisLayer.mask(name)",
+    "params": [
+      {
+        "name": "name",
+        "type": "String",
+        "description": "Mask name or index to get.",
+        "optional": false
+      }
+    ],
+    "returns": "Mask",
+    "appliesTo": [
+      "Layer"
+    ],
+    "minVersion": null,
+    "example": "thisLayer.mask(\"Mask 1\")",
+    "pitfalls": [],
+    "keywords": [
+      "mask",
+      "layer",
+      "name",
+      "value",
+      "default",
+      "user-defined",
+      "multiple",
+      "masks",
+      "have",
+      "same",
+      "first",
+      "topmost"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/layer/sub-objects.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "sampleImage",
+    "object": "Layer",
+    "signature": "thisLayer.sampleImage(point[, radius=[0.5, 0.5]][, postEffect=true][, t=time])",
+    "params": [
+      {
+        "name": "point",
+        "type": "2-dimensional Number array",
+        "description": "Required. The point at which to sample, im layer space. The point [0, 0] is the center of the upper-left pixel in the layer.",
+        "optional": false
+      },
+      {
+        "name": "radius",
+        "type": "2-dimensional Number array",
+        "description": "Optional. Specifies the horizontal and vertical distance from the sample center to the edges of the sampled rectangle. The default value samples one pixel. Defaults to [0.5, 0.5].",
+        "optional": true
+      },
+      {
+        "name": "0.5",
+        "type": "unknown",
+        "description": "",
+        "optional": false
+      },
+      {
+        "name": "postEffect",
+        "type": "Boolean",
+        "description": "Optional. If true, to sample the values after layer masks and effects directly applied to the layer have been rendered. If false, sample values before layer masks and effects. Defaults to true.",
+        "optional": true
+      },
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Optional. Defaults to time.",
+        "optional": true
+      }
+    ],
+    "returns": "unspecified",
+    "appliesTo": [
+      "Layer"
+    ],
+    "minVersion": null,
+    "example": "thisComp.layer(1).sampleImage([100, 100], [2, 1.5])",
+    "pitfalls": [
+      "Samples the layer render buffer and does not include adjustment layers above it."
+    ],
+    "keywords": [
+      "sampleimage",
+      "layer",
+      "samples",
+      "color",
+      "alpha",
+      "channel",
+      "values",
+      "returns",
+      "average",
+      "alpha-weighted",
+      "value",
+      "pixels"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/layer/general.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "sourceRectAtTime",
+    "object": "Layer",
+    "signature": "thisLayer.sourceRectAtTime(t = time, includeExtents = false)",
+    "params": [
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Optional. The specified time (in comp seconds) to apply the smoothing filter to. Defaults to time (the current comp time, in seconds).",
+        "optional": true
+      },
+      {
+        "name": "includeExtents",
+        "type": "Boolean",
+        "description": "Optional. Only applies to shape layers and paragraph text layers. Defaults to false.",
+        "optional": true
+      }
+    ],
+    "returns": "An object with four attributes: {top, left, width, height}",
+    "appliesTo": [
+      "Layer"
+    ],
+    "minVersion": "13.2",
+    "example": "myTextLayer.sourceRectAtTime().width",
+    "pitfalls": [
+      "Repeated calls can be expensive; cache the returned rectangle within the expression."
+    ],
+    "keywords": [
+      "sourcerectattime",
+      "layer",
+      "returns",
+      "bounding",
+      "source"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/layer/sub-objects.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "sourceTime",
+    "object": "Layer",
+    "signature": "thisLayer.sourceTime([t=time])",
+    "params": [
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Optional. The specified time (in comp seconds) to apply the smoothing filter to. Defaults to time (the current comp time, in seconds).",
+        "optional": true
+      }
+    ],
+    "returns": "Number",
+    "appliesTo": [
+      "Layer"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "sourcetime",
+      "layer",
+      "returns",
+      "source",
+      "corresponding",
+      "time"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/layer/sub-objects.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "toComp",
+    "object": "Layer",
+    "signature": "thisLayer.toComp(point[, t=time])",
+    "params": [
+      {
+        "name": "point",
+        "type": "Array (2- or 3-dimensional)",
+        "description": "The point to convert",
+        "optional": false
+      },
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Optional. The time at which to sample the point at. Defaults to time.",
+        "optional": true
+      }
+    ],
+    "returns": "unspecified",
+    "appliesTo": [
+      "Layer"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "tocomp",
+      "layer",
+      "transforms",
+      "point",
+      "from",
+      "space",
+      "composition"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/layer/layer-space-transforms.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "toCompVec",
+    "object": "Layer",
+    "signature": "thisLayer.toCompVec(vec[, t=time])",
+    "params": [
+      {
+        "name": "vec",
+        "type": "Array (2- or 3-dimensional)",
+        "description": "",
+        "optional": false
+      },
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "",
+        "optional": true
+      }
+    ],
+    "returns": "unspecified",
+    "appliesTo": [
+      "Layer"
+    ],
+    "minVersion": null,
+    "example": "toCompVec([1, 0])",
+    "pitfalls": [],
+    "keywords": [
+      "tocompvec",
+      "layer",
+      "transforms",
+      "vector",
+      "from",
+      "space",
+      "composition"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/layer/layer-space-transforms.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "toWorld",
+    "object": "Layer",
+    "signature": "thisLayer.toWorld(point[, t=time])",
+    "params": [
+      {
+        "name": "point",
+        "type": "Array (2- or 3-dimensional)",
+        "description": "The point to convert",
+        "optional": false
+      },
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Optional. The time at which to sample the point at. Defaults to time.",
+        "optional": true
+      }
+    ],
+    "returns": "unspecified",
+    "appliesTo": [
+      "Layer"
+    ],
+    "minVersion": null,
+    "example": "toWorld.effect(\"Bulge\")(\"Bulge Center\")",
+    "pitfalls": [],
+    "keywords": [
+      "toworld",
+      "layer",
+      "transforms",
+      "point",
+      "from",
+      "space",
+      "view-independent",
+      "world",
+      "ebberts",
+      "provides",
+      "expression",
+      "motionscript"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/layer/layer-space-transforms.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "toWorldVec",
+    "object": "Layer",
+    "signature": "thisLayer.toWorldVec(vec[, t=time])",
+    "params": [
+      {
+        "name": "vec",
+        "type": "Array (2- or 3-dimensional)",
+        "description": "",
+        "optional": false
+      },
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "",
+        "optional": true
+      }
+    ],
+    "returns": "unspecified",
+    "appliesTo": [
+      "Layer"
+    ],
+    "minVersion": null,
+    "example": "const p1 = effect(\"Eye Bulge 1\")(\"Bulge Center\");\nconst p2 = effect(\"Eye Bulge 2\")(\"Bulge Center\");\n\ntoWorld(sub(p1, p2))",
+    "pitfalls": [],
+    "keywords": [
+      "toworldvec",
+      "layer",
+      "transforms",
+      "vector",
+      "from",
+      "space",
+      "world"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/layer/layer-space-transforms.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  }
+]

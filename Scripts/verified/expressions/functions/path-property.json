@@ -1,0 +1,384 @@
+[
+  {
+    "name": "createPath",
+    "object": "PathProperty",
+    "signature": "thisLayer.mask(\"Mask 1\").maskPath.createPath(points=[[0,0], [100,0], [100,100], [0,100]], inTangents=[], outTangents=[], isclosed=true)",
+    "params": [
+      {
+        "name": "\"Mask 1\").maskPath.createPath(points",
+        "type": "unknown",
+        "description": "",
+        "optional": true
+      },
+      {
+        "name": "0",
+        "type": "unknown",
+        "description": "",
+        "optional": false
+      },
+      {
+        "name": "100",
+        "type": "unknown",
+        "description": "",
+        "optional": true
+      },
+      {
+        "name": "0",
+        "type": "unknown",
+        "description": "",
+        "optional": false
+      },
+      {
+        "name": "100",
+        "type": "unknown",
+        "description": "",
+        "optional": true
+      },
+      {
+        "name": "100",
+        "type": "unknown",
+        "description": "",
+        "optional": false
+      },
+      {
+        "name": "0",
+        "type": "unknown",
+        "description": "",
+        "optional": true
+      },
+      {
+        "name": "100",
+        "type": "unknown",
+        "description": "",
+        "optional": false
+      },
+      {
+        "name": "inTangents",
+        "type": "Array of number pair arrays",
+        "description": "Optional. An array of number pair arrays representing their [x, y] offset coordinates. The length of this array must be exactly the same as the points parameter. Defaults to [].",
+        "optional": true
+      },
+      {
+        "name": "outTangents",
+        "type": "Array of number pair arrays",
+        "description": "Optional. See inTangents. Defaults to [].",
+        "optional": true
+      },
+      {
+        "name": "isclosed",
+        "type": "unknown",
+        "description": "",
+        "optional": true
+      }
+    ],
+    "returns": "Path",
+    "appliesTo": [
+      "PathProperty"
+    ],
+    "minVersion": null,
+    "example": "const myMask = mask(\"Mask 1\").path;\nmyMask.createPath(myMask.points());",
+    "pitfalls": [],
+    "keywords": [
+      "createpath",
+      "pathproperty",
+      "path property",
+      "creates",
+      "path",
+      "object",
+      "from",
+      "points",
+      "tangents",
+      "intangents",
+      "outtangents",
+      "isclosed"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/path-property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "inTangents",
+    "object": "PathProperty",
+    "signature": "thisLayer.mask(\"Mask 1\").maskPath.inTangents([t=time])",
+    "params": [
+      {
+        "name": "\"Mask 1\").maskPath.inTangents(t",
+        "type": "unknown",
+        "description": "",
+        "optional": true
+      }
+    ],
+    "returns": "Array of number pair arrays, rounded to the fourth decimal place",
+    "appliesTo": [
+      "PathProperty"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "intangents",
+      "pathproperty",
+      "path property",
+      "coordinates",
+      "incoming",
+      "tangent",
+      "handle",
+      "points",
+      "path",
+      "coordinate",
+      "values",
+      "offset"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/path-property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "isClosed",
+    "object": "PathProperty",
+    "signature": "thisLayer.mask(\"Mask 1\").maskPath.isClosed()",
+    "params": [
+      {
+        "name": "\"Mask 1\").maskPath.isClosed(",
+        "type": "unknown",
+        "description": "",
+        "optional": false
+      }
+    ],
+    "returns": "Boolean",
+    "appliesTo": [
+      "PathProperty"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "isclosed",
+      "pathproperty",
+      "path property",
+      "determines",
+      "path",
+      "open",
+      "closed",
+      "returns",
+      "true",
+      "false",
+      "this",
+      "method"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/path-property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "normalOnPath",
+    "object": "PathProperty",
+    "signature": "thisLayer.mask(\"Mask 1\").maskPath.normalOnPath(percentage=0.5, t=time)",
+    "params": [
+      {
+        "name": "\"Mask 1\").maskPath.normalOnPath(percentage",
+        "type": "unknown",
+        "description": "",
+        "optional": true
+      },
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Optional. The specified time (in comp seconds) to sample the path. Defaults to time (the current comp time, in seconds).",
+        "optional": true
+      }
+    ],
+    "returns": "A number pair array",
+    "appliesTo": [
+      "PathProperty"
+    ],
+    "minVersion": null,
+    "example": "myPath.normalOnPath() * 100",
+    "pitfalls": [],
+    "keywords": [
+      "normalonpath",
+      "pathproperty",
+      "path property",
+      "calculated",
+      "coordinates",
+      "normal",
+      "arbitrary",
+      "point",
+      "along",
+      "path",
+      "coordinate",
+      "values"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/path-property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "outTangents",
+    "object": "PathProperty",
+    "signature": "thisLayer.mask(\"Mask 1\").maskPath.outTangents([t=time])",
+    "params": [
+      {
+        "name": "\"Mask 1\").maskPath.outTangents(t",
+        "type": "unknown",
+        "description": "",
+        "optional": true
+      }
+    ],
+    "returns": "Array of number pair arrays, rounded to the fourth decimal place",
+    "appliesTo": [
+      "PathProperty"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "outtangents",
+      "pathproperty",
+      "path property",
+      "coordinates",
+      "outgoing",
+      "tangent",
+      "handle",
+      "points",
+      "path",
+      "coordinate",
+      "values",
+      "offset"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/path-property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "pointOnPath",
+    "object": "PathProperty",
+    "signature": "thisLayer.mask(\"Mask 1\").maskPath.pointOnPath([percentage=0.5][, t=time])",
+    "params": [
+      {
+        "name": "\"Mask 1\").maskPath.pointOnPath(percentage",
+        "type": "unknown",
+        "description": "",
+        "optional": true
+      },
+      {
+        "name": "t",
+        "type": "unknown",
+        "description": "",
+        "optional": true
+      }
+    ],
+    "returns": "A number pair array",
+    "appliesTo": [
+      "PathProperty"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "pointonpath",
+      "pathproperty",
+      "path property",
+      "coordinates",
+      "arbitrary",
+      "point",
+      "along",
+      "path",
+      "expressed",
+      "percentage",
+      "arc-length",
+      "first"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/path-property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "points",
+    "object": "PathProperty",
+    "signature": "thisLayer.mask(\"Mask 1\").maskPath.points([t=time])",
+    "params": [
+      {
+        "name": "\"Mask 1\").maskPath.points(t",
+        "type": "unknown",
+        "description": "",
+        "optional": true
+      }
+    ],
+    "returns": "Array of number pair arrays, rounded to the fourth decimal place",
+    "appliesTo": [
+      "PathProperty"
+    ],
+    "minVersion": null,
+    "example": "const myLayer = thisComp.layer(\"Dark Gray Solid 1\");\nmyLayer.toComp(myLayer.mask(\"Mask 1\").maskPath.points()[0]);",
+    "pitfalls": [],
+    "keywords": [
+      "points",
+      "pathproperty",
+      "path property",
+      "coordinates",
+      "path",
+      "returned",
+      "values",
+      "relative",
+      "depending",
+      "context",
+      "layer",
+      "mask"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/path-property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "tangentOnPath",
+    "object": "PathProperty",
+    "signature": "thisLayer.mask(\"Mask 1\").maskPath.tangentOnPath([percentage=0.5][, t=time])",
+    "params": [
+      {
+        "name": "\"Mask 1\").maskPath.tangentOnPath(percentage",
+        "type": "unknown",
+        "description": "",
+        "optional": true
+      },
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Optional. The specified time (in comp seconds) to sample the path. Defaults to time (the current comp time, in seconds).",
+        "optional": true
+      }
+    ],
+    "returns": "A number pair array",
+    "appliesTo": [
+      "PathProperty"
+    ],
+    "minVersion": null,
+    "example": "myPath.tangentOnPath() * 100",
+    "pitfalls": [],
+    "keywords": [
+      "tangentonpath",
+      "pathproperty",
+      "path property",
+      "calculated",
+      "coordinates",
+      "outgoing",
+      "tangent",
+      "handle",
+      "arbitrary",
+      "point",
+      "along",
+      "path"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/path-property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  }
+]

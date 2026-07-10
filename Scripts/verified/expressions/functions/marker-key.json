@@ -1,0 +1,76 @@
+[
+  {
+    "name": "key",
+    "object": "Marker",
+    "signature": "thisComp.marker.key(index)",
+    "params": [
+      {
+        "name": "index",
+        "type": "Number",
+        "description": "",
+        "optional": false
+      }
+    ],
+    "returns": "unspecified",
+    "appliesTo": [
+      "Marker"
+    ],
+    "minVersion": null,
+    "example": "thisComp.marker.key(1).time;",
+    "pitfalls": [],
+    "keywords": [
+      "key",
+      "marker",
+      "marker key",
+      "returns",
+      "markerkey",
+      "object",
+      "with",
+      "specified",
+      "index",
+      "name",
+      "refers",
+      "order"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/marker-property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "nearestKey",
+    "object": "Marker",
+    "signature": "thisComp.marker.nearestKey(t)",
+    "params": [
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "The time to find the nearest marker from",
+        "optional": false
+      }
+    ],
+    "returns": "MarkerKey",
+    "appliesTo": [
+      "Marker"
+    ],
+    "minVersion": null,
+    "example": "thisComp.marker.nearestKey(1).time;",
+    "pitfalls": [],
+    "keywords": [
+      "nearestkey",
+      "marker",
+      "marker key",
+      "returns",
+      "that",
+      "nearest",
+      "comp",
+      "layer",
+      "time",
+      "provided"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/objects/marker-property.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  }
+]

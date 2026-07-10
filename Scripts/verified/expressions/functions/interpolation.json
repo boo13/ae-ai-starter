@@ -1,0 +1,248 @@
+[
+  {
+    "name": "ease",
+    "object": "global",
+    "signature": "ease(t, tMin, tMax, value1, value2) | ease(t, value1, value2)",
+    "params": [
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Interpolation Driver",
+        "optional": false
+      },
+      {
+        "name": "tMin",
+        "type": "Number",
+        "description": "Minimum driver value",
+        "optional": false
+      },
+      {
+        "name": "tMax",
+        "type": "Number",
+        "description": "Maximum driver value",
+        "optional": false
+      },
+      {
+        "name": "value1",
+        "type": "Number or Array",
+        "description": "Value to interpolate from",
+        "optional": false
+      },
+      {
+        "name": "value2",
+        "type": "Number or Array",
+        "description": "Value to interpolate to",
+        "optional": false
+      }
+    ],
+    "returns": "Number or Array",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "ease",
+      "global",
+      "interpolation",
+      "similar",
+      "linear",
+      "with",
+      "same",
+      "arguments",
+      "except",
+      "that",
+      "eases",
+      "velocity"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/interpolation.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "easeIn",
+    "object": "global",
+    "signature": "easeIn(t, tMin, tMax, value1, value2) | easeIn(t, value1, value2)",
+    "params": [
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Interpolation Driver",
+        "optional": false
+      },
+      {
+        "name": "tMin",
+        "type": "Number",
+        "description": "Minimum driver value",
+        "optional": false
+      },
+      {
+        "name": "tMax",
+        "type": "Number",
+        "description": "Maximum driver value",
+        "optional": false
+      },
+      {
+        "name": "value1",
+        "type": "Number or Array",
+        "description": "Value to interpolate from",
+        "optional": false
+      },
+      {
+        "name": "value2",
+        "type": "Number or Array",
+        "description": "Value to interpolate to",
+        "optional": false
+      }
+    ],
+    "returns": "Number or Array",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "easein",
+      "global",
+      "interpolation",
+      "similar",
+      "ease",
+      "except",
+      "that",
+      "tangent",
+      "only",
+      "tmin",
+      "side",
+      "linear"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/interpolation.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "easeOut",
+    "object": "global",
+    "signature": "easeOut(t, tMin, tMax, value1, value2) | easeOut(t, value1, value2)",
+    "params": [
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Interpolation Driver",
+        "optional": false
+      },
+      {
+        "name": "tMin",
+        "type": "Number",
+        "description": "Minimum driver value",
+        "optional": false
+      },
+      {
+        "name": "tMax",
+        "type": "Number",
+        "description": "Maximum driver value",
+        "optional": false
+      },
+      {
+        "name": "value1",
+        "type": "Number or Array",
+        "description": "Value to interpolate from",
+        "optional": false
+      },
+      {
+        "name": "value2",
+        "type": "Number or Array",
+        "description": "Value to interpolate to",
+        "optional": false
+      }
+    ],
+    "returns": "Number or Array",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "easeout",
+      "global",
+      "interpolation",
+      "similar",
+      "ease",
+      "except",
+      "that",
+      "tangent",
+      "only",
+      "tmax",
+      "side",
+      "linear"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/interpolation.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "linear",
+    "object": "global",
+    "signature": "linear(t, tMin, tMax, value1, value2) | linear(t, value1, value2)",
+    "params": [
+      {
+        "name": "t",
+        "type": "Number",
+        "description": "Interpolation Driver",
+        "optional": false
+      },
+      {
+        "name": "tMin",
+        "type": "Number",
+        "description": "Minimum driver value",
+        "optional": false
+      },
+      {
+        "name": "tMax",
+        "type": "Number",
+        "description": "Maximum driver value",
+        "optional": false
+      },
+      {
+        "name": "value1",
+        "type": "Number or Array",
+        "description": "Value to interpolate from",
+        "optional": false
+      },
+      {
+        "name": "value2",
+        "type": "Number or Array",
+        "description": "Value to interpolate to",
+        "optional": false
+      }
+    ],
+    "returns": "Number or Array",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "linear(time, 0, 6, 20, 80)",
+    "pitfalls": [],
+    "keywords": [
+      "linear",
+      "global",
+      "interpolation",
+      "returns",
+      "value1",
+      "when",
+      "tmin",
+      "value2",
+      "tmax",
+      "between"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/interpolation.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  }
+]

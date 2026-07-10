@@ -1,0 +1,162 @@
+[
+  {
+    "name": "gaussRandom",
+    "object": "global",
+    "signature": "gaussRandom([maxValOrArray=1]) | gaussRandom(minValOrArray, maxValOrArray)",
+    "params": [
+      {
+        "name": "maxValOrArray",
+        "type": "Number or Array",
+        "description": "Optional. The max value (or array) to generate a random number to, from 0. Defaults to 1.",
+        "optional": true
+      }
+    ],
+    "returns": "Number or Array",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "gaussrandom",
+      "global",
+      "random",
+      "when",
+      "maxvalorarray",
+      "number",
+      "this",
+      "method",
+      "returns",
+      "approximately",
+      "results",
+      "range"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/random-numbers.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "noise",
+    "object": "global",
+    "signature": "noise(valOrArray)",
+    "params": [
+      {
+        "name": "valOrArray",
+        "type": "Number or an Array (2- or 3-dimensional)",
+        "description": "The input value (or array) to use to generate the random number.",
+        "optional": false
+      }
+    ],
+    "returns": "Number",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "rotation + 360*noise(time)",
+    "pitfalls": [],
+    "keywords": [
+      "noise",
+      "global",
+      "random",
+      "returns",
+      "number",
+      "range",
+      "from",
+      "actually",
+      "based",
+      "perlin",
+      "which",
+      "means"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/random-numbers.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "random",
+    "object": "global",
+    "signature": "random([maxValOrArray=1]) | random(minValOrArray, maxValOrArray)",
+    "params": [
+      {
+        "name": "maxValOrArray",
+        "type": "Number or Array",
+        "description": "Optional. The max value (or array) to generate a random number to, from 0. Defaults to 1.",
+        "optional": true
+      }
+    ],
+    "returns": "Number or Array",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "",
+    "pitfalls": [],
+    "keywords": [
+      "random",
+      "global",
+      "maxvalorarray",
+      "number",
+      "this",
+      "method",
+      "returns",
+      "range",
+      "from",
+      "array",
+      "with",
+      "same"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/random-numbers.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  },
+  {
+    "name": "seedRandom",
+    "object": "global",
+    "signature": "seedRandom(offset[, timeless=false])",
+    "params": [
+      {
+        "name": "offset",
+        "type": "Number",
+        "description": "The value with which to offset the seed. This is also used to control the initial value of the wiggle() function.",
+        "optional": false
+      },
+      {
+        "name": "timeless",
+        "type": "Boolean",
+        "description": "Optional. Use true for the timeless argument to not use the current time as input to the random seed. This allows you to generate a random number that doesn't vary depending on the time of evaluation. Defaults to false.",
+        "optional": true
+      }
+    ],
+    "returns": "None",
+    "appliesTo": [
+      "all expression properties"
+    ],
+    "minVersion": null,
+    "example": "seedRandom(123456, true);\nrandom()*100",
+    "pitfalls": [
+      "Pass timeless=true for static random values; otherwise results vary with time."
+    ],
+    "keywords": [
+      "seedrandom",
+      "global",
+      "random",
+      "gaussrandom",
+      "methods",
+      "seed",
+      "value",
+      "that",
+      "controls",
+      "sequence",
+      "numbers",
+      "default"
+    ],
+    "source": "docsforadobe/after-effects-expression-reference@a5c5c5066d0395239d524510ace060963f5c0d33:docs/general/random-numbers.md",
+    "verifiedAEVersion": null,
+    "verifiedEngines": [],
+    "verifiedStatus": "docs-sourced"
+  }
+]
