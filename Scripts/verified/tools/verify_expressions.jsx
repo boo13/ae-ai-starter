@@ -52,12 +52,8 @@
 
     step = "build hosts pass 1: create camera";
     var camera = comp.layers.addCamera("Camera Host", [comp.width / 2, comp.height / 2]);
-    step = "build hosts pass 1: create camera scalar control";
-    addControl(camera, "ADBE Slider Control", "Camera Scalar Host");
     step = "build hosts pass 1: create light";
     var light = comp.layers.addLight("Light Host", [comp.width / 2, comp.height / 2]);
-    step = "build hosts pass 1: create light scalar control";
-    addControl(light, "ADBE Slider Control", "Light Scalar Host");
 
     step = "build hosts pass 2: look up scalar host";
     var scalar = solid.property("ADBE Effect Parade").property("Scalar Host").property(1);
@@ -79,10 +75,10 @@
       .property("ADBE Vectors Group")
       .property("ADBE Vector Filter - Trim")
       .property("ADBE Vector Trim End");
-    step = "build hosts pass 2: look up camera host";
-    var cameraScalar = camera.property("ADBE Effect Parade").property("Camera Scalar Host").property(1);
-    step = "build hosts pass 2: look up light host";
-    var lightScalar = light.property("ADBE Effect Parade").property("Light Scalar Host").property(1);
+    step = "build hosts pass 2: look up camera Zoom host";
+    var cameraScalar = camera.property("ADBE Camera Options Group").property("ADBE Camera Zoom");
+    step = "build hosts pass 2: look up light Intensity host";
+    var lightScalar = light.property("ADBE Light Options Group").property("ADBE Light Intensity");
 
     step = "build hosts pass 2: apply scalar keyframes";
     scalar.setValueAtTime(0, 0);
