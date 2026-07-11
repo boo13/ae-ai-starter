@@ -17,6 +17,7 @@
     ],
     "minVersion": null,
     "example": "thisLayer.effect(\"Bulge\").param(\"Bulge Height\");",
+    "probe": "thisLayer.effect(\"Bulge\").param(\"Bulge Height\").value",
     "pitfalls": [],
     "keywords": [
       "param",
@@ -55,6 +56,7 @@
     ],
     "minVersion": null,
     "example": "thisLayer.scale.key(1);",
+    "probe": "thisLayer.transform.scale.key(1).time",
     "pitfalls": [],
     "keywords": [
       "key",
@@ -272,6 +274,7 @@
     ],
     "minVersion": null,
     "example": "const twoSecondKey = thisLayer.scale.nearestKey(2);\n\n// and then, to get the value of that key:\ntwoSecondKey.value;",
+    "probe": "thisLayer.transform.scale.nearestKey(0.75).time",
     "pitfalls": [],
     "keywords": [
       "nearestkey",
@@ -344,6 +347,7 @@
     ],
     "minVersion": "26.0.",
     "example": "const animDuration = key(numKeys).time - key(1).time;\nconst animTime = time - marker.previousKey(time).time;\n\nconst animRemap = linear(animTime, 0, animDuration, key(1).time, key(numKeys).time);\n\nvalueAtTime(animRemap);",
+    "probe": "thisLayer.transform.scale.previousKey(1).time",
     "pitfalls": [],
     "keywords": [
       "previouskey",

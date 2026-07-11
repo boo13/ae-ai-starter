@@ -23,6 +23,7 @@
     ],
     "minVersion": null,
     "example": "",
+    "probe": "framesToTime(30, 30)",
     "pitfalls": [],
     "keywords": [
       "framestotime",
@@ -183,6 +184,7 @@
     ],
     "minVersion": null,
     "example": "",
+    "probe": "timeToFrames(1, 30, true)",
     "pitfalls": [],
     "keywords": [
       "timetoframes",

@@ -17,6 +17,7 @@
     ],
     "minVersion": null,
     "example": "thisComp.marker.key(1).time;",
+    "probe": "thisComp.marker.key(1).time",
     "pitfalls": [],
     "keywords": [
       "key",
@@ -55,6 +56,7 @@
     ],
     "minVersion": null,
     "example": "thisComp.marker.nearestKey(1).time;",
+    "probe": "thisComp.marker.nearestKey(1).time",
     "pitfalls": [],
     "keywords": [
       "nearestkey",

@@ -55,6 +55,7 @@
     ],
     "minVersion": null,
     "example": "",
+    "probe": "hslToRgb([0.75, 0.5, 0.5, 1])",
     "pitfalls": [],
     "keywords": [
       "hsltorgb",
@@ -92,7 +93,7 @@
       "all expression properties"
     ],
     "minVersion": null,
-    "example": "rgbToHsl.effect(\"Change Color\")(\"Color To Change\")",
+    "example": "rgbToHsl([0.5, 0.3, 0.8, 1])",
     "pitfalls": [],
     "keywords": [
       "rgbtohsl",

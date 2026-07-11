@@ -104,6 +104,7 @@
     ],
     "minVersion": "25.0.",
     "example": "// assume the value of the source text is \"Old Text\"\nconst referenceText = thisComp.layer(\"Source Layer Name\").text.sourceText;\nconst style = referenceText.getStyleAt(0,0);\n\n// This will change the text from \"Old Text\" to \"NewText\" as the first 4 characters are replaced.\nstyle.replaceText(\"New\", 0, 4);",
+    "probe": "text.sourceText.style.replaceText(\"Verified\", 0, 10)",
     "pitfalls": [],
     "keywords": [
       "replacetext",
@@ -1595,6 +1596,7 @@
     ],
     "minVersion": null,
     "example": "const referenceText = thisComp.layer(\"Source Layer Name\").text.sourceText;\n\nconst style = referenceText.getStyleAt(0, 0);\nstyle.setText(referenceText);",
+    "probe": "text.sourceText.style.setText(\"Verified\")",
     "pitfalls": [],
     "keywords": [
       "settext",

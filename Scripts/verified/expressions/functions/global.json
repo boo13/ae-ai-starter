@@ -17,6 +17,7 @@
     ],
     "minVersion": null,
     "example": "",
+    "probe": "comp(thisComp.name).duration",
     "pitfalls": [],
     "keywords": [
       "comp",

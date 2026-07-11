@@ -17,6 +17,7 @@
     ],
     "minVersion": null,
     "example": "thisLayer.effect(\"Fast Blur\")",
+    "probe": "thisLayer.effect(\"Fast Blur\")(\"Blurriness\").value",
     "pitfalls": [],
     "keywords": [
       "effect",
@@ -260,6 +261,7 @@
     ],
     "minVersion": null,
     "example": "thisLayer.mask(\"Mask 1\")",
+    "probe": "thisLayer.mask(\"Mask 1\").maskOpacity.value",
     "pitfalls": [],
     "keywords": [
       "mask",
@@ -322,6 +324,7 @@
     ],
     "minVersion": null,
     "example": "thisComp.layer(1).sampleImage([100, 100], [2, 1.5])",
+    "probe": "thisLayer.sampleImage([100, 100], [1, 1], true, time)",
     "pitfalls": [
       "Samples the layer render buffer and does not include adjustment layers above it."
     ],
@@ -368,6 +371,7 @@
     ],
     "minVersion": "13.2",
     "example": "myTextLayer.sourceRectAtTime().width",
+    "probe": "thisComp.layer(\"Expression verification\").sourceRectAtTime().width",
     "pitfalls": [
       "Repeated calls can be expensive; cache the returned rectangle within the expression."
     ],
@@ -401,6 +405,7 @@
     ],
     "minVersion": null,
     "example": "",
+    "probe": "thisLayer.sourceTime(time)",
     "pitfalls": [],
     "keywords": [
       "sourcetime",
@@ -439,6 +444,7 @@
     ],
     "minVersion": null,
     "example": "",
+    "probe": "thisLayer.toComp([0, 0])",
     "pitfalls": [],
     "keywords": [
       "tocomp",
@@ -517,6 +523,7 @@
     ],
     "minVersion": null,
     "example": "toWorld.effect(\"Bulge\")(\"Bulge Center\")",
+    "probe": "thisLayer.toWorld([0, 0])",
     "pitfalls": [],
     "keywords": [
       "toworld",
@@ -561,6 +568,7 @@
     ],
     "minVersion": null,
     "example": "const p1 = effect(\"Eye Bulge 1\")(\"Bulge Center\");\nconst p2 = effect(\"Eye Bulge 2\")(\"Bulge Center\");\n\ntoWorld(sub(p1, p2))",
+    "probe": "thisLayer.toWorldVec([1, 0])",
     "pitfalls": [],
     "keywords": [
       "toworldvec",

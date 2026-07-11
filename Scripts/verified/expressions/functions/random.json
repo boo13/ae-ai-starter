@@ -17,6 +17,7 @@
     ],
     "minVersion": null,
     "example": "",
+    "probe": "gaussRandom(0, 100)",
     "pitfalls": [],
     "keywords": [
       "gaussrandom",
@@ -93,6 +94,7 @@
     ],
     "minVersion": null,
     "example": "",
+    "probe": "random(0, 100)",
     "pitfalls": [],
     "keywords": [
       "random",

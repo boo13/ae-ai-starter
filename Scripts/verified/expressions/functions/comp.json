@@ -55,6 +55,7 @@
     ],
     "minVersion": null,
     "example": "// note this will match a layer with a comment \"Controller\" or \"Motion Control\"\nthisComp.layerByComment(\"Control\");",
+    "probe": "thisComp.layerByComment(\"Control\").index",
     "pitfalls": [],
     "keywords": [
       "layerbycomment",

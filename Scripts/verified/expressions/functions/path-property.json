@@ -77,6 +77,7 @@
     ],
     "minVersion": null,
     "example": "const myMask = mask(\"Mask 1\").path;\nmyMask.createPath(myMask.points());",
+    "probe": "thisProperty.createPath(thisProperty.points(), thisProperty.inTangents(), thisProperty.outTangents(), thisProperty.isClosed())",
     "pitfalls": [],
     "keywords": [
       "createpath",
@@ -197,6 +198,7 @@
     ],
     "minVersion": null,
     "example": "myPath.normalOnPath() * 100",
+    "probe": "thisProperty.normalOnPath(0.5)",
     "pitfalls": [],
     "keywords": [
       "normalonpath",
@@ -317,6 +319,7 @@
     ],
     "minVersion": null,
     "example": "const myLayer = thisComp.layer(\"Dark Gray Solid 1\");\nmyLayer.toComp(myLayer.mask(\"Mask 1\").maskPath.points()[0]);",
+    "probe": "thisProperty.points()[0]",
     "pitfalls": [],
     "keywords": [
       "points",
@@ -361,6 +364,7 @@
     ],
     "minVersion": null,
     "example": "myPath.tangentOnPath() * 100",
+    "probe": "thisProperty.tangentOnPath(0.5)",
     "pitfalls": [],
     "keywords": [
       "tangentonpath",

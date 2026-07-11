@@ -9,3 +9,7 @@ node tools/parse_expression_docs.mjs --docs /path/to/after-effects-expression-re
 ```
 
 Docs-sourced records remain `docs-sourced` until `Scripts/verified/tools/verify_expressions.jsx` is run in After Effects. Commit its versioned sidecar under `verification/`, then regenerate AE AI Chat knowledge.
+
+Records may include an optional `probe` string containing fixture-aware expression code used only by the verification harness. Probes are never user-facing examples. When no probe is present, the harness falls back to the docs `example`; records with neither are skipped.
+
+The `Footage.dataKeyCount`, `Footage.dataKeyTimes`, `Footage.dataKeyValues`, and `Footage.dataValue` records intentionally have no probes. Verifying them cleanly requires imported data footage, which the self-contained fixture does not create, so the harness skips those methods instead of running their fixture-dependent docs examples.

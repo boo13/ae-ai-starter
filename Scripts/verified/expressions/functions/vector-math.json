@@ -23,6 +23,7 @@
     ],
     "minVersion": null,
     "example": "",
+    "probe": "add([1, 2], [3, 4])",
     "pitfalls": [],
     "keywords": [
       "add",
@@ -110,6 +111,7 @@
     ],
     "minVersion": null,
     "example": "",
+    "probe": "cross([1, 0, 0], [0, 1, 0])",
     "pitfalls": [],
     "keywords": [
       "cross",
@@ -148,6 +150,7 @@
     ],
     "minVersion": null,
     "example": "",
+    "probe": "degreesToRadians(180)",
     "pitfalls": [],
     "keywords": [
       "degreestoradians",
@@ -186,6 +189,7 @@
     ],
     "minVersion": null,
     "example": "",
+    "probe": "div([4, 8], 2)",
     "pitfalls": [],
     "keywords": [
       "div",
@@ -226,6 +230,7 @@
     ],
     "minVersion": null,
     "example": "",
+    "probe": "dot([1, 2], [3, 4])",
     "pitfalls": [],
     "keywords": [
       "dot",
@@ -266,6 +271,7 @@
     ],
     "minVersion": null,
     "example": "length(position, pointOfInterest)",
+    "probe": "length(value)",
     "pitfalls": [],
     "keywords": [
       "length",
@@ -310,6 +316,7 @@
     ],
     "minVersion": null,
     "example": "lookAt(position, thisComp.layer(1).position)",
+    "probe": "lookAt(value, [100, 100])",
     "pitfalls": [],
     "keywords": [
       "lookat",
@@ -354,6 +361,7 @@
     ],
     "minVersion": null,
     "example": "",
+    "probe": "mul([1, 2], 3)",
     "pitfalls": [],
     "keywords": [
       "mul",
@@ -388,6 +396,7 @@
     ],
     "minVersion": null,
     "example": "",
+    "probe": "normalize(value)",
     "pitfalls": [],
     "keywords": [
       "normalize",
@@ -426,6 +435,7 @@
     ],
     "minVersion": null,
     "example": "",
+    "probe": "radiansToDegrees(Math.PI)",
     "pitfalls": [],
     "keywords": [
       "radianstodegrees",
@@ -464,6 +474,7 @@
     ],
     "minVersion": null,
     "example": "",
+    "probe": "sub([3, 4], [1, 2])",
     "pitfalls": [],
     "keywords": [
       "sub",
