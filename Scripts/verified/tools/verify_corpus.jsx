@@ -42,7 +42,6 @@
   var files = effectsDir.getFiles("*.json");
   var comp = app.project.items.addComp("__Corpus Verification__", 64, 64, 1, 1, 24);
   var layer = comp.layers.addSolid([0, 0, 0], "Host", 64, 64, 1);
-  var parade = layer.property("ADBE Effect Parade");
   var report = [];
 
   for (var f = 0; f < files.length; f++) {
@@ -50,7 +49,7 @@
     var record = readJson(files[f]);
     var entry = { matchName: record.matchName, status: "ok", differences: [] };
     var effect = null;
-    try { effect = parade.addProperty(record.matchName); } catch (e) {
+    try { effect = layer.property("ADBE Effect Parade").addProperty(record.matchName); } catch (e) {
       entry.status = "missing";
       entry.differences.push(e.toString());
       report.push(entry);

@@ -33,7 +33,7 @@
     "LightType",
     "KeyframeInterpolationType",
     "MaskMode",
-    "ParagraphJustification",
+    "ParagraphJustification"
   ];
   var output = {};
   for (var i = 0; i < names.length; i++) output[names[i]] = discover(names[i]);
