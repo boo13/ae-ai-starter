@@ -167,3 +167,27 @@ same: normalized 0-1 in scripting (defaults 0 and 1) even though the UI shows
 0-255 (8-bpc) or 0-32768 (16-bpc). Writing `30000` throws `out of range -10000
 to 10000`; smaller UI-scale values silently produce garbage. Divide 16-bpc UI
 values by 32768 (e.g. 30000 -> 0.916).
+
+Glow (`ADBE Glo2`) "Glow Threshold" (`ADBE Glo2-0002`) is the opposite trap:
+the UI shows a percent but scripting stores 0-255 (default 153 = 60%). Writing
+a UI percent like `50` sets the threshold to ~20% and blooms the whole frame
+into milk. Multiply UI percents by 2.55.
+
+## saveFrameToPng() Returns Before the File Is Written
+
+`comp.saveFrameToPng(time, file)` queues the render and returns immediately;
+AE keeps writing the PNG for seconds afterward (longer for effect-heavy
+comps). Reading the file too early yields a truncated image -- typically the
+bottom of the frame is solid white with a razor-straight edge, which is easy
+to misread as a rendering bug in an effect. (Verified empirically in live AE
+2026, 2026-07-12: the same frame produced a "flooded" and a clean image
+depending only on read timing.)
+
+**Fix:** Poll until the file ends with the PNG `IEND` trailer before reading:
+
+```bash
+for i in {1..120}; do
+  tail -c 8 frame.png | LC_ALL=C grep -qa IEND && break
+  sleep 0.5
+done
+```
