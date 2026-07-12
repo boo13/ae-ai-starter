@@ -149,3 +149,21 @@ in live AE 2026 via the ae-ai-chat panel error log, 2026-07-12.)
 
 **Fix:** Apply CC Star Burst to a white solid, then tint it with the Tint effect
 if colored stars are needed. Never apply it to a black solid.
+
+## Percent-Styled Sliders Can Be 0-1 Fractions
+
+CC Toner's "Blend w. Original" (`CC Toner-0004`) takes a 0-1 fraction via
+scripting even though the UI displays a percent. `setValue(65)` throws
+`Unable to call "setValue" because of parameter 1. Value 65 out of range 0 to
+1.` and aborts the whole script. (Verified empirically in live AE 2026 via the
+ae-ai-chat panel error log, 2026-07-12.)
+
+**Fix:** Write UI percents as fractions for CC Toner: 65% -> `setValue(0.65)`.
+If any percent-styled slider throws "out of range 0 to 1", divide the value
+by 100.
+
+Levels (`ADBE Easy Levels2`) channel values (Input/Output Black/White) are the
+same: normalized 0-1 in scripting (defaults 0 and 1) even though the UI shows
+0-255 (8-bpc) or 0-32768 (16-bpc). Writing `30000` throws `out of range -10000
+to 10000`; smaller UI-scale values silently produce garbage. Divide 16-bpc UI
+values by 32768 (e.g. 30000 -> 0.916).
