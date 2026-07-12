@@ -108,3 +108,44 @@ Creative Look (data lives in `LookAsset`, CUSTOM_VALUE), curves, color wheels, a
 Split Toning are all CUSTOM_VALUE — they are **not scriptable**. Do not fabricate
 a numeric assignment for them; report them as unsupported and have the user set
 them manually.
+
+## setTemporalEaseAtKey Ease-Array Arity
+
+AE throws `Unable to call "setTemporalEaseAtKey" because of parameter 2. Value
+array does not have N elements.` when the in/out ease arrays have the wrong
+length. Use one `KeyframeEase` object per value dimension, except for spatial
+properties such as Position and Anchor Point, which take exactly one
+`KeyframeEase` per side regardless of dimensions. (Verified empirically in live
+AE 2026 via the ae-ai-chat panel error log, 2026-07-12.)
+
+**Fix:** Build both ease arrays with a dimension-safe ES3 helper:
+
+```javascript
+function easeArray(prop, speed, influence) {
+  var n = prop.isSpatial ? 1 : (prop.value instanceof Array ? prop.value.length : 1);
+  var arr = [];
+  for (var i = 0; i < n; i++) arr.push(new KeyframeEase(speed, influence));
+  return arr;
+}
+```
+
+## addProperty() Invalidates Sibling References
+
+After calling `addProperty()` on a shape-layer group, such as adding a Stroke
+after an Ellipse Path, previously obtained references to sibling properties in
+that group can become stale. Touching them throws `ReferenceError: Object is
+invalid`. (Verified empirically in live AE 2026 via the ae-ai-chat panel error
+log, 2026-07-12.)
+
+**Fix:** Set each property's values immediately after its `addProperty()` call,
+or re-fetch references by match name after all `addProperty()` calls are done.
+Never hold a reference across a later `addProperty()` on the same group.
+
+## CC Star Burst Uses Source Pixels
+
+CC Star Burst scatters the source layer's pixels as star particles. Applied to a
+black solid, it renders invisibly as black stars on black. (Verified empirically
+in live AE 2026 via the ae-ai-chat panel error log, 2026-07-12.)
+
+**Fix:** Apply CC Star Burst to a white solid, then tint it with the Tint effect
+if colored stars are needed. Never apply it to a black solid.
