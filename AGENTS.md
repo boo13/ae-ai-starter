@@ -14,6 +14,10 @@
    4. To customize a compound, check its `requires` array — those are the blocks to call individually
    5. Check `pluginDeps` — entries not starting with `"ADBE"` are third-party plugins; warn the user if they may not have them
    6. When writing a script, `#include` the action file using its `file` path (e.g., `#include "../lib/actions/effects/grain.jsxinc"`) plus any entries in its `requires` array
+2a. If the task requires applying a **property expression** (live code that runs every frame), check `Scripts/lib/expressions/index.json` before writing one from scratch. **Discovery protocol:**
+   1. Scan `categories` (motion, transformation, interpolation, randomness, conditional) to find relevant entries
+   2. Read `whenToUse` and `targetProperty` for candidates
+   3. Take the `expression` string, adapt any layer names or param values to the specific project, then apply via `setExpression(prop, { expression: "..." })`
 3. Write ScriptUI panels (primary) or headless scripts using `Scripts/lib/` helpers and actions — see Required Reliability Pattern below
 4. User runs scripts in AE via File > Scripts > Run Script File
 5. Read `Scripts/runs/last_run.json` — verify `scriptName`, check `status`, read `diff` entries
@@ -161,6 +165,7 @@ Use only when the task doesn't belong in a panel. See `Scripts/recipes/reliabili
 - `Scripts/analyze/` -- Project analysis system (generates reports)
 - `Scripts/lib/` -- Shared ES3 utilities (including prop-walker and result-writer)
 - `Scripts/lib/actions/` -- Vetted callable actions; read `index.json` before writing code
+- `Scripts/lib/expressions/` -- AE expression reference library (150 expressions); read `index.json` before writing expressions from scratch
 - `Scripts/recipes/` -- Automation patterns (start with reliability-template)
 - `Scripts/panel/` -- ScriptUI panel (if enabled)
 - `Scripts/reports/` -- Generated analysis reports (committed to git)
@@ -168,7 +173,8 @@ Use only when the task doesn't belong in a panel. See `Scripts/recipes/reliabili
 - `Scripts/tests/` -- Unit tests (run in AE via File > Scripts)
 - `Input/` -- Data files (JSON, etc.)
 - `docs/` -- Workflow guides and recipe reference
-- `examples/` -- Standalone example projects (social-card, etc.)
+- `examples/` -- Standalone example projects (social-card, lcd-screen, etc.)
+- `tools/` -- Data pipeline scripts (Python); e.g. `fetch_plainly_expressions.py` re-fetches the expression library
 
 ## Shared Libraries (`Scripts/lib/`)
 
@@ -229,6 +235,34 @@ Each action file exposes one function following this contract:
 3. Commit both the new `.jsxinc` and updated `index.json`.
 
 See `Scripts/lib/actions/README.md` for the full cheatsheet. Read `index.json` for the current action list.
+
+## Expressions (`Scripts/lib/expressions/`)
+
+A library of 150 vetted AE expression snippets — live code that runs on a property every frame. **Unlike actions, expressions are not `#include`d.** They are strings applied to a property via `setExpression()`.
+
+**Read `Scripts/lib/expressions/index.json` before writing an expression from scratch.** The index has the same discoverability fields as actions: `whenToUse`, `targetProperty`, `params`, and the ready-to-use `expression` string.
+
+Categories and counts:
+- **motion** (50) — position, layout, spatial animation
+- **transformation** (36) — scale, resize, responsive sizing
+- **interpolation** (27) — text-driven values, counters, derived data
+- **randomness** (20) — wiggle, flicker, organic variation
+- **conditional** (17) — branching on layer state, time, or comp properties
+
+### Applying an expression
+
+```javascript
+#include "../lib/actions/property/set_expression.jsxinc"
+
+// Find the expression in index.json, copy the `expression` string,
+// adapt any layer name references or param values to the actual comp, then:
+var prop = layer.property("Transform").property("Opacity");
+setExpression(prop, { expression: "fade = 1;\nfadeIn = (time-inPoint)/fade;\nvalue * clamp(fadeIn, 0, 1)" });
+```
+
+### Updating the expression library
+
+Re-run `python3 tools/fetch_plainly_expressions.py` to re-fetch from Plainly, then manually regenerate `Scripts/lib/expressions/index.json` using the same transform logic (or add a `tools/build_expressions_index.py`).
 
 ## Recipes (`Scripts/recipes/`)
 

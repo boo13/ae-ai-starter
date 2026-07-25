@@ -5,7 +5,7 @@
  * @inputs layer: AVLayer; opts: { shape: "rectangle"|"ellipse"|"custom" (default "rectangle"), rect: [x,y,w,h] (rectangle/ellipse, default full comp bounds), vertices: [x,y][] (custom only), inTangents: [x,y][] (custom), outTangents: [x,y][] (custom), mode: "add"|"subtract"|"intersect"|"lighten"|"darken"|"difference"|"none" (default "add"), feather: [fx,fy] (default [0,0]), opacity: number (0–100, default 100), expansion: number (default 0), inverted: boolean (default false), name: string (optional display name) }
  * @outputs MaskPropertyGroup — the newly created mask group
  * @tier block
- * @whenToUse You need to add a rectangular, elliptical, or custom bezier mask to any layer. Coordinates are in comp space.
+ * @whenToUse You need to add a rectangular, elliptical, or custom bezier mask to any layer. Coordinates are in LAYER space (origin at the layer's own top-left, extending to its source width/height) — NOT comp space. For a layer whose source is smaller than the comp, passing comp coordinates offsets the mask.
  * @example var mask = addMask(layer, { shape: "rectangle", rect: [100, 100, 800, 400], feather: [20, 20] });
  * @example var mask = addMask(layer, { shape: "ellipse", rect: [0, 0, 1920, 1080], mode: "subtract" });
  * @refs Scripts/verified/properties/mask.json

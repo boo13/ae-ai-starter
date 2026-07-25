@@ -1,0 +1,63 @@
+/**
+ * @name Add Chromatic Aberration
+ * @description Adds chromatic aberration. "subtle" mode applies Channel Blur directly (cheap, one effect). "lens" mode duplicates the layer three times, tints each pure red/green/blue via Tint (avoids guessing Shift Channels' undocumented dropdown enum values), and scales each from center with the Transform effect — scale offsets, not position offsets, since scale grows toward the frame edge like real lens CA.
+ * @category effect
+ * @tier block
+ * @inputs comp: CompItem; opts: { targetLayer: AVLayer (required), mode: "subtle"|"lens" (default "subtle"), amount: number (0-100, default 30) }
+ * @outputs Object — { channelBlur: PropertyGroup|null, layers: AVLayer[]|null }
+ * @whenToUse You want prism-like edge fringing on the final camera pass. Use "subtle" for a light pass, "lens" for pronounced edge-weighted fringing. IMPORTANT: "lens" THROWS if targetLayer is an adjustment layer -- it duplicates the target three times, and duplicated adjustment layers re-apply every effect already on them to the whole composite once per copy. On an adjustment layer, use "subtle".
+ * @example var ca = addChromaticAberration(comp, { targetLayer: cameraPassLayer, mode: "lens", amount: 40 });
+ * @pluginDeps ADBE Channel Blur, ADBE Tint, ADBE Geometry2
+ * @note "lens" mode is REJECTED on an adjustment layer. Adjustment layers re-process the whole composite beneath them, so three duplicates of one stack four adjustment layers on top of each other: every effect already on the target (lens distortion, grain) is applied once per copy. Use "subtle" on adjustment layers, or point "lens" at a real footage/precomp layer.
+ */
+function addChromaticAberration(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Chromatic Aberration: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    if (!o.targetLayer) {
+        throw new Error("Add Chromatic Aberration: opts.targetLayer is required.");
+    }
+    var mode = o.mode ? String(o.mode).toLowerCase() : "subtle";
+    var amount = (o.amount !== undefined) ? Number(o.amount) : 30;
+
+    if (mode === "subtle") {
+        setStep("apply channel blur");
+        var fx = o.targetLayer.property("ADBE Effect Parade").addProperty("ADBE Channel Blur");
+        try { fx.property("ADBE Channel Blur-0001").setValue(amount * 0.02); } catch (_) {} // Red Blurriness
+        try { fx.property("ADBE Channel Blur-0003").setValue(amount * 0.05); } catch (_) {} // Blue Blurriness
+        return { channelBlur: fx, layers: null };
+    }
+
+    var isAdjustment = false;
+    try { isAdjustment = !!o.targetLayer.adjustmentLayer; } catch (_) {}
+    if (isAdjustment) {
+        throw new Error("Add Chromatic Aberration: \"lens\" mode cannot be used on an adjustment layer -- each duplicate would re-apply every effect already on it to the whole composite. Use mode \"subtle\", or target a real footage/precomp layer.");
+    }
+
+    setStep("duplicate layer for channel split");
+    var channelSpecs = [
+        { name: "CA RED",   color: [1, 0, 0, 1], scalePct: 100 + amount * 0.02 },
+        { name: "CA GREEN", color: [0, 1, 0, 1], scalePct: 100 },
+        { name: "CA BLUE",  color: [0, 0, 1, 1], scalePct: 100 - amount * 0.02 }
+    ];
+    var layers = [];
+    for (var i = 0; i < channelSpecs.length; i++) {
+        var spec = channelSpecs[i];
+        var dup = o.targetLayer.duplicate();
+        dup.name = spec.name;
+        dup.blendingMode = BlendingMode.SCREEN;
+
+        var tint = dup.property("ADBE Effect Parade").addProperty("ADBE Tint");
+        try { tint.property("ADBE Tint-0002").setValue(spec.color); } catch (_) {} // Map White To
+        try { tint.property("ADBE Tint-0003").setValue(100); } catch (_) {}        // Amount to Tint
+
+        var xform = dup.property("ADBE Effect Parade").addProperty("ADBE Geometry2");
+        try { xform.property("ADBE Geometry2-0011").setValue(1); } catch (_) {}             // Uniform Scale on
+        try { xform.property("ADBE Geometry2-0003").setValue(spec.scalePct); } catch (_) {} // Scale Height
+
+        layers.push(dup);
+    }
+
+    return { channelBlur: null, layers: layers };
+}

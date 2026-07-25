@@ -1,0 +1,125 @@
+/**
+ * @name Add Bezel
+ * @description Builds a rounded-rect monitor bezel around a screen-sized area: a beveled shape-layer frame plus, when a screenLayer is given, a matching rounded-corner mask and an inner shadow to sell the "glass is recessed" read.
+ * @category scene
+ * @tier compound
+ * @inputs comp: CompItem; opts: { screenLayer: AVLayer (optional), width: number (default comp.width), height: number (default comp.height), bezelWidth: number (default 40), cornerRadius: number (default 24), color: [r,g,b] (default [0.08,0.08,0.09]) }
+ * @outputs Object — { bezelLayer: AVLayer, screenMask: MaskPropertyGroup|null }
+ * @whenToUse You want a physical monitor frame around a screen recording, with matching rounded corners and a recessed-glass inner shadow. This is one of the things Perfect Screen (a camera simulator) does not do at all.
+ * @example var bezel = addBezel(comp, { screenLayer: screen, bezelWidth: 30, cornerRadius: 16 });
+ * @requires mask.jsxinc
+ * @pluginDeps ADBE Bevel Alpha, ADBE PSL Inner Shadow
+ * @note The frame is one shape group holding an outer AND an inner rounded-rect path with Fill Rule set to Even-Odd. A single path with the default Non-Zero Winding rule fills solid and hides the screen behind it.
+ */
+
+/**
+ * Builds an 8-vertex rounded-rect bezier Shape for [x,y,w,h] with the given corner radius.
+ * @private
+ */
+function _bz_roundedRectShape(rect, radius) {
+    var x = rect[0], y = rect[1], w = rect[2], h = rect[3];
+    var r = Math.max(0, Math.min(radius, Math.min(w, h) / 2));
+    var k = 0.5522847498 * r;
+
+    var s = new Shape();
+    s.vertices = [
+        [x + r, y],         // 0 top-left straight start
+        [x + w - r, y],     // 1 top-right straight end
+        [x + w, y + r],     // 2 right edge start
+        [x + w, y + h - r], // 3 right edge end
+        [x + w - r, y + h], // 4 bottom-right straight end
+        [x + r, y + h],     // 5 bottom-left straight end
+        [x, y + h - r],     // 6 left edge end
+        [x, y + r]          // 7 left edge start
+    ];
+    s.outTangents = [
+        [0, 0], [k, 0], [0, 0], [0, k], [0, 0], [-k, 0], [0, 0], [0, -k]
+    ];
+    s.inTangents = [
+        [-k, 0], [0, 0], [0, -k], [0, 0], [k, 0], [0, 0], [0, k], [0, 0]
+    ];
+    s.closed = true;
+    return s;
+}
+
+function addBezel(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Bezel: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var w = (o.width !== undefined) ? Number(o.width) : comp.width;
+    var h = (o.height !== undefined) ? Number(o.height) : comp.height;
+    var bezelWidth = (o.bezelWidth !== undefined) ? Number(o.bezelWidth) : 40;
+    var cornerRadius = (o.cornerRadius !== undefined) ? Number(o.cornerRadius) : 24;
+    var color = o.color || [0.08, 0.08, 0.09];
+
+    var outerW = w + bezelWidth * 2;
+    var outerH = h + bezelWidth * 2;
+    var cx = comp.width / 2;
+    var cy = comp.height / 2;
+
+    setStep("build bezel shape layer");
+    var bezelLayer = comp.layers.addShape();
+    bezelLayer.name = "BEZEL";
+    bezelLayer.property("Transform").property("Position").setValue([cx, cy]);
+
+    var contents = bezelLayer.property("ADBE Root Vectors Group");
+    var group = contents.addProperty("ADBE Vector Group");
+    group.name = "Frame";
+    var vectors = group.property("ADBE Vectors Group");
+
+    // Two concentric closed paths + an Even-Odd fill make the inner rect a hole, so the
+    // bezel renders as a FRAME. With the default Non-Zero Winding rule a single outer path
+    // fills solid and would opaquely cover the entire screen underneath it.
+    var outerPath = vectors.addProperty("ADBE Vector Shape - Group");
+    outerPath.property("ADBE Vector Shape").setValue(_bz_roundedRectShape([-outerW / 2, -outerH / 2, outerW, outerH], cornerRadius + bezelWidth));
+
+    var innerPath = vectors.addProperty("ADBE Vector Shape - Group");
+    innerPath.property("ADBE Vector Shape").setValue(_bz_roundedRectShape([-w / 2, -h / 2, w, h], cornerRadius));
+
+    var fill = vectors.addProperty("ADBE Vector Graphic - Fill");
+    fill.property("ADBE Vector Fill Rule").setValue(2); // 2 = Even-Odd, cuts the inner path out
+    fill.property("ADBE Vector Fill Color").setValue([color[0], color[1], color[2], 1]);
+
+    setStep("apply bevel alpha");
+    var bevel = bezelLayer.property("ADBE Effect Parade").addProperty("ADBE Bevel Alpha");
+    try { bevel.property("ADBE Bevel Alpha-0001").setValue(Math.max(1, bezelWidth * 0.15)); } catch (_) {} // Edge Thickness
+    try { bevel.property("ADBE Bevel Alpha-0002").setValue(60); } catch (_) {}                              // Light Angle
+    try { bevel.property("ADBE Bevel Alpha-0004").setValue(1); } catch (_) {}                               // Light Intensity
+
+    var screenMask = null;
+    if (o.screenLayer) {
+        setStep("mask screen to rounded corners");
+        // Mask vertices are in LAYER space, not comp space — centre the rect on the screen
+        // layer's own source bounds, not on the comp.
+        var srcW = w, srcH = h;
+        try {
+            if (o.screenLayer.source && o.screenLayer.source.width) {
+                srcW = o.screenLayer.source.width;
+                srcH = o.screenLayer.source.height;
+            }
+        } catch (_) {}
+        var maskRect = [(srcW - w) / 2, (srcH - h) / 2, w, h];
+        var shape = _bz_roundedRectShape(maskRect, cornerRadius);
+        screenMask = addMask(o.screenLayer, {
+            shape: "custom",
+            vertices: shape.vertices,
+            inTangents: shape.inTangents,
+            outTangents: shape.outTangents,
+            closed: true,
+            name: "Rounded Corners"
+        });
+
+        setStep("apply inner shadow to screen");
+        var innerShadow = o.screenLayer.property("ADBE Effect Parade").addProperty("ADBE PSL Inner Shadow");
+        try { innerShadow.property("ADBE PSL Inner Shadow-0001").setValue([0, 0, 0, 1]); } catch (_) {}  // Color
+        try { innerShadow.property("ADBE PSL Inner Shadow-0002").setValue(135); } catch (_) {}            // Angle
+        try { innerShadow.property("ADBE PSL Inner Shadow-0003").setValue(6); } catch (_) {}              // Distance
+        try { innerShadow.property("ADBE PSL Inner Shadow-0004").setValue(14); } catch (_) {}             // Blur
+        try { innerShadow.property("ADBE PSL Inner Shadow-0005").setValue(45); } catch (_) {}             // Intensity
+    }
+
+    try { bezelLayer.selected = false; } catch (_) {}
+
+    return { bezelLayer: bezelLayer, screenMask: screenMask };
+}

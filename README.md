@@ -40,6 +40,7 @@ When your AE template changes, re-run `Scripts/analyze/run_analysis.jsx` to keep
 | [social-card](examples/social-card/) | Data-driven social card with dynamic text and images |
 | [ticker-data](examples/ticker-data/) | Live stock data pulled into a lower-third panel |
 | [audio-spectrum](examples/audio-spectrum/) | Generative audio visualizer panel |
+| [lcd-screen](examples/lcd-screen/) | Physical LCD-monitor mockup from a screen recording — 3D camera, lens FX, subpixel grid, bezel, glass reflections |
 | [ae-ai-chat](https://github.com/boo13/ae-ai-chat) | AI chat plugin (moved to own repo) |
 
 ## Screenshots
@@ -72,3 +73,7 @@ When your AE template changes, re-run `Scripts/analyze/run_analysis.jsx` to keep
 - **[Your First Automation](docs/first-automation.md)** — Step-by-step walkthrough from setup to first script
 - **[AI Workflow Guide](docs/ai-workflow.md)** — Advanced tips, symlink patterns, and development practices
 - **[Recipes Reference](docs/recipes.md)** — When to use each recipe and how to customize them
+
+## Links
+
+- **[Plainly Videos](https://www.plainlyvideos.com/after-effects-expressions-library)** - Great resource for expressions

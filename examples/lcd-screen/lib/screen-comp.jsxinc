@@ -1,0 +1,73 @@
+// LCD Screen — Screen Comp Builder
+// Two-stage build:
+//   LCD_Panel  — content + the full physical-panel treatment (addLcdScreen), sized to
+//                the content's own resolution so every panel-wide overlay (glass, bleed,
+//                vignette) covers exactly the visible screen area.
+//   LCD_Screen — LCD_Panel placed as ONE layer (so addBezel's rounded-corner mask clips
+//                the whole treated panel in a single mask, not each overlay separately),
+//                plus the bezel frame and ambient light spill, sized to content + bezel.
+
+function buildPanelComp(content, cfg) {
+    var innerW = content.width;
+    var innerH = content.height;
+
+    var panelComp = app.project.items.addComp("LCD_Panel", innerW, innerH, 1, cfg.DURATION, cfg.FRAME_RATE);
+    try { panelComp.bgColor = [0, 0, 0]; } catch (_) {}
+
+    var contentLayer = panelComp.layers.add(content.comp);
+    contentLayer.name = "Screen Content";
+    try { contentLayer.property("Transform").property("Position").setValue([innerW / 2, innerH / 2]); } catch (_) {}
+
+    var lcd = addLcdScreen(panelComp, {
+        contentLayer: contentLayer,
+        glow: { thresholdPercent: cfg.GLOW_THRESHOLD_PERCENT, radius: cfg.GLOW_RADIUS, intensity: cfg.GLOW_INTENSITY },
+        subpixel: { mode: cfg.SUBPIXEL_MODE, pixelSize: cfg.SUBPIXEL_PIXEL_SIZE, amount: cfg.SUBPIXEL_AMOUNT },
+        scanlines: { pitch: cfg.SCANLINE_PITCH, amount: cfg.SCANLINE_AMOUNT, rollBar: cfg.SCANLINE_ROLL_BAR },
+        viewingAngle: { axis: cfg.VIEWING_ANGLE_AXIS, amount: cfg.VIEWING_ANGLE_AMOUNT },
+        backlightTint: { preset: cfg.BACKLIGHT_TINT_PRESET, density: cfg.BACKLIGHT_TINT_DENSITY },
+        backlightBleed: { corners: cfg.BACKLIGHT_BLEED_CORNERS, intensity: cfg.BACKLIGHT_BLEED_INTENSITY, muraAmount: cfg.BACKLIGHT_MURA },
+        glass: { dust: cfg.GLASS_DUST, smudge: cfg.GLASS_SMUDGE, sheen: cfg.GLASS_SHEEN, sweep: cfg.GLASS_SWEEP, sweepSpeed: cfg.GLASS_SWEEP_SPEED },
+        vignette: { amount: cfg.VIGNETTE_AMOUNT }
+    });
+
+    return { comp: panelComp, contentLayer: contentLayer, lcd: lcd, width: innerW, height: innerH };
+}
+
+function buildScreenComp(panel, cfg) {
+    var bezelWidth = cfg.BEZEL_ENABLED ? cfg.BEZEL_WIDTH : 0;
+    var outerW = panel.width + bezelWidth * 2;
+    var outerH = panel.height + bezelWidth * 2;
+
+    var screenComp = app.project.items.addComp("LCD_Screen", outerW, outerH, 1, cfg.DURATION, cfg.FRAME_RATE);
+    try { screenComp.bgColor = [0, 0, 0]; } catch (_) {}
+
+    var panelLayer = screenComp.layers.add(panel.comp);
+    panelLayer.name = "Panel";
+    try { panelLayer.property("Transform").property("Position").setValue([outerW / 2, outerH / 2]); } catch (_) {}
+
+    var bezelResult = null;
+    if (cfg.BEZEL_ENABLED) {
+        bezelResult = addBezel(screenComp, {
+            screenLayer: panelLayer,
+            width: panel.width,
+            height: panel.height,
+            bezelWidth: bezelWidth,
+            cornerRadius: cfg.BEZEL_CORNER_RADIUS,
+            color: cfg.BEZEL_COLOR
+        });
+    }
+
+    var spillLayer = null;
+    if (cfg.AMBIENT_SPILL_ENABLED) {
+        spillLayer = addAmbientSpill(screenComp, { targetLayer: panelLayer, opacity: cfg.AMBIENT_SPILL_OPACITY });
+    }
+
+    return {
+        comp: screenComp,
+        panelLayer: panelLayer,
+        bezel: bezelResult,
+        spillLayer: spillLayer,
+        width: outerW,
+        height: outerH
+    };
+}

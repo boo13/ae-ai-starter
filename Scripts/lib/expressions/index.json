@@ -1,0 +1,1967 @@
+{
+  "type": "expressions",
+  "source": "https://www.plainlyvideos.com/after-effects-expressions-library",
+  "generated_at": "2026-04-13T08:40:51+00:00",
+  "expression_count": 150,
+  "categories": {
+    "motion": {
+      "count": 50,
+      "description": "Expressions for animating position, layout, and spatial behavior."
+    },
+    "transformation": {
+      "count": 36,
+      "description": "Expressions that resize, scale, or reposition layers relative to comp or text bounds."
+    },
+    "interpolation": {
+      "count": 27,
+      "description": "Expressions for driving values from text content, counters, and derived data."
+    },
+    "randomness": {
+      "count": 20,
+      "description": "Expressions that introduce controlled randomness, flickering, and organic variation."
+    },
+    "conditional": {
+      "count": 17,
+      "description": "Expressions that branch based on layer state, time, or comp properties."
+    }
+  },
+  "expressions": [
+    {
+      "name": "Animated Responsive Text Box",
+      "slug": "animated-text-box-responsive",
+      "type": "expression",
+      "category": "conditional",
+      "description": "Animates the width of a shape layer based on a referenced text layer’s width. It transitions from a keyframed starting width to match the current text size.",
+      "whenToUse": "Great for lower-thirds, labels, or expanding buttons that grow to fit the text inside - while still looking smooth and animated.",
+      "targetProperty": "Any animatable property",
+      "expression": "// Reference the text layer\nsubText = thisComp.layer(\"TEXT\");\n// Target text layer\n// Get text dimensions\ntextWidth = subText.sourceRectAtTime(time, false).width + 70;\ntextHeight = subText.sourceRectAtTime(time, false).height + 70;\nprop = thisProperty;\n// Keyframed animation range\nfirstValue = prop.key(1).value[0];\n// Starting width from first keyframe\nlastValue = prop.key(2).value[0];\n// Ending width from second keyframe\n// Final width based on text\nnewWidth = textWidth;\nanimatedWidth = linear(value[0], firstValue, lastValue, firstValue, newWidth);\n[animatedWidth, textHeight];",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/animated-text-box-responsive"
+    },
+    {
+      "name": "Auto Align and Center Two Text Layers",
+      "slug": "auto-align-and-center",
+      "type": "expression",
+      "category": "transformation",
+      "description": "This expression keeps two text layers visually centered relative to each other and the composition, no matter the text length or spacing. Be sure to follow the instructions in the expression comments!",
+      "whenToUse": "Ideal for ensuring two text layers remain perfectly centered within the composition - especially useful for headlines and dynamic text setups where content length may vary.",
+      "targetProperty": "Position",
+      "expression": "// Right-align the FIRST layer.\n// Left-align the SECOND layer.\n// Parent the second layer to the first and position it accordingly.\n// Expression for the FIRST layer's position (parent layer).\n// Apply this expression to the position property of the FIRST layer.\nt1 = thisLayer.sourceRectAtTime();\nt2 = thisComp.layer(\"Text 2\").sourceRectAtTime();\nmargin = thisComp.layer(\"Text 2\").position[0];\nx = t1.width - margin - t2.width;\n[thisComp.width / 2, thisComp.height / 2] + [x / 2, t1.height / 2];",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/auto-align-and-center"
+    },
+    {
+      "name": "Auto Grid Layout Expression After Effects",
+      "slug": "auto-grid-layout",
+      "type": "expression",
+      "category": "motion",
+      "description": "Automatically arranges shape/text layers in a responsive grid using a control layer with a \"Columns\" slider. Includes scale auto-fit.",
+      "whenToUse": "Useful for building tiled image galleries, infographic layouts, or grid-based animations.",
+      "targetProperty": "Position or Scale",
+      "expression": "// For Position\nvar control = thisComp.layer(\"Controller\");\nvar numCols = Math.floor(control.effect(\"Columns\")(\"Slider\"));\nvar tileIndex = index - control.index - 1;\nvar col = tileIndex % numCols;\nvar row = Math.floor(tileIndex / numCols);\nvar colW = thisComp.width / numCols;\nvar firstTile = thisComp.layer(control.index + 1);\nvar rowH = firstTile.height / firstTile.width * colW;\nvar x = colW * (col + 0.5);\nvar y = rowH * (row + 0.5);\n[x, y];\n// For Scale\nvar control = thisComp.layer(\"Controller\");\nvar numCols = Math.floor(control.effect(\"Columns\")(\"Slider\"));\nvar colW = thisComp.width / numCols;\nvar scale = colW / width * 100;\n[scale, scale];",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/auto-grid-layout"
+    },
+    {
+      "name": "Auto-Scaling Text Layer with Width Constraints",
+      "slug": "auto-scale-text",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Automatically scales a text layer to ensure its width stays within a specified limit. The text adjusts its size dynamically to fit within the bounds, providing a responsive design solution.",
+      "whenToUse": "Perfect for auto-scaling subtitles, banners, or text that needs to adapt to varying character counts without exceeding a defined width, ensuring consistency in responsive layouts.",
+      "targetProperty": "Scale",
+      "expression": "textWidth = sourceRectAtTime(time, false).width;\ndefaultLimit = thisComp.width;\ncustomLimit = effect(\"Width Limit\")(\"Slider\");\nwidthLimit = (customLimit > 0) ? customLimit : defaultLimit;\nif (textWidth > 0) {\nscaleFactor = (widthLimit / textWidth) * 100;\nclampedScale = clamp(scaleFactor, 0, 100);\n[clampedScale, clampedScale];}\nelse {\nvalue;}",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/auto-scale-text"
+    },
+    {
+      "name": "Auto Scale to Comp",
+      "slug": "auto-scale-to-comp",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Automatically resizes your image, video, or precomp so it fits perfectly inside the composition. You can choose whether it should fit completely inside (no cropping) or fill the entire frame (may crop a bit). There’s also a switch to keep or ignore the original aspect ratio, so you can decide if it should stay proportional or stretch to fill the space.",
+      "whenToUse": "Use this when you’re replacing footage or images in a template and want them to instantly scale to the right size without guessing. It’s great for social-media versions (square, vertical, or widescreen), product videos, or automated projects where every image needs to fit just right every time.",
+      "targetProperty": "Position or Scale",
+      "expression": "maintainRatio = effect(\"Maintain Ratio\")(\"Checkbox\");\nfillMode = effect(\"Fit / Fill\")(\"Checkbox\");\nlw = thisLayer.width;\nlh = thisLayer.height;\ncw = thisComp.width;\nch = thisComp.height;\naspectLayer = lw / lh;\naspectComp = cw / ch;\nif (maintainRatio == 1) {\n if (fillMode == 0){\n  // FIT (contain without cropping)\n  scaleFactor = Math.min(cw / lw, ch / lh);\n  [scaleFactor * 100, scaleFactor * 100];\n } else {\n // FILL (cover full comp, may crop)\n scaleFactor = Math.max(cw / lw, ch / lh);\n [scaleFactor * 100, scaleFactor * 100];\n }\n} else {\n // No ratio constraint, stretch to fit/fill comp\n if (fillMode == 0) {\n  [cw / lw * 100, ch / lh * 100];\n  // Fit (stretch)\n } else {\n  [cw / lw * 100, ch / lh * 100];\n  // Fill (also stretches in this case)\n }\n}",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/auto-scale-to-comp"
+    },
+    {
+      "name": "Auto-Wiggle When Near Another Layer",
+      "slug": "auto-wiggle-proximity",
+      "type": "expression",
+      "category": "randomness",
+      "description": "Automatically adjusts the wiggle amount based on distance to another layer.",
+      "whenToUse": "Useful for interactive UI animations, physics-based motion, or objects reacting when near another element.",
+      "targetProperty": "Position or any multi-dimensional property",
+      "expression": "maxWiggle = 20;\n// Maximum wiggle amount\nmaxFrequency = 10;\n// Maximum wiggle frequency\nmaxDistance = 500;\n// Maximum distance\ntarget = thisComp.layer(\"TargetLayer\").position;\ndist = length(position, target);\n// Map distance to wiggle amount and frequency\nwiggleAmount = linear(dist, 0, maxDistance, maxWiggle, 0);\nwiggleFrequency = linear(dist, 0, maxDistance, maxFrequency, 1);\nwiggle(wiggleFrequency, wiggleAmount);",
+      "params": [
+        "maxWiggle",
+        "maxFrequency",
+        "maxDistance"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/auto-wiggle-proximity"
+    },
+    {
+      "name": "Automatic Fade In and Out Expression",
+      "slug": "automatic-fade-in-out",
+      "type": "expression",
+      "category": "motion",
+      "description": "Adds a fade in and fade out effect based on layer duration, without keyframes.",
+      "whenToUse": "Ideal for templates or MOGRTs where layers need quick fade-in/out transitions.",
+      "targetProperty": "Opacity",
+      "expression": "fade = 1;\nfadeIn = (time-inPoint)/fade;\nfadeOut = (outPoint - time)/fade;\nif (time outPoint - fade){\nease(fadeOut,0,1)*value}else{\nvalue\n}",
+      "params": [
+        "fade"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/automatic-fade-in-out"
+    },
+    {
+      "name": "Automatic Scale Animation with Overshoot",
+      "slug": "automatic-scale-animation",
+      "type": "expression",
+      "category": "motion",
+      "description": "Applies a smooth scale animation with an overshoot effect that dynamically adapts to the layer’s duration. The animation begins at the layer’s inPoint, peaks with an overshoot, and settles at the final scale. It then reverses the process at the outPoint, all without requiring any keyframes.",
+      "whenToUse": "Perfect for animating elements like buttons, logos, or text, adding smooth and professional-looking scale transitions. Ideal for templates or projects where automatic, time-based scaling animations save time and effort.",
+      "targetProperty": "Scale",
+      "expression": "scaleDuration = 0.5; // Animation duration - You may connect this to a slider\nstartValue = 0; // Start value\nendValue = 100; // End value\novershootPower = 5; // Overshoot power in percentages\novershootValue = endValue * (1 + overshootPower / endValue);\nif (time >= inPoint && time < inPoint + scaleDuration) {\nt = (time - inPoint) / scaleDuration;\nif (t <= 0.5) {\nanimatedValue = easeOut(t, 0, 0.5, startValue, overshootValue);}\nelse {\nanimatedValue = ease(t, 0.5, 1, overshootValue, endValue);}}\nelse if (time > outPoint - scaleDuration && time <= outPoint){\nt = (time - (outPoint - scaleDuration)) / scaleDuration;\nif (t <= 0.5) {\nanimatedValue = ease(t, 0, 0.5, endValue, overshootValue);}\nelse {\nanimatedValue = ease(t, 0.5, 1, overshootValue, startValue);}}\nelse if (time > outPoint) {\nanimatedValue = startValue;}\nelse {\nanimatedValue = endValue;}\n[animatedValue, animatedValue];",
+      "params": [
+        "scaleDuration",
+        "startValue",
+        "endValue",
+        "overshootPower"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/automatic-scale-animation"
+    },
+    {
+      "name": "Bell Shake & Ring Motion",
+      "slug": "bell-shake-ring",
+      "type": "expression",
+      "category": "motion",
+      "description": "Creates a periodic burst of high-frequency oscillation (shaking) followed by a moment of stillness. This simulates the physics of an object being struck or vibrated at specific intervals rather than moving continuously.",
+      "whenToUse": "Perfect for animating notification icons, alarm clocks, or holiday jingle bells that need to \"ring\" periodically to grab the viewer's attention.",
+      "targetProperty": "Any animatable property",
+      "expression": "interval = 2;\nshakeDur = 0.5;\namp = 25;\nfreq = 30;\nloopTime = time % interval;\nif (loopTime < shakeDur) {\n Math.sin(loopTime * freq) * amp * (1 - loopTime/shakeDur);\n } else {\n 0;\n}",
+      "params": [
+        "interval",
+        "shakeDur",
+        "amp",
+        "freq"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/bell-shake-ring"
+    },
+    {
+      "name": "Bounce Expression",
+      "slug": "bounce",
+      "type": "expression",
+      "category": "motion",
+      "description": "Creates a bounce effect when an object comes to rest.",
+      "whenToUse": "A ball bounces to a stop after falling, using this expression to animate its bounce motion.",
+      "targetProperty": "Position or any multi-dimensional property",
+      "expression": "amp = 50;\nfreq = 2;\ndecay = 5;\nn = 0;\nif (numKeys > 0 && time > key(numKeys).time) {\n    t = time - key(numKeys).time;\n    n = Math.sin(freq * t * Math.PI * 2) * amp * Math.exp(-decay * t);\n}\nvalue + [n, n];",
+      "params": [
+        "amp",
+        "freq",
+        "decay"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/bounce"
+    },
+    {
+      "name": "Center Anchor Point Expression",
+      "slug": "center-anchor-point",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Calculates the center point of a text layer, based on its bounding box.",
+      "whenToUse": "Aligns other elements (like icons or graphics) to the exact center of a dynamically sized text box, keeping the layout balanced.",
+      "targetProperty": "Any animatable property",
+      "expression": "top = sourceRectAtTime().top;\nleft = sourceRectAtTime().left;\nx = left + (sourceRectAtTime().width / 2);\ny = top + (sourceRectAtTime().height / 2);\n[x,y]",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/center-anchor-point"
+    },
+    {
+      "name": "Change Value Based On Position",
+      "slug": "change-value-position",
+      "type": "expression",
+      "category": "conditional",
+      "description": "Changes any value of a layer based on the position",
+      "whenToUse": "Changing the opacity of a layer if it crosses a certaing position.",
+      "targetProperty": "Opacity",
+      "expression": "if (position[1] > 500) {\n    value * 0.5;\n} else {\n    value;\n}",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/change-value-position"
+    },
+    {
+      "name": "Character Counter for Text Layers",
+      "slug": "character-counter",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Counts and returns the total number of characters in a text layer, dynamically updating as the text changes.",
+      "whenToUse": "Ideal for animations or templates where character count impacts design decisions, like creating dynamic layouts or limiting text lengths.",
+      "targetProperty": "Source Text",
+      "expression": "myText = thisComp.layer(\"textLayer\").text.sourceText;\nmyText.length",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/character-counter"
+    },
+    {
+      "name": "Character Counter for Text Layers Excluding Spaces",
+      "slug": "character-counter-no-spaces",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Counts the number of characters in a text layer while excluding spaces, providing a more precise character count for text that may include whitespace.",
+      "whenToUse": "Perfect for templates and animations where the number of characters, excluding spaces, plays a role in dynamic layouts, adjusting design elements, or enforcing text length limits.",
+      "targetProperty": "Source Text",
+      "expression": "myText = thisComp.layer(\"textLayer\").text.sourceText;\nmyTextWithoutSpaces = myText.replace(/\\s/g, \"\"); // Remove all spaces\nmyTextWithoutSpaces.length;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/character-counter-no-spaces"
+    },
+    {
+      "name": "Christmas Lights Color Generator",
+      "slug": "christmas-lights",
+      "type": "expression",
+      "category": "randomness",
+      "description": "Randomly switches a layer's color between a defined holiday palette (Red, Green, Gold, White). It uses the layer's index to ensure multiple duplicates flash independently, creating a non-synchronized, organic blinking effect.",
+      "whenToUse": "Ideal for animating string lights, garlands, or festive borders where you need hundreds of individual bulbs to blink randomly without manually animating each one.",
+      "targetProperty": "Color",
+      "expression": "// Palette Red, Green, Gold, White\ncolors = [\n[0.8, 0, 0, 1],\n[0, 0.5, 0, 1],\n[1, 0.8, 0, 1],\n[1, 1, 1, 1]\n];\nspeed = 3; // Changes per second\nidx = Math.floor(time * speed);\n// Randomize based on layer index so lights don't sync\nseedRandom(index + idx, true);\nchoice = Math.floor(random(colors.length));\ncolors[choice];",
+      "params": [
+        "speed"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/christmas-lights"
+    },
+    {
+      "name": "Circular Orbit Around a Layer",
+      "slug": "circular-orbit-layer-anchor",
+      "type": "expression",
+      "category": "motion",
+      "description": "Makes a layer orbit around another at a set speed and radius.",
+      "whenToUse": "Great for animating satellites, planets, or circular motion effects.",
+      "targetProperty": "Position",
+      "expression": "center = thisComp.layer(\"CenterLayer\").position;\nradius = 500; // Change this value or connect it to a Slider\nspeed = 2; // Change this value or connect it to a Slider\nx = center[0] + Math.cos(time * speed) * radius;\ny = center[1] + Math.sin(time * speed) * radius;\n[x, y];",
+      "params": [
+        "radius",
+        "speed"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/circular-orbit-layer-anchor"
+    },
+    {
+      "name": "Clamp Expression",
+      "slug": "clamp",
+      "type": "expression",
+      "category": "conditional",
+      "description": "Restricts a property’s value within a specified range.",
+      "whenToUse": "Ensuring that a layer's scale never goes below 50% or above 150%, no matter what animations or adjustments you apply.",
+      "targetProperty": "Scale",
+      "expression": "clamp(value, minValue, maxValue)",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/clamp"
+    },
+    {
+      "name": "Color Animation Based on Layer Position",
+      "slug": "color-animation",
+      "type": "expression",
+      "category": "conditional",
+      "description": "Dynamically changes a layer’s color based on its position within the composition, using X and Y coordinates to calculate RGB values.",
+      "whenToUse": "Great for interactive animations where objects change color as they move, such as sliders, maps, or responsive graphics.",
+      "targetProperty": "Color",
+      "expression": "xNorm = linear(position[0], 0, thisComp.width, 0, 1); // Normalize X position\nyNorm = linear(position[1], 0, thisComp.height, 0, 1); // Normalize Y position\nr = linear(xNorm, 0, 1, 0, 255); // Map X to Red\ng = linear(yNorm, 0, 1, 0, 255); // Map Y to Green\nb = 255 - (r + g) / 2; // Complementary Blue\n[r, g, b, 255] / 255; // Normalize to RGB",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/color-animation"
+    },
+    {
+      "name": "Color Fade Expression",
+      "slug": "color-fade",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Fades a color from white to black over 5 seconds.",
+      "whenToUse": "Fading a color from white to black over 5 seconds.",
+      "targetProperty": "Any animatable property",
+      "expression": "linear(time, 0, 5, [1,1,1,1], [0,0,0,0])",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/color-fade"
+    },
+    {
+      "name": "Constrain Shape Layer Inside Circle Bounds",
+      "slug": "constrain-shape-layer",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Keeps a smaller shape layer constrained inside a larger circle by calculating and limiting its position, ensuring it stays within the boundaries.",
+      "whenToUse": "Ideal for creating animations where smaller objects, like buttons or icons, need to move freely but stay within a circular frame.",
+      "targetProperty": "Position",
+      "expression": "largeCircle = thisComp.layer(\"LargeCircle\");\nlargePosition = largeCircle.position;\nlargeRadius = largeCircle.content(\"Ellipse 1\").content(\"Ellipse Path 1\").size[0] / 2;\nsmallRadius = content(\"Ellipse 1\").content(\"Ellipse Path 1\").size[0] / 2;\ndelta = position - largePosition;\ndistance = length(delta);\nif (distance > (largeRadius - smallRadius)) {\nconstrainedDelta = normalize(delta) * (largeRadius - smallRadius);\nconstrainedPosition = largePosition + constrainedDelta;}\nelse {\nconstrainedPosition = position;}\nconstrainedPosition;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/constrain-shape-layer"
+    },
+    {
+      "name": "Convert Spaces into Line Breaks in Text Layers",
+      "slug": "convert-spaces-line-breaks",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Replaces all spaces in a text layer with line breaks.",
+      "whenToUse": "Helps format text dynamically, ensuring line breaks happen after every space - great for captions and paragraph formatting.",
+      "targetProperty": "Source Text",
+      "expression": "text.sourceText.replace(/ /g, \"\\r\");",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/convert-spaces-line-breaks"
+    },
+    {
+      "name": "ConvertToWorld Expression",
+      "slug": "convert-to-world",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Converts a 2D position to 3D space coordinates.",
+      "whenToUse": "Aligning a spotlight’s position to the world space anchor point of another 3D object.",
+      "targetProperty": "Position",
+      "expression": "box = thisComp.layer(\"3DLayer\");  // Replace with the name of your 3D layer\nboxWorldPos = box.toWorld(box.anchorPoint);\nboxWorldPos;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/convert-to-world"
+    },
+    {
+      "name": "Copy Text and Style from Another Layer",
+      "slug": "copy-text-and-style",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Duplicates the text content and style from a main text layer. Automatically updates whenever the source changes.",
+      "whenToUse": "Automatically mirror both text and styling from a main layer - perfect for subtitles, translated text, or synced design systems.",
+      "targetProperty": "Source Text",
+      "expression": "const mainTextLayer = thisComp.layer(\"text1\");\nconst mainTextStyle = mainTextLayer.text.sourceText.getStyleAt(0);\nmainTextStyle.setText(mainTextLayer.text.sourceText.value);",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/copy-text-and-style"
+    },
+    {
+      "name": "Exponential Counter Up Expression",
+      "slug": "counter-up",
+      "type": "expression",
+      "category": "motion",
+      "description": "Creates a scaling effect that grows exponentially.",
+      "whenToUse": "You want to animate a text layer that shows a price or number increasing exponentially, simulating the effect of fast-growing numbers.",
+      "targetProperty": "Source Text",
+      "expression": "\"$\" + Math.floor(1000 * Math.exp(time)).toString();",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/counter-up"
+    },
+    {
+      "name": "Display Current Date in After Effects",
+      "slug": "current-date",
+      "type": "expression",
+      "category": "motion",
+      "description": "Shows the current date within a text layer, customizable by format.",
+      "whenToUse": "Useful in dynamic date overlays or template projects where the date should auto-update.",
+      "targetProperty": "Source Text",
+      "expression": "d = new Date(Date(0));\ndivider = \"/\"yearLength = 2; // use 2 for YY, 4 for YYYY\nfunction padZeros(n){\nif(n <= 9){\nreturn \"0\" + n;\n}\nreturn n\n}\nyearTrim = (yearLength===2) ? 2 : 0;\"\" + padZeros(d.getMonth()+1) + divider + padZeros(d.getDate()) + divider + d.getFullYear().toString().substring(yearTrim,4);",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/current-date"
+    },
+    {
+      "name": "Days Until Date Counter",
+      "slug": "days-until-date",
+      "type": "expression",
+      "category": "conditional",
+      "description": "Dynamically calculates the remaining time until a specific target holiday or event. It compares the current time to the target and updates the text layer automatically, even detecting if the date has passed to reset for the next year.",
+      "whenToUse": "Essential for creating \"Countdown to Christmas\" graphics, product launch timers, or event reminders in social media templates that need to remain accurate.",
+      "targetProperty": "Source Text",
+      "expression": "targetMonth = 12; // 1 = Jan, 12 = Dec\ntargetDay   = 31;\ntargetYear  = new Date().getFullYear();\ntoday = new Date();\n// Convert to JS month index (0–11)\njsMonth = targetMonth - 1;\ntargetDate = new Date(targetYear, jsMonth, targetDay);\n// If date passed, count for next year\nif (today > targetDate) {\n targetDate = new Date(targetYear + 1, jsMonth, targetDay);\n}\n// Calculate difference in days\noneDay = 1000 * 60 * 60 * 24;\ndiff = targetDate.getTime() - today.getTime();\ndaysLeft = Math.ceil(diff / oneDay);\ndaysLeft + \" Days Left\";",
+      "params": [
+        "targetMonth",
+        "targetDay"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/days-until-date"
+    },
+    {
+      "name": "Delay Expression",
+      "slug": "delay",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Delays a property’s value based on another layer's animation.",
+      "whenToUse": "Delaying the rotation of a gear object so it follows the rotation of a larger parent gear.",
+      "targetProperty": "Rotation",
+      "expression": "thisComp.layer(index-1).transform.rotation.valueAtTime(time - 0.5)",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/delay"
+    },
+    {
+      "name": "Detect Layer Overlap",
+      "slug": "detect-overlap",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Detects when two layers overlap, adjusting opacity as they collide.",
+      "whenToUse": "Great for collision detection effects, such as interactive animations where elements change on contact.",
+      "targetProperty": "Opacity",
+      "expression": "function getBoundingBox(layer) {\nvar rect = layer.sourceRectAtTime(time, false); // Get the four corners of the layer in world space, considering rotation\nvar topLeft = layer.toWorld([rect.left, rect.top]);\nvar topRight = layer.toWorld([rect.left + rect.width, rect.top]);\nvar bottomLeft = layer.toWorld([rect.left, rect.top + rect.height]);\nvar bottomRight = layer.toWorld([rect.left + rect.width, rect.top + rect.height]);\nreturn [topLeft, topRight, bottomRight, bottomLeft];\n}\nfunction layersOverlap() {\nvar myCorners = getBoundingBox(thisLayer);\nfor (var i = 1; i <= thisComp.numLayers; i++) {\nif (i == index) continue; // Skip self\nvar otherLayer = thisComp.layer(i);\nif (!otherLayer.active) continue;\nvar otherCorners = getBoundingBox(otherLayer); // Check if any corner of one layer is inside the bounds of the other\nif (isAnyCornerInside(myCorners, otherCorners) || isAnyCornerInside(otherCorners, myCorners)) {\nreturn true;\n} }\nreturn false;\n}\nfunction isAnyCornerInside(cornersA, cornersB) {\nfor (var i = 0; i < cornersA.length; i++){\nvar point = cornersA[i];\nif (isPointInside(point, cornersB)) {\nreturn true;\n} }\nreturn false;\n}\nfunction isPointInside(point, corners) { // Using a bounding box approach for simplicity; accurate for axis-aligned but approximate for rotated shapes\nvar minX = Math.min(corners[0][0], corners[1][0], corners[2][0], corners[3][0]);\nvar maxX = Math.max(corners[0][0], corners[1][0], corners[2][0], corners[3][0]);\nvar minY = Math.min(corners[0][1], corners[1][1], corners[2][1], corners[3][1]);\nvar maxY = Math.max(corners[0][1], corners[1][1], corners[2][1], corners[3][1]);\nreturn (point[0] >= minX && point[0] <= maxX && point[1] >= minY && point[1] <= maxY);\n} // Change opacity based on overlap; You can swap number 30 for any other\nvaluelayersOverlap() ? 30 : 100;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/detect-overlap"
+    },
+    {
+      "name": "Dynamic AM/PM Digital Timer Expression",
+      "slug": "digital-timer-am-pm",
+      "type": "expression",
+      "category": "motion",
+      "description": "A responsive digital timer with AM/PM formatting that updates dynamically based on the timeline, using sliders for hours, minutes, and seconds.",
+      "whenToUse": "Ideal for motion graphics like digital clocks, dashboards, or time-based animations requiring precise and customizable time displays.",
+      "targetProperty": "Source Text",
+      "expression": "// Define the starting time in hours, minutes, and seconds\nstartHours = effect(\"hours\")(\"Slider\");\nstartMinutes = effect(\"minutes\")(\"Slider\");\nstartSeconds = effect(\"seconds\")(\"Slider\");\n// Convert the starting time into total seconds\nstartTime = (startHours * 3600) + (startMinutes * 60) + startSeconds;\n// Get the current time in the composition\ncurrentTime = time - inPoint;\n// Calculate the elapsed time\nelapsedTime = currentTime + startTime;\n// Convert elapsed time to hours, minutes, and seconds\nhours = Math.floor(elapsedTime / 3600);\nminutes = Math.floor((elapsedTime % 3600) / 60);\nseconds = Math.floor(elapsedTime % 60);\n// Format the timer as HH:MM:SS\nformattedHours = hours < 10 ? \"0\" + hours : hours;\nformattedMinutes = minutes < 10 ? \"0\" + minutes : minutes;\nformattedSeconds = seconds < 10 ? \"0\" + seconds : seconds;\n// Access AM/PM from dropdown menu\ntiming = [\" AM\", \" PM\"];\nmenu = effect(\"AM/PM\")(\"Menu\")\namPm = timing[menu - 1]; // Adjust for 0-based array indexing\n// Combine the formatted hours, minutes, and seconds with AM/PM\nformattedTime = formattedHours + \":\" + formattedMinutes + \":\" + formattedSeconds + amPm;\n// Final output\nformattedTime;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/digital-timer-am-pm"
+    },
+    {
+      "name": "Digital Timer, Hours and Minutes Format",
+      "slug": "digital-timer-hm",
+      "type": "expression",
+      "category": "motion",
+      "description": "Displays time in an HH:MM format using a slider control.",
+      "whenToUse": "Great for countdowns or time-based animations where hours and minutes are needed.",
+      "targetProperty": "Source Text",
+      "expression": "slider = Math.round(effect(\"Slider Control\")(\"Slider\"));\nsec = slider % 60;\nmin = Math.floor(slider / 60);\nfunction addZero(n) {\nreturn n < 10 ? \"0\" + n : n;\n}\naddZero(min) + \":\" + addZero(sec);",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/digital-timer-hm"
+    },
+    {
+      "name": "Digital Timer, Hours, Minutes, and Seconds Format",
+      "slug": "digital-timer-hms",
+      "type": "expression",
+      "category": "motion",
+      "description": "Displays time in HH:MM:SS format, customizable via a slider.",
+      "whenToUse": "Useful for detailed time-based animations, such as timers or digital displays.",
+      "targetProperty": "Source Text",
+      "expression": "slider = Math.round(effect(\"Slider Control\")(\"Slider\"));\nsec = slider % 60;min = Math.floor((slider / 60) % 60);\nhrs = Math.floor(slider / 3600);function addZero(n) {\nreturn n < 10 ? \"0\" + n : n;\n}\naddZero(hrs) + \":\" + addZero(min) + \":\" + addZero(sec);",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/digital-timer-hms"
+    },
+    {
+      "name": "Distance-Based Scale Expression",
+      "slug": "distance-based-scale",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Scales an object based on its distance from a reference point.",
+      "whenToUse": "Scales the layer based on its distance from the point [500, 500]",
+      "targetProperty": "Position or Scale",
+      "expression": "linear(length(position, [500, 500]), 0, 1000, 100, 0)",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/distance-based-scale"
+    },
+    {
+      "name": "Distance Between Two Layers Expression",
+      "slug": "distance-between-layers",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Finds the straight-line distance (in pixels) between this layer and a target layer and outputs that number.",
+      "whenToUse": "Drive effects like blur, opacity or scale based on how close two layers are - perfect for reactive HUDs or infographics.",
+      "targetProperty": "Opacity",
+      "expression": "target = thisComp.layer(\"Target Layer\");\n// pick your target layer\np1 = position;\np2 = target.position;\nlength(p1, p2);",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/distance-between-layers"
+    },
+    {
+      "name": "Animated 2D DNA Helix Path",
+      "slug": "dna-helix-path",
+      "type": "expression",
+      "category": "motion",
+      "description": "Creates an animated 2D DNA strand path (one strand per layer) with controls for helix height, turns, radius, depth, offset, segments, and rotation speed. The path updates in real time and simulates subtle pseudo-3D depth. To build a full double helix, duplicate the layer and set the second strand’s offset to 180.",
+      "whenToUse": "Build science explainers or medical visuals by layering two customizable animated DNA strands in After Effects.",
+      "targetProperty": "Rotation",
+      "expression": "// DNA Helix – Apply to Path (one strand per layer)\nhelixHeight = effect(\"Helix Height\")(\"Slider\"); // vertical length\nturns = effect(\"Turns\")(\"Slider\"); // number of spiral turns\noffset = effect(\"Offset\")(\"Slider\") * Math.PI / 180; // horizontal strand\nspeed = effect(\"Speed\")(\"Slider\") * Math.PI / 180; // rotation speed\nradius = effect(\"Radius\")(\"Slider\"); // helix thickness\ndepth = effect(\"Depth\")(\"Slider\"); // pseudo-3D depth\nsegments = effect(\"Segments\")(\"Slider\"); // resolution (optional slider)\npts = [];\ninT = [];\noutT = [];\nfor (i = 0; i <= segments; i++) {\n t = i / segments;\n// Helix movement\nangle = t * turns * 2 * Math.PI + offset + time * speed;\nx = Math.cos(angle) * radius;\ny = -helixHeight/2 + t * helixHeight;\nz = Math.sin(angle) * radius;\n// Pseudo 3D projection\npts.push([x + z * depth, y]);\n// Curved path smoothing\nnextAngle = angle + (2 * Math.PI / segments);\ntx = Math.cos(nextAngle) * radius;\nty = helixHeight / segments * 0.5;\ninT.push([-tx, -ty]);\noutT.push([tx, ty]);\n}\ncreatePath(pts, inT, outT, false);",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/dna-helix-path"
+    },
+    {
+      "name": "DVD Screensaver Bounce Effect",
+      "slug": "dvd-screensaver-bounce",
+      "type": "expression",
+      "category": "motion",
+      "description": "Moves a layer across the screen, bouncing off edges dynamically.",
+      "whenToUse": "Recreates the classic DVD logo bounce effect for motion design, screen savers, or fun retro animations.",
+      "targetProperty": "Position or any multi-dimensional property",
+      "expression": "// Get layer dimensions\nlayerBounds = sourceRectAtTime(time, false);\nlayerWidth = layerBounds.width;\nlayerHeight = layerBounds.height;\n// Get comp dimensions\ncompWidth = thisComp.width;\ncompHeight = thisComp.height;\n// Set automatic boundaries based on layer size\nminX = layerWidth / 2;\nmaxX = compWidth - layerWidth / 2;\nminY = layerHeight / 2;\nmaxY = compHeight - layerHeight / 2;\n// Speed settings\nspeedX = 300;\nspeedY = 200;\n// Time calculation\nt = time - inPoint;\n// Calculate position\nx = minX + (t * speedX) % ((maxX - minX) * 2);\ny = minY + (t * speedY) % ((maxY - minY) * 2);\n// Reflect position if it hits the bounds\nif (x > maxX) x = maxX - (x - maxX);\nif (x < minX) x = minX + (minX - x);\nif (y > maxY) y = maxY - (y - maxY);\nif (y < minY) y = minY + (minY - y);\n[x, y];",
+      "params": [
+        "speedX",
+        "speedY"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/dvd-screensaver-bounce"
+    },
+    {
+      "name": "Dynamic Anchor Point Lock Expression",
+      "slug": "dynamic-anchor-point-lock",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Uses sourceRectAtTime() and a dropdown menu to lock a layer’s anchor point to any of nine positions (center, corners, edges) relative to its own bounds.",
+      "whenToUse": "Quickly snap a layer’s Anchor Point to any corner or the center without dragging it by hand. Great for lower-thirds and text rigs.",
+      "targetProperty": "Position",
+      "expression": "// Fetch the dropdown value\nanchorOption = effect(\"Dropdown Menu Control\")(\"Menu\");\n// Get the text bounds\nrect = sourceRectAtTime((inPoint+outPoint)/2, false);\ntop = rect.top;\nleft = rect.left;\nw = rect.width;\nh = rect.height;\n// Default values\nx = 0;\ny = 0;\n// Anchor point switch\nif (anchorOption == 1) {\n // Center\nx = left + w/2;\ny = top + h/2;\n} else if (anchorOption == 2) {\n// Top Left\nx = left;\ny = top;\n}\nelse if (anchorOption == 3) {\n// Top\nx = left + w/2;\ny = top;\n}\nelse if (anchorOption == 4) {\n// Top Right\nx = left + w;\ny = top;\n}\nelse if (anchorOption == 5) {\n// Right\nx = left + w;\ny = top + h/2;\n} else if (anchorOption == 6) {\n// Bottom Right\nx = left + w;\ny = top + h;\n}\nelse if (anchorOption == 7) {\n// Bottom\nx = left + w/2;\ny = top + h;\n}\nelse if (anchorOption == 8) {\n// Bottom Left\nx = left;\ny = top + h;\n}\nelse if (anchorOption == 9) {\n// Left\nx = left;\ny = top + h/2;\n}\n[x, y];",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/dynamic-anchor-point-lock"
+    },
+    {
+      "name": "Dynamic Number Counter without Keyframes",
+      "slug": "dynamic-counter-no-keyframes",
+      "type": "expression",
+      "category": "transformation",
+      "description": "This expression automatically animates a number from a defined start value to an end value over a set duration. It begins at the layer’s inPoint and allows control over the animation speed and decimal precision.",
+      "whenToUse": "Ideal for UI animations, statistics, financial data, and countdowns where a number needs to animate smoothly without manual keyframing.",
+      "targetProperty": "Source Text",
+      "expression": "startValue = 0; // Change this value if needed\nendValue = 99.99; // Change this value if needed\nanimationDuration = 2; // Duration of animation in seconds\ndecimals = 2; // Number of decimal places\nstartTime = inPoint;\nendTime = startTime + animationDuration;\nt = clamp(time, startTime, endTime);\nanimatedValue = linear(t, startTime, endTime, startValue, endValue);\ndecimals = Math.round(decimals);\nroundedValue = animatedValue.toFixed(decimals);\nroundedValue;",
+      "params": [
+        "startValue",
+        "endValue",
+        "animationDuration",
+        "decimals"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/dynamic-counter-no-keyframes"
+    },
+    {
+      "name": "Dynamic Drop Shadow Based on Light Source",
+      "slug": "dynamic-drop-shadow-light-source",
+      "type": "expression",
+      "category": "conditional",
+      "description": "Controls Drop Shadow direction, distance, and softness based on the position of a light source.",
+      "whenToUse": "Useful for motion design with realistic lighting, making shadows move dynamically with light sources.",
+      "targetProperty": "Position",
+      "expression": "// Apply this to the Direction property of the Drop Shadow effect\nlight = thisComp.layer(\"Light Source\").position;\nobj = thisLayer.position;\nangle = radiansToDegrees(Math.atan2(obj[0] - light[0], light[1] - obj[1]));\nangle; // Apply this to the Distance property of the Drop Shadow effect\nlight = thisComp.layer(\"Light Source\").position;\nobj = thisLayer.position;\nmaxDist = 100; // Maximum shadow length\ndist = length(light, obj);\nlinear(dist, 0, 500, 10, maxDist);\n// Apply this to the Softness property of the Drop Shadow effect\nlight = thisComp.layer(\"Light Source\").position;\nobj = thisLayer.position;\nmaxSoft = 300; // Maximum blur\ndist = length(light, obj);\nlinear(dist, 0, 500, 5, maxSoft);",
+      "params": [
+        "maxDist",
+        "maxSoft"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/dynamic-drop-shadow-light-source"
+    },
+    {
+      "name": "Dynamic Text Box",
+      "slug": "dynamic-text-box",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Dynamically adjusts the size of a text box based on the width and height of another text layer, adding padding.",
+      "whenToUse": "Automatically resizes a background box to fit around changing text, ensuring consistent padding for labels, buttons, or captions.",
+      "targetProperty": "Any animatable property",
+      "expression": "// Shape layer size property\nsubText = thisComp.layer(\"index-1\");\ntextWidth = subText.sourceRectAtTime(time).width + 100;\ntextHeight = subText.sourceRectAtTime(time).height + 100;\n[textWidth, textHeight]\n// Text layer anchor point\ntop = sourceRectAtTime().top;\nleft = sourceRectAtTime().left;\nx = left + (sourceRectAtTime().width / 2);\ny = top + (sourceRectAtTime().height / 2);\n[x,y]",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/dynamic-text-box"
+    },
+    {
+      "name": "Ease Expression",
+      "slug": "ease",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Smoothly transitions between two values over a given time.",
+      "whenToUse": "Smoothly increasing opacity from 0 to 100 over 1 second for a fade effect.",
+      "targetProperty": "Opacity",
+      "expression": "ease(time, 0, 1, 100, 200)",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/ease"
+    },
+    {
+      "name": "EaseIn Expression",
+      "slug": "ease-in",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Creates a smooth animation between two values like the Ease expression but with a slower start.",
+      "whenToUse": "Gradually increasing a layer’s scale from 50% to 150% over 2 seconds.",
+      "targetProperty": "Scale",
+      "expression": "easeIn(time, 0, 2, 50, 150);",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/ease-in"
+    },
+    {
+      "name": "Elastic Connection Expression for Linked Animation",
+      "slug": "elastic-connection",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Creates an elastic motion effect for a layer that follows another, like a spring.",
+      "whenToUse": "Perfect for animating objects connected with a spring-like motion, like bungee cords or flexible connectors.",
+      "targetProperty": "Position or any multi-dimensional property",
+      "expression": "// Settings\nvar restLength = 20;\nvar damp = 0.95;\nvar leader = thisComp.layer(\"leader\");\n// Initialize time and position\nvar fDur = thisComp.frameDuration;\nvar currTime = time;\nvar p2 = position.valueAtTime(0);\nvar v2 = 0; // Loop through each frame up to the current time\nfor (var t = 0; t <= currTime; t += fDur) {\nvar p1 = leader.transform.position.valueAtTime(t);\nvar delta = p2 - p1;\nvar dist = length(delta) - restLength;\nvar a = normalize(delta) * (dist * fDur * 2);\nv2 = (v2 - a) * damp;\np2 += v2;\n}\np2;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/elastic-connection"
+    },
+    {
+      "name": "Expose Layer Speed Expression",
+      "slug": "expose-layer-speed",
+      "type": "expression",
+      "category": "motion",
+      "description": "Outputs a layer's movement speed (scalar) to drive effects like scaling, rotation, or blur.",
+      "whenToUse": "Perfect for adding motion blur, elastic effects, or reactive animations tied to movement speed.",
+      "targetProperty": "Rotation",
+      "expression": "transform.position.speed",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/expose-layer-speed"
+    },
+    {
+      "name": "Expose Layer Velocity Expression",
+      "slug": "expose-layer-velocity",
+      "type": "expression",
+      "category": "motion",
+      "description": "Outputs the velocity (change in position over time) of a layer. Useful for triggering effects based on speed.",
+      "whenToUse": "Trigger effects based on how fast an object moves - great for physics-based animation or speed-based visuals.",
+      "targetProperty": "Position",
+      "expression": "transform.position.velocity",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/expose-layer-velocity"
+    },
+    {
+      "name": "Automatic Fade In and Out with Sliders and Checkboxes",
+      "slug": "fade-in-out-controls",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Fades a property in or out using checkbox toggles and custom sliders for duration, start, and final values. This removes the need for keyframes and makes the fade fully customizable.",
+      "whenToUse": "Ideal for MOGRTs, templates, and automated scenes where designers want full UI control over fade animations.",
+      "targetProperty": "Opacity",
+      "expression": "fadeDuration = effect(\"Fade Duration\")(\"Slider\");\n// Duration of the fade (in seconds)\nzeroValue = effect(\"Zero Value\")(\"Slider\");\n// Value at the start and end\nfinalValue = effect(\"Final Value\")(\"Slider\");\n// Constant value during playback\nenableFadeIn = effect(\"Enable Fade In\")(\"Checkbox\") == 1;\nenableFadeOut = effect(\"Enable Fade Out\")(\"Checkbox\") == 1;\ncurrentTime = time - inPoint;\nlayerOut = inPoint + thisLayer.outPoint - thisLayer.inPoint;\n// Calculates actual outPoint inside the parent comp\ntimeToEnd = layerOut - time;\n// Time remaining before fade out\nif (enableFadeIn && currentTime < fadeDuration) {\n// Fade-in logic\nt = currentTime / fadeDuration;\nfadeValue = ease(t, 0, 1, zeroValue, finalValue);\n}\nelse if (enableFadeOut && timeToEnd < fadeDuration)\n{\n// Fade-out logic\nt = (fadeDuration - timeToEnd) / fadeDuration;\nfadeValue = ease(t, 0, 1, finalValue, zeroValue);\n}\nelse if (enableFadeIn || enableFadeOut){\n// Hold value if either fade is enabled and active\nfadeValue = finalValue;\n}\nelse\n{\n// No fading applied — use final value\nfadeValue = finalValue;\n}\nfadeValue;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/fade-in-out-controls"
+    },
+    {
+      "name": "Falling Snow Animation",
+      "slug": "falling-snow",
+      "type": "expression",
+      "category": "motion",
+      "description": "A plugin-free particle system simulation that moves layers from top to bottom with randomized speed, wind sway, and start times. It includes advanced boundary logic to loop the elements perfectly, ensuring they don't pop off-screen.",
+      "whenToUse": "The best way to create weather effects like rain or snow, or festive confetti backgrounds. Apply to one layer, duplicate it 50 times, and get a complex organic system instantly.",
+      "targetProperty": "Rotation",
+      "expression": "seedRandom(index, true);\nspeed = random(100, 400);\nwindAmt = random(-100, 100);\nswayFreq = random(0.5, 2);\nstartOffset = random(0, 10000);\nstartX = random(0, thisComp.width);\n// We measure size at time 0 to prevent jitter if the flake rotates\nrect = sourceRectAtTime(0, false);\nscaleY = transform.scale[1] / 100;\nobjHeight = rect.height * scaleY;\n// We add a safety buffer so it doesn't pop visibly\nsafetyBuffer = 100;\n// The total distance the flake needs to travel before resetting\ntravelDistance = thisComp.height + (objHeight * 2) + safetyBuffer;\nt = time + startOffset;\n// Vertical Movement\nstartY = -objHeight - safetyBuffer;\ny = startY + ((t * speed) % travelDistance);\n// Horizontal Sway\nx = startX + Math.sin(t * swayFreq) * windAmt;\n[x, y];",
+      "params": [
+        "safetyBuffer"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/falling-snow"
+    },
+    {
+      "name": "Flicker Effect on Layer In Point",
+      "slug": "flicker-effect-in-point",
+      "type": "expression",
+      "category": "motion",
+      "description": "Adds a flicker effect at the beginning of a layer's inPoint, fading in with random intensity. Easy to apply to Opacity or other properties for glitchy reveals.",
+      "whenToUse": "Perfect for glitchy title intros, logo reveals, or simulating digital boot-up effects.",
+      "targetProperty": "Opacity",
+      "expression": "if (time - inPoint < 1){\nMath.min(random(0, time - inPoint) * 100, value);\n}\nelse {\nvalue;\n}",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/flicker-effect-in-point"
+    },
+    {
+      "name": "Flip Layer Horizontally Based on X Position",
+      "slug": "flip-layer-x-position",
+      "type": "expression",
+      "category": "conditional",
+      "description": "Flips a layer’s scale when it crosses the comp’s center.",
+      "whenToUse": "Auto-flips layers when they move past the center of the screen, useful for characters, icons, or objects.",
+      "targetProperty": "Position or Scale",
+      "expression": "flip = (position[0] > thisComp.width / 2) ? [100, 100] : [-100, 100];\nflip;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/flip-layer-x-position"
+    },
+    {
+      "name": "Flip Layer Vertically Based on Y Position",
+      "slug": "flip-layer-y-position",
+      "type": "expression",
+      "category": "conditional",
+      "description": "Flips a layer’s scale based on vertical position.",
+      "whenToUse": "Useful for character animations, object mirroring, or interface elements that need to flip when they move above or below a certain point in the composition.",
+      "targetProperty": "Position or Scale",
+      "expression": "flip = (position[1] > thisComp.height / 2) ? [100, 100] : [100, -100];\nflip;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/flip-layer-y-position"
+    },
+    {
+      "name": "Font Size Based on Character Count",
+      "slug": "font-size-by-character-count",
+      "type": "expression",
+      "category": "conditional",
+      "description": "Shrinks font size automatically as the number of characters increases, preventing overflow or layout issues.",
+      "whenToUse": "Perfect for templates where the text input can vary in length, such as dynamic names, titles, or personalized data fields.",
+      "targetProperty": "Source Text",
+      "expression": "startSize = 60;\n// Starting font size\nstep = 10;\n// Decrease size per threshold\nminFontSize = 30;\n// Prevent font from getting too small\ncharThreshold = 90;\n// Shrink once per this many characters\ncharCount = text.sourceText.length;\nstepsToShrink = Math.floor(charCount / charThreshold);\nnewSize = Math.max(minFontSize, startSize - (stepsToShrink * step));\ntext.sourceText.style.setFontSize(newSize);",
+      "params": [
+        "startSize",
+        "step",
+        "minFontSize",
+        "charThreshold"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/font-size-by-character-count"
+    },
+    {
+      "name": "Get Comp Name as Text",
+      "slug": "get-comp-name",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Outputs the current comp name inside a text layer. Great for template or placeholder projects.",
+      "whenToUse": "Use as a labeling system for templates, versioning slates, or project organization placeholders.",
+      "targetProperty": "Any animatable property",
+      "expression": "thisComp.name;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/get-comp-name"
+    },
+    {
+      "name": "Gradient Ramp Fixed to Layer Edges",
+      "slug": "gradient-ramp-fixed",
+      "type": "expression",
+      "category": "randomness",
+      "description": "Keeps the gradient ramp fixed to the layer’s top and bottom edges, ensuring it moves seamlessly with the layer during animations.",
+      "whenToUse": "Perfect for animating backgrounds, shapes, or titles where a consistent gradient needs to stay aligned with the layer as it moves.",
+      "targetProperty": "Any animatable property",
+      "expression": "// add to Start of Ramp\nrect = thisLayer.sourceRectAtTime();\nxPos = rect.left + rect.width / 2; // Center X\nyPos = rect.top;  // Top Y\n[thisLayer.toComp([xPos, yPos])[0], thisLayer.toComp([xPos, yPos])[1]]; // add to End of Ramp\nrect = thisLayer.sourceRectAtTime();\nxPos = rect.left + rect.width / 2;  // Center X\nyPos = rect.top + rect.height;  // Bottom Y\n[thisLayer.toComp([xPos, yPos])[0], thisLayer.toComp([xPos, yPos])[1]];",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/gradient-ramp-fixed"
+    },
+    {
+      "name": "Gradient Ramp Fixed to Layer Edges, Ignore Rotation",
+      "slug": "gradient-ramp-fixed-no-rotation",
+      "type": "expression",
+      "category": "randomness",
+      "description": "Keeps the gradient ramp aligned to the layer’s top and bottom edges, ignoring layer rotation to maintain a consistent gradient angle during animations.",
+      "whenToUse": "Ideal for animated backgrounds, shapes, or titles where the gradient should stay fixed to the layer’s edges without rotating, preserving a stable gradient effect regardless of layer rotation.",
+      "targetProperty": "Rotation",
+      "expression": "// add to Start of Ramp\nrect = thisLayer.sourceRectAtTime(time, false);\nscaleFactor = thisLayer.scale[1] / 100;  // Y scale factor\nxPos = thisLayer.position[0];\nyPos = thisLayer.position[1] - (rect.height / 2) * scaleFactor;\n[xPos, yPos]; // add to End of Ramp\nrect = thisLayer.sourceRectAtTime(time, false);\nscaleFactor = thisLayer.scale[1] / 100; // Y scale factor\nxPos = thisLayer.position[0];\nyPos = thisLayer.position[1] + (rect.height / 2) * scaleFactor;[xPos, yPos];",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/gradient-ramp-fixed-no-rotation"
+    },
+    {
+      "name": "Physics-Based Gravity Bounce Expression",
+      "slug": "gravity-bounce",
+      "type": "expression",
+      "category": "motion",
+      "description": "Simulates gravity, air drag, bounce elasticity and ground friction.",
+      "whenToUse": "Make any layer drop, bounce and slide like a real ball without keyframing each bounce.",
+      "targetProperty": "Position or any multi-dimensional property",
+      "expression": "vel0Y = effect(\"Initial Velocity Y\")(\"Slider\"); // initial vertical velocity in px/s (positive = down)\nvel0X = effect(\"Initial Velocity X\")(\"Slider\"); // initial horizontal velocity in px/s\ng_m = effect(\"Gravity\")(\"Slider\"); // gravity in m/s² (e.g. 9.81)\ng = g_m * 100; // convert to px/s²\nbounce = effect(\"Bounce %\")(\"Slider\") / 100; // elasticity ratio (0–100%)\ndrag = effect(\"Air Drag %\")(\"Slider\") / 100; // air drag per second (0–100%)\nfric = effect(\"Ground Friction %\")(\"Slider\") / 100; // friction applied to horizontal velocity on bounce (0–100%)\nfloorY = effect(\"Floor Y\")(\"Slider\"); // Y-position of the “ground” in px\nstartPos = position.valueAtTime(inPoint); // record starting position at layer inPoint\nt = time - inPoint;\ndt = thisComp.frameDuration;\nsteps = Math.floor(t / dt);\nvx = vel0X;\nvy = vel0Y;\nx = startPos[0];\ny = startPos[1];\nfor (i = 0; i < steps; i++) {\n  vy += g * dt;\n  vx *= 1 - drag * dt;\n  vy *= 1 - drag * dt;\n  x += vx * dt;\n  y += vy * dt;\n  if (y >= floorY) {\n    over = y - floorY;\n    y = floorY - over;\n    vy = -vy * bounce;\n    vx *= 1 - fric;\n  }\n}\n[x, y]",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/gravity-bounce"
+    },
+    {
+      "name": "Hanging Ornament Sway Animation",
+      "slug": "hanging-ornament-sway",
+      "type": "expression",
+      "category": "motion",
+      "description": "Generates a smooth, physics-based sine wave rotation that mimics an object dangling in a breeze. It automatically offsets the timing based on the layer index, ensuring a row of objects swings naturally rather than in robotic unison.",
+      "whenToUse": "Essential for animating hanging decorations, lanterns, signs suspended by chains, or any object that needs to react to simulated wind.",
+      "targetProperty": "Rotation",
+      "expression": "freq = 1.5;\namp = 15;\ndecay = 0; // Set to 0.1 if you want it to stop eventually\n// Offset phase by index so ornaments sway differently\noffset = index * 10;\nMath.sin((time + offset) * freq) * amp;",
+      "params": [
+        "freq",
+        "amp",
+        "decay"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/hanging-ornament-sway"
+    },
+    {
+      "name": "Heartbeat Pulse Animation",
+      "slug": "heartbeat-pulse",
+      "type": "expression",
+      "category": "motion",
+      "description": "Simulates a biologically accurate human cardiac rhythm (systole and diastole) on the Scale property. Unlike a simple sine wave, this expression creates the distinct \"lub-dub\" double-pulse motion found in medical EKG animations.",
+      "whenToUse": "Great for medical visualizations, health-related UI dashboards, intense thriller titles, or adding a \"living\" breathing effect to character icons.",
+      "targetProperty": "Scale",
+      "expression": "bpm = 72; // Beats Per Minute\nintensity = 15; // How much to scale up (in %)\nperiod = 60 / bpm;\nt = time % period;\n// Simulation constants\ndecay = 20; // How snappy the beat is\ngap = 0.35; // Time delay between lub and dub in seconds\npulse1 = Math.sin(t * 20) * Math.exp(-decay * t);\nif (pulse1 < 0) pulse1 = 0;\nt2 = t - gap;\npulse2 = 0;\nif (t2 > 0) {\n pulse2 = Math.sin(t2 * 20) * Math.exp(-decay * t2);\n if (pulse2 < 0) pulse2 = 0;\n}\ntotalPulse = pulse1 + (pulse2 * 0.8);\ns = value[0] + (totalPulse * intensity);\n[s, s];",
+      "params": [
+        "bpm",
+        "intensity",
+        "decay",
+        "gap",
+        "pulse2"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/heartbeat-pulse"
+    },
+    {
+      "name": "Ignore Parent Layer Rotation Expression",
+      "slug": "ignore-parent-rotation",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Ensures a layer’s rotation remains independent of its parent’s rotation.",
+      "whenToUse": "Perfect for elements that need stable orientation despite parent layer rotations, like fixed icons or labels.",
+      "targetProperty": "Rotation",
+      "expression": "value - parent.transform.rotation",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/ignore-parent-rotation"
+    },
+    {
+      "name": "Index Expression",
+      "slug": "index",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Uses the layer's index in the timeline to control properties like position or rotation.",
+      "whenToUse": "Placing each layer 50 pixels apart for a grid layout.",
+      "targetProperty": "Rotation",
+      "expression": "index * 30",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/index"
+    },
+    {
+      "name": "Inherit Parent Opacity",
+      "slug": "inherit-parent-opacity",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Connects a layer’s opacity to its parent layer’s opacity value.",
+      "whenToUse": "Useful in lower-thirds or other animated text elements that fade in and out with the parent layer.",
+      "targetProperty": "Opacity",
+      "expression": "(hasParent) ? parent.opacity : value;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/inherit-parent-opacity"
+    },
+    {
+      "name": "Inherit Rotation from Nearest Layer",
+      "slug": "inherit-rotation-nearest",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Finds the closest layer in the comp and copies its rotation in real time. The closest object controls how this layer rotates.",
+      "whenToUse": "Useful for swarm, flock, or system animations where objects orient toward nearby elements - also great for connecting elements or auto-aligned labels.",
+      "targetProperty": "Rotation",
+      "expression": "minDist = 1e6;\nclosestRot = 0;\nfor (i = 1; i <= thisComp.numLayers; i++)\n{\nif (i != index)\n{\nd = length(position, thisComp.layer(i).position);\nif (d < minDist)\n{\nminDist = d;\nclosestRot = thisComp.layer(i).rotation;\n}}}\nclosestRot;",
+      "params": [
+        "closestRot"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/inherit-rotation-nearest"
+    },
+    {
+      "name": "Keyframe Value Control with Sliders",
+      "slug": "keyframe-value-control",
+      "type": "expression",
+      "category": "transformation",
+      "description": "This After Effects expression allows you to control keyframe values dynamically using sliders, preserving Graph Editor easing for smooth animations.",
+      "whenToUse": "Perfect for projects where you need to adjust start and end values of animations on the fly without manually changing keyframes.",
+      "targetProperty": "Any animatable property",
+      "expression": "key1Value = effect(\"Key 1\")(\"Slider\"); // Slider for first keyframe value\nkey2Value = effect(\"Key 2\")(\"Slider\"); // Slider for second keyframe value\nkey1Time = key(1).time;key2Time = key(2).time;// Preserve Graph Editor's easing\nif (time <= key1Time){\nkey1Value;}\nelse if\n(time >= key2Time){\nkey2Value;}\nelse{\noriginalValue = valueAtTime(time);\nlinear(originalValue, valueAtTime(key1Time), valueAtTime(key2Time), key1Value, key2Value);}",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/keyframe-value-control"
+    },
+    {
+      "name": "Layer Linking Expression",
+      "slug": "layer-linking",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Links a layer’s position to another layer’s position.",
+      "whenToUse": "Linking a child layer’s position to its parent with a slight offset to create a trailing effect.",
+      "targetProperty": "Position",
+      "expression": "thisComp.layer(\"OtherLayer\").position",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/layer-linking"
+    },
+    {
+      "name": "LookAt Expression in 3D space",
+      "slug": "look-at",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Rotates an object to always face another object.",
+      "whenToUse": "You want a layer (such as a 3D object or camera) to always face another moving object (the target layer)",
+      "targetProperty": "Rotation",
+      "expression": "targetLayer = thisComp.layer(\"Target\");\nlookAt(thisComp.layer(\"Point\").position, targetLayer.position)",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/look-at"
+    },
+    {
+      "name": "LookAt Expression in 2D Space",
+      "slug": "look-at-2d",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Directs a layer’s orientation towards another layer, as in a “look at” function.",
+      "whenToUse": "Ideal for creating interaction effects, like eyes or arrows that follow a moving object.",
+      "targetProperty": "Position",
+      "expression": "function lookAtMe(fromPt, toPt){\nlkAt = lookAt(fromPt, toPt);\nif (toPt[1] > fromPt[1]){\nreturn 180-lkAt[1]; }\nelse {\nreturn lkAt[1]; }}\np0= transform.position; // look from point\np1=thisComp.layer(\"targetLayer\").transform.position; // looked-at point\nlookAtMe(p0, p1)",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/look-at-2d"
+    },
+    {
+      "name": "LoopIn Specific Number of Keyframes",
+      "slug": "loop-in-specific",
+      "type": "expression",
+      "category": "motion",
+      "description": "Loops only the first few keyframes, creating a repeated beginning animation.",
+      "whenToUse": "Handy for creating dynamic intro animations, where the start of the animation needs to repeat.",
+      "targetProperty": "Any animatable property",
+      "expression": "loopIn(\"cycle\",1)",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/loop-in-specific"
+    },
+    {
+      "name": "Loop Mask Animation Expression",
+      "slug": "loop-mask-animation",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Loops a mask path animation continuously from the first to the last keyframe, ideal for repetitive mask-based effects.",
+      "whenToUse": "Great for looping animations on raster images, videos, or shapes when track mattes aren’t practical.",
+      "targetProperty": "Any animatable property",
+      "expression": "if (numKeys >1 && time > key(numKeys).time){\nt1 = key(1).time;\nt2 = key(numKeys).time;\nspan = t2 - t1;\ndelta = time - t2;\nt = delta%span;\nvalueAtTime(t1 + t)}\nelse\nvalue",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/loop-mask-animation"
+    },
+    {
+      "name": "LoopOut Continue Expression",
+      "slug": "loop-out-continue",
+      "type": "expression",
+      "category": "motion",
+      "description": "Extends the animation beyond the last keyframe, maintaining the final movement’s direction and speed.",
+      "whenToUse": "Useful for animations that should continue smoothly beyond their last keyframe, like gradual fade-outs or growing/scaling effects.",
+      "targetProperty": "Any animatable property",
+      "expression": "loopOut(\"continue\")",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/loop-out-continue"
+    },
+    {
+      "name": "LoopOut Cycle Expression",
+      "slug": "loop-out-cycle",
+      "type": "expression",
+      "category": "motion",
+      "description": "Loops the animation back to the first keyframe after the last one.",
+      "whenToUse": "Looping the position of a bouncing ball to repeat its motion indefinitely without adding more keyframes.",
+      "targetProperty": "Position",
+      "expression": "loopOut(\"cycle\")",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/loop-out-cycle"
+    },
+    {
+      "name": "LoopOut Duration Control Expression",
+      "slug": "loop-out-duration",
+      "type": "expression",
+      "category": "motion",
+      "description": "Adds a duration limit to loopOut, allowing a specified time for the looping effect.",
+      "whenToUse": "Ideal for animating short loops with controlled timings, like flickering lights or pulsating effects.",
+      "targetProperty": "Any animatable property",
+      "expression": "loopOutDuration(\"cycle\",1)",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/loop-out-duration"
+    },
+    {
+      "name": "LoopOut Offset Expression",
+      "slug": "loop-out-offset",
+      "type": "expression",
+      "category": "motion",
+      "description": "Repeats the keyframe animation, offsetting each cycle by the difference between the last two keyframes. This creates a cumulative effect where each repetition builds on the previous one.",
+      "whenToUse": "Perfect for creating staggered animations, like a row of bouncing balls or objects moving forward in a cascading pattern. Each cycle builds on the last, ideal for effects where movement needs to accumulate over time.",
+      "targetProperty": "Any animatable property",
+      "expression": "loopOut(\"offset\")",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/loop-out-offset"
+    },
+    {
+      "name": "LoopOut PingPong Expression",
+      "slug": "loop-out-ping-pong",
+      "type": "expression",
+      "category": "motion",
+      "description": "Loops time-remapped footage back and forth.",
+      "whenToUse": "Animating the position of an object in a cosine wave pattern, creating a back-and-forth motion.",
+      "targetProperty": "Position",
+      "expression": "loopOut(\"pingpong\")",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/loop-out-ping-pong"
+    },
+    {
+      "name": "LoopOut Specific Number of Keyframes",
+      "slug": "loop-out-specific",
+      "type": "expression",
+      "category": "motion",
+      "description": "Loops only the last few keyframes, creating repeated animations within a set range.",
+      "whenToUse": "Great for looping specific motion sequences, such as repetitive character movements or logo animations.",
+      "targetProperty": "Any animatable property",
+      "expression": "loopOut(\"cycle\",1)",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/loop-out-specific"
+    },
+    {
+      "name": "Loop Path",
+      "slug": "loop-path",
+      "type": "expression",
+      "category": "motion",
+      "description": "Loops a property's animation, optionally creating a \"ping-pong\" effect where the animation plays forward and backward alternately.",
+      "whenToUse": "Use this to have an object (like a car or airplane) continuously follow a looping path, such as driving around a track or flying in a circular route, without needing to manually repeat keyframes.",
+      "targetProperty": "Any animatable property",
+      "expression": "try {\n    timeStart = thisProperty.key(1).time;\n    duration = thisProperty.key(thisProperty.numKeys).time - timeStart;\n    pingPong = false;\n    quant = Math.floor((time - timeStart) / duration);\n    if (quant < 0) quant = 0;\n    if (quant % 2 == 1 && pingPong == true) {\n         t = 2 * timeStart + (quant + 1) * duration - time;\n    } else {\n        t = time - quant * duration;\n    }\n} catch (err) {\n    t = time;\n}\nthisProperty.valueAtTime(t);",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/loop-path"
+    },
+    {
+      "name": "Looping Wiggle",
+      "slug": "looping-wiggle",
+      "type": "expression",
+      "category": "motion",
+      "description": "Creates a seamless, looping wiggle effect that smoothly transitions between the start and end points, ensuring the motion resets every specified duration.",
+      "whenToUse": "Use this on the Position property of an object (like a floating balloon or drifting cloud) to make it gently move up and down in a looping, natural manner. This expression ensures the wiggle effect loops seamlessly every 3 seconds, preventing abrupt jumps.",
+      "targetProperty": "Position or any multi-dimensional property",
+      "expression": "freq = 1;\namp = 110;\nloopTime = 3;\nt = time % loopTime;\nwiggle1 = wiggle(freq, amp, 1, 0.5, t);\nwiggle2 = wiggle(freq, amp, 1, 0.5, t - loopTime);\nlinear(t, 0, loopTime, wiggle1, wiggle2)",
+      "params": [
+        "freq",
+        "amp",
+        "loopTime"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/looping-wiggle"
+    },
+    {
+      "name": "Maintain Scale While Parented Expression",
+      "slug": "maintain-scale-parented",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Ensures a layer’s scale stays consistent even when its parent layer’s scale changes.",
+      "whenToUse": "Perfect for maintaining the original size of elements within a hierarchy, like text or UI components.",
+      "targetProperty": "Scale",
+      "expression": "s = [];\nps = parent.transform.scale.value;\nfor (i = 0; i < ps.length; i++){\ns[i] = value[i]*100/ps[i];\n}\ns",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/maintain-scale-parented"
+    },
+    {
+      "name": "Maintain Stroke Width in 3D Space",
+      "slug": "maintain-stroke-3d",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Keeps stroke width visually consistent regardless of the layer’s distance from the camera in 3D space. Note: Requires an active Camera layer for proper functionality.",
+      "whenToUse": "Great for 3D projects where stroke width consistency is critical, such as motion graphics with line animations.",
+      "targetProperty": "Any animatable property",
+      "expression": "nominalDist = 200;\nd = length (thisComp.layer(\"Camera 1\").toWorld([0,0,0]),toWorld(anchorPoint));\nvalue*(d/nominalDist)",
+      "params": [
+        "nominalDist"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/maintain-stroke-3d"
+    },
+    {
+      "name": "Maintain Stroke Width During Scaling",
+      "slug": "maintain-stroke-width",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Keeps the stroke width consistent even when the layer is scaled, similar to vector graphics in Illustrator.",
+      "whenToUse": "Essential for icons or shapes where stroke width consistency is key, regardless of layer scaling.",
+      "targetProperty": "Scale",
+      "expression": "value / length(toComp([0,0]), toComp([0.7071,0.7071])) || 0.001;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/maintain-stroke-width"
+    },
+    {
+      "name": "Matrix-Style Random Letters Animation",
+      "slug": "matrix-effect-letters",
+      "type": "expression",
+      "category": "randomness",
+      "description": "Generates animated grids of random A-Z letters. Fully dynamic with speed and layout controls.",
+      "whenToUse": "Great for cyberpunk HUDs, abstract data visualizations, or animated typography experiments.",
+      "targetProperty": "Any animatable property",
+      "expression": "numRows = 10;\n// Number of rows\nnumCols = 10;\n// Number of columns\nfreq = 10;\n// Animation speed\noutput = \"\";\nseedRandom(index + Math.floor(time * freq), true);\nfor (r = 0; r < numRows; r++) {\nline = \"\";\nfor (c = 0; c < numCols; c++) {\ncharCode = Math.floor(random(65, 91));\n// A-Z\nline += String.fromCharCode(charCode) + \" \";\n}\noutput += line + \"\\r\";\n}\noutput;",
+      "params": [
+        "numRows",
+        "numCols",
+        "freq"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/matrix-effect-letters"
+    },
+    {
+      "name": "Matrix-Style Binary Numbers Animation",
+      "slug": "matrix-effect-numbers",
+      "type": "expression",
+      "category": "randomness",
+      "description": "Dynamically creates a vertical grid of changing 0s and 1s. Customizable rows, columns, and animation speed.",
+      "whenToUse": "Ideal for hacker-themed motion design, sci-fi intros, or digital rain effects.",
+      "targetProperty": "Any animatable property",
+      "expression": "numRows = 10;\n// Number of rows\nnumCols = 10;\n// Number of columns\nfreq = 10;\n// Animation speed\noutput = \"\";\nseedRandom(index + Math.floor(time * freq), true);\nfor (r = 0; r < numRows; r++) {\nline = \"\";\nfor (c = 0; c < numCols; c++) {\nline += Math.floor(random(2)).toString() + \" \";\n}\noutput += line + \"\\r\";\n}\noutput;",
+      "params": [
+        "numRows",
+        "numCols",
+        "freq"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/matrix-effect-numbers"
+    },
+    {
+      "name": "Neon Light Flicker",
+      "slug": "neon-light-flicker",
+      "type": "expression",
+      "category": "randomness",
+      "description": "Simulates a faulty or dying light source by randomly switching opacity between a \"dim\" and \"fully on\" state. Unlike a standard strobe, this uses probability logic to create an erratic, glitchy, and organic electrical rhythm.",
+      "whenToUse": "Use this to create moody cyberpunk titles, horror movie intros, or broken shop signs where a bulb acts as if it has a bad electrical connection.",
+      "targetProperty": "Opacity",
+      "expression": "// Simulates a frozen neon sign struggling to stay on\nprobability = 85; // % chance to be fully visible (0-100)\nminOpacity = 70; // 0-100\n// High speed flicker\nseedRandom(Math.floor(time * 20), true);\nval = random(0, 100);\n(val < probability) ? value : minOpacity;",
+      "params": [
+        "probability",
+        "minOpacity"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/neon-light-flicker"
+    },
+    {
+      "name": "Number Counter With Separators",
+      "slug": "number-counter",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Formats a Slider Control value to two decimal places and adds thousands separators using periods.",
+      "whenToUse": "Neatly formats large financial figures (e.g., \"1.500.000\") from a slider for on-screen display.",
+      "targetProperty": "Source Text",
+      "expression": "num = effect(\"Slider Control\")(\"Slider\").value.toFixed(2).toString().replace(\".\", \",\");\nfunction addCommas(x) {\n    return x.toString().replace(/\\B(?=(\\d{3})+(?!\\d))/g, \".\");\n}\naddCommas(num);",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/number-counter"
+    },
+    {
+      "name": "Oscillate Expression",
+      "slug": "oscilate",
+      "type": "expression",
+      "category": "motion",
+      "description": "Similar to the sine wave but with cosine, making an oscillation effect.",
+      "whenToUse": "Creating a simple sine wave motion for a bouncing object or pendulum effect.",
+      "targetProperty": "Any animatable property",
+      "expression": "Math.cos(time * 2) * 50",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/oscilate"
+    },
+    {
+      "name": "Overshoot Expression",
+      "slug": "overshoot",
+      "type": "expression",
+      "category": "motion",
+      "description": "Adds an overshoot or bounce-back effect after an animation.",
+      "whenToUse": "Adding an overshoot effect to the scale property, causing it to bounce back slightly after reaching its final value.",
+      "targetProperty": "Scale",
+      "expression": "value + (value - valueAtTime(time - 0.1)) * 2",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/overshoot"
+    },
+    {
+      "name": "Parent Position Offset Expression",
+      "slug": "parent-offset",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Offsets a layer’s position relative to its parent.",
+      "whenToUse": "Offsetting a child layer’s position by 100 pixels relative to its parent.",
+      "targetProperty": "Position",
+      "expression": "parent.position + [100, 100]",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/parent-offset"
+    },
+    {
+      "name": "Parent Rotation Expression",
+      "slug": "parent-rotation",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Links the rotation to the parent layer with an additional 45-degree offset.",
+      "whenToUse": "Adding 45 degrees to the parent layer’s rotation to ensure the child rotates at an offset angle.",
+      "targetProperty": "Rotation",
+      "expression": "parent.rotation + 45",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/parent-rotation"
+    },
+    {
+      "name": "Parent Scale Expression",
+      "slug": "parent-scale",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Adds to a parent layer’s scale by a fixed value.",
+      "whenToUse": "Increasing the scale of a child layer by 10% compared to its parent layer.",
+      "targetProperty": "Scale",
+      "expression": "parent.scale + [10, 10]",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/parent-scale"
+    },
+    {
+      "name": "Point To A Layer",
+      "slug": "point-to-layer",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Calculates the angle between two layers and points one to another.",
+      "whenToUse": "Aligning a layer to always face a target layer.",
+      "targetProperty": "Position",
+      "expression": "target = thisComp.layer(\"Target\");\ntargetPos = target.toWorld(target.anchorPoint);\ndelta = targetPos - thisLayer.position;\nradians = Math.atan2(delta[1], delta[0]);\nradiansToDegrees(radians);",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/point-to-layer"
+    },
+    {
+      "name": "PosterizeTime Expression",
+      "slug": "posterize-time",
+      "type": "expression",
+      "category": "motion",
+      "description": "Forces a layer to refresh only at a set frame rate.",
+      "whenToUse": "Forcing a layer to update at 12 frames per second to create a stop-motion effect.",
+      "targetProperty": "Any animatable property",
+      "expression": "posterizeTime(12);\nvalue;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/posterize-time"
+    },
+    {
+      "name": "Create Procedural Candle Flame",
+      "slug": "procedural-candle-flame",
+      "type": "expression",
+      "category": "motion",
+      "description": "Generates a vector teardrop shape that deforms realistically using Perlin noise. This mimics the physics of fire flickering and bending in the wind without requiring simulation plugins or raster footage.",
+      "whenToUse": "Use this to create stylized, animated fire for 2D explainer videos, holiday candle illustrations, or fireplace animations where you need a lightweight, scalable vector element.",
+      "targetProperty": "Scale",
+      "expression": "w = 100; // Width of flame\nh = 200; // Height of flame\nnoiseScale = 15; // How erratic the wind is\nwindSpeed = 8; // Generate Noise for the tip of the flame\nn = noise([time * windSpeed, index]);\npBottom = [0, h/2];\npLeft = [-w/2, h/4];\npRight = [w/2, h/4];\n// The Tip moves based on noise\npTip = [n * noiseScale * 2, -h/2 + Math.abs(n) * noiseScale];\npoints = [pBottom, pLeft, pTip, pRight];\n// Tangents for smooth curves\ninT = [[0,0], [0, h/3], [0, 0], [0, -h/3]];\noutT = [[0,0], [0, -h/3], [0, 0], [0, h/3]];\ncreatePath(points, inT, outT, true);",
+      "params": [
+        "noiseScale",
+        "windSpeed"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/procedural-candle-flame"
+    },
+    {
+      "name": "Create Procedural Gear Path",
+      "slug": "procedural-gear-path",
+      "type": "expression",
+      "category": "motion",
+      "description": "Generates a fully procedural gear shape using sliders for tooth count, gear radius, and tooth height. You can easily customize the look by tweaking slider values without touching the path manually.",
+      "whenToUse": "Quickly generate animated gear shapes for motion graphics, infographics, or technical explainers without drawing or keyframing paths by hand.",
+      "targetProperty": "Any animatable property",
+      "expression": "// Apply to Path\ntoothCount = Math.floor(effect(\"Tooth Count\")(\"Slider\"));\ngearRadius = effect(\"Gear Radius\")(\"Slider\");\ntoothHeight = effect(\"Tooth Height\")(\"Slider\");\npts = [];\ninTangents = [];\noutTangents = [];\n// One tooth = 4 points (root → rise → top → fall)\nfor (i = 0; i < toothCount * 4; i++) {\nangle = (i / (toothCount * 4)) * Math.PI * 2;\n// Determine which part of the tooth we're on\nphase = i % 4;\nradius = gearRadius;\nswitch (phase) {\ncase 0:\n// Root\nradius = gearRadius * 0.85;\nbreak;\ncase 1:\n// Rise\ncase 2:\n// Top\nradius = gearRadius + toothHeight;\nbreak;\ncase 3:\n// Fall\nradius = gearRadius * 0.85;\nbreak;\n}\nx = Math.cos(angle) * radius;\ny = Math.sin(angle) * radius;\npts.push([x, y]);\ninTangents.push([0, 0]);\noutTangents.push([0, 0]);\n}\ncreatePath(pts, inTangents, outTangents, true);",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/procedural-gear-path"
+    },
+    {
+      "name": "Create Procedural North Star Shape",
+      "slug": "procedural-north-star",
+      "type": "expression",
+      "category": "motion",
+      "description": "Mathematically plots a 4-pointed star path with elongated vertical tails. This procedural geometry allows you to create sparkles, gleams, and celestial bodies without manually drawing masks.",
+      "whenToUse": "Ideal for creating magical particle systems, nativity scene skies, or highlighting key elements in a motion graphics composition with a stylized \"ting\" or flash.",
+      "targetProperty": "Position",
+      "expression": "innerRadius = 50;\nouterRadius = 300;\npoints = 4;\npts = [];\nfor (i = 0; i < points * 2; i++) {\n angle = (i / (points * 2)) * Math.PI * 2;\n r = (i % 2 === 0) ? outerRadius : innerRadius;\n // Add elongated vertical tail for North Star look\n if (i === 0 || i === points) r *= 1.5;\n x = Math.cos(angle) * r;\n y = Math.sin(angle) * r;\n pts.push([x, y]);\n}\ncreatePath(pts, [], [], true);",
+      "params": [
+        "innerRadius",
+        "outerRadius",
+        "points"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/procedural-north-star"
+    },
+    {
+      "name": "Create Procedural Spiral Path",
+      "slug": "procedural-spiral-path",
+      "type": "expression",
+      "category": "motion",
+      "description": "Generates a fully procedural spiral path in After Effects with precise control over radius, number of turns, and point density. The path updates dynamically as you tweak the sliders, giving you flexible, customizable spirals without manually drawing shapes.",
+      "whenToUse": "Perfect for data visualizations, hypnotic motion backgrounds, generative art, or dynamic motion graphics where you need smooth, customizable spiral animations.",
+      "targetProperty": "Any animatable property",
+      "expression": "// Apply to Path\nturns = effect(\"Turns\")(\"Slider\");\nrad = effect(\"Radius\")(\"Slider\");\npnts = effect(\"Points\")(\"Slider\");\npts = [];\nfor (i = 0; i <= pnts; i++){\n t = i / pnts;\n angle = t * Math.PI * 2 * turns;\n r = t * rad;  x = Math.cos(angle) * r;\n y = Math.sin(angle) * r;\npts.push([x, y]);\n}\ncreatePath(pts, [], [], false);",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/procedural-spiral-path"
+    },
+    {
+      "name": "Rainbow Color Cycle",
+      "slug": "rainbow-color-cycle",
+      "type": "expression",
+      "category": "motion",
+      "description": "Automatically loops the layer’s fill or stroke through the entire RGB spectrum using HSL (Hue, Saturation, Lightness) math. This creates a seamless, chromatic color shift without needing keyframes or gradient effects.",
+      "whenToUse": "Perfect for creating psychedelic backgrounds, RGB gaming keyboard aesthetics, or dynamic, shifting gradients in abstract motion graphics.",
+      "targetProperty": "Color",
+      "expression": "// Apply to Color property\nspeed = 1; // Cycles per second\nhsl = [time * speed % 1, 1, 0.5, 1];\nhslToRgb(hsl);",
+      "params": [
+        "speed"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/rainbow-color-cycle"
+    },
+    {
+      "name": "Random Expression",
+      "slug": "random",
+      "type": "expression",
+      "category": "randomness",
+      "description": "Generates random values within a specified range.",
+      "whenToUse": "Setting the opacity of multiple objects to random values between 0 and 100.",
+      "targetProperty": "Opacity",
+      "expression": "random(0, 100)",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/random"
+    },
+    {
+      "name": "Random Color Expression",
+      "slug": "random-color",
+      "type": "expression",
+      "category": "randomness",
+      "description": "Generates a random color for the layer within the RGB spectrum.",
+      "whenToUse": "Randomly generating a color within the RGB range for a flashing light effect.",
+      "targetProperty": "Color",
+      "expression": "random([0, 0, 0, 0], [1, 1, 1, 1])",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/random-color"
+    },
+    {
+      "name": "Random Flicker Animation",
+      "slug": "random-flicker",
+      "type": "expression",
+      "category": "randomness",
+      "description": "Creates a looping flicker effect based on random intervals and durations. Adjustable via min/max flicker and interval settings.",
+      "whenToUse": "Create flickering neon signs, horror transitions, or simulate faulty tech screens.",
+      "targetProperty": "Any animatable property",
+      "expression": "minInterval = 1.5;\nmaxInterval = 2.5;\nminFlicker = 0.5;\nmaxFlicker = 1;\nsegIndex = Math.floor(time / maxInterval);\nseedRandom(segIndex, true);\nsegStart = segIndex * maxInterval;\nsegEnd = segStart + random(minInterval, maxInterval);\nflickerTime = random(minFlicker, maxFlicker);\nseedRandom(1, false);\n(time > segEnd - flickerTime) ? random(0, 100) : 100;",
+      "params": [
+        "minInterval",
+        "maxInterval",
+        "minFlicker",
+        "maxFlicker"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/random-flicker"
+    },
+    {
+      "name": "Random Position Expression",
+      "slug": "random-position",
+      "type": "expression",
+      "category": "randomness",
+      "description": "Randomizes a layer’s position within a specified range.",
+      "whenToUse": "Randomizing the position of a layer within a 200-pixel range in both X and Y directions.",
+      "targetProperty": "Position",
+      "expression": "random([960, 540], [760, 340])",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/random-position"
+    },
+    {
+      "name": "Random Rotation Expression",
+      "slug": "random-rotation",
+      "type": "expression",
+      "category": "randomness",
+      "description": "Randomizes the rotation of a layer between 0 and 360 degrees.",
+      "whenToUse": "Randomizing the rotation of layers in a starburst pattern, between 0 and 360 degrees.",
+      "targetProperty": "Rotation",
+      "expression": "random(360)",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/random-rotation"
+    },
+    {
+      "name": "Random Seeded Color Expression",
+      "slug": "random-seeded-color",
+      "type": "expression",
+      "category": "randomness",
+      "description": "Generates random colors consistently based on the layer's index.",
+      "whenToUse": "Generating random colors consistently for text layers, ensuring each layer gets a unique color.",
+      "targetProperty": "Any animatable property",
+      "expression": "seedRandom(index, true);\nrandom([0, 0, 0], [1, 1, 1])",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/random-seeded-color"
+    },
+    {
+      "name": "Repeat Text Expression",
+      "slug": "repeat-text",
+      "type": "expression",
+      "category": "randomness",
+      "description": "Loops a string multiple times based on a number input.",
+      "whenToUse": "Automates text repetition, ideal for creating scrolling text effects or pattern-based typography.",
+      "targetProperty": "Any animatable property",
+      "expression": "repeat(0); // Replace 0 with a number",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/repeat-text"
+    },
+    {
+      "name": "Replace Spaces with New Line Expression",
+      "slug": "replace-spaces-new-lines",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Converts spaces in text to line breaks, effectively creating new rows.",
+      "whenToUse": "Great for automating multi-line text layouts in templates or data-driven projects.",
+      "targetProperty": "Source Text",
+      "expression": "text.sourceText.replace(/ /gi,”\\r”)",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/replace-spaces-new-lines"
+    },
+    {
+      "name": "Replace Text Expression",
+      "slug": "replace-text",
+      "type": "expression",
+      "category": "transformation",
+      "description": "This expression replaces specific characters within a text layer, automating text modifications without manual intervention.",
+      "whenToUse": "Useful for dynamically replacing words, letters, or symbols in a text layer - great for video versioning and automated text updates where manual edits aren’t possible.",
+      "targetProperty": "Source Text",
+      "expression": "// Change x to the text you want to replace\n// Change y to the new text\ntext.sourceText.replace(/x/g, \"y\");",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/replace-text"
+    },
+    {
+      "name": "Responsive Rectangle Based on Comp Size",
+      "slug": "responsive-rectangle-comp-size",
+      "type": "expression",
+      "category": "conditional",
+      "description": "Automatically sets a rectangle’s size to match the full dimensions of the composition. Plug it into the Size property of a shape layer rectangle.",
+      "whenToUse": "Great for creating full-screen backgrounds, safe zones, responsive overlays, or any layout element that needs to stretch exactly across the comp.",
+      "targetProperty": "Position",
+      "expression": "var c = thisComp;\n[c.width, c.height]",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/responsive-rectangle-comp-size"
+    },
+    {
+      "name": "Responsive Text Box for Two Text Layers",
+      "slug": "responsive-text-box-two-layers",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Automatically adjusts a background rectangle size to fit two stacked text layers. Considers padding and distance between texts.",
+      "whenToUse": "Auto-resize text containers for lower-thirds, dual-line titles, or caption panels.",
+      "targetProperty": "Position",
+      "expression": "txt1 = thisComp.layer(\"text1\");\ntxt2 = thisComp.layer(\"text2\");\n// Get source rects\nrect1 = txt1.sourceRectAtTime(time);\nrect2 = txt2.sourceRectAtTime(time);\n// Get world positions\npos1 = txt1.toComp([rect1.left + rect1.width / 2, rect1.top]);\npos2 = txt2.toComp([rect2.left + rect2.width / 2, rect2.top + rect2.height]);\n// HEIGHT = vertical distance between top of text1 and bottom of text2\nheight = Math.abs(pos2[1] - pos1[1]);\n// WIDTH = whichever text is wider\nwidth = Math.max(rect1.width, rect2.width);\npadding = 100;\n// Optional padding\n[width + padding, height + padding]",
+      "params": [
+        "padding"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/responsive-text-box-two-layers"
+    },
+    {
+      "name": "Responsive Text Layout Based on Composition Width",
+      "slug": "responsive-text-comp-width",
+      "type": "expression",
+      "category": "conditional",
+      "description": "Automatically adjusts the width of a text box based on the composition’s width. The text scales responsively without any sliders — fully adaptive and resolution-independent.",
+      "whenToUse": "Ideal for video templates and automation setups with multiple aspect ratios. Ensures text always fits within the comp without needing to adjust anything manually across versions.",
+      "targetProperty": "Source Text",
+      "expression": "// Add to Source Text\ntextSize = 50;\n// Font size\ntextLeading = 1;\n// Line spacing (leading)\noriginalBoxWidth = 1920;\ntargetWidth = thisComp.width;\nboxScale = targetWidth / originalBoxWidth;\ntext.sourceText.style.setFontSize(textSize / boxScale).setLeading(textSize * textLeading / boxScale);\n// Add to Scale\ntargetWidth = thisComp.width;\noriginalBoxWidth = 1920;\nboxScale = targetWidth / originalBoxWidth;\nvalue * boxScale;",
+      "params": [
+        "textSize",
+        "textLeading",
+        "originalBoxWidth"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/responsive-text-comp-width"
+    },
+    {
+      "name": "Responsive Text Layout (with Slider Controls)",
+      "slug": "responsive-text-controls",
+      "type": "expression",
+      "category": "conditional",
+      "description": "Simulates responsive text box layouts like in Figma or web design tools. Lets you control and animate the width of the text box using a slider, and automatically scales the font and line spacing to fit cleanly.",
+      "whenToUse": "Perfect for creating dynamic titles, captions, or UI layouts where you want to control the text container width manually. Great for building resizable lower-thirds or templates with flexible layouts.",
+      "targetProperty": "Source Text",
+      "expression": "// Add to Source Text\ntextSize = effect(\"Font Size\")(\"Slider\");\ntargetWidth = effect(\"Text Box Width\")(\"Slider\");\ntextLeading = effect(\"Leading\")(\"Slider\");\noriginalBoxWidth = 1920;\nboxScale = targetWidth / originalBoxWidth;\ntext.sourceText.style.setFontSize(textSize / boxScale).setLeading(textSize * textLeading / boxScale);\n// Add to Scale\ntargetWidth = effect(\"Text Box Width\")(\"Slider\");\noriginalBoxWidth = 1920;\nboxScale = targetWidth / originalBoxWidth;\nvalue * boxScale;",
+      "params": [
+        "originalBoxWidth"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/responsive-text-controls"
+    },
+    {
+      "name": "Rolling Ball Expression",
+      "slug": "rolling-ball",
+      "type": "expression",
+      "category": "motion",
+      "description": "Links the position of a layer to a different property, like rotation.",
+      "whenToUse": "Automatically rolling a ball that has position keyframes.",
+      "targetProperty": "Rotation",
+      "expression": "thisLayer.transform.position[0] * 0.8",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/rolling-ball"
+    },
+    {
+      "name": "Row Counter for Text Layers",
+      "slug": "row-counter",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Counts the number of rows in a text layer, adjusting dynamically based on font size and leading (line spacing).",
+      "whenToUse": "Great for automating layouts where the number of text rows affects the design, such as captions, paragraphs, or dynamic subtitles.",
+      "targetProperty": "Source Text",
+      "expression": "L = thisComp.layer(\"textLayer\");\nvar newStyle = L.text.sourceText.style;\nvar myLeading = newStyle.autoLeading ? newStyle.fontSize * 1.2 : newStyle.leading;\nH = L.sourceRectAtTime(time, false).height;\nrowNo = Math.ceil(H / myLeading);\nrowNo;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/row-counter"
+    },
+    {
+      "name": "Scale Based On Distance",
+      "slug": "scale-based-on-distance",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Calculates the distance between two layers and then affects a property based on it.",
+      "whenToUse": "Scaling an object based on its distance from another object in the scene.",
+      "targetProperty": "Position or Scale",
+      "expression": "targetLayer = thisComp.layer(\"TargetLayer\");\ndist = length(thisLayer.position, targetLayer.position);\nvalue * (1 + dist / 500);",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/scale-based-on-distance"
+    },
+    {
+      "name": "Scale from Start to End of Composition",
+      "slug": "scale-over-comp-duration",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Gradually increases or decreases a layer’s scale from the start to the end of the comp. It works automatically over the full timeline.",
+      "whenToUse": "Ideal for looping animations, slow zoom effects, or background scaling.",
+      "targetProperty": "Position or Scale",
+      "expression": "startScale = 100;\nendScale = 120;\nstartTime = 0;\nendTime = thisComp.duration;\nprogress = linear(time, startTime, endTime, startScale, endScale);\n[progress, progress];",
+      "params": [
+        "startScale",
+        "endScale",
+        "startTime"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/scale-over-comp-duration"
+    },
+    {
+      "name": "Pulse Scale Animation",
+      "slug": "scale-pulse",
+      "type": "expression",
+      "category": "motion",
+      "description": "Creates a smooth, looping scale pulse using a sine wave to simulate a bounce or heartbeat effect.",
+      "whenToUse": "Use it for buttons, callouts, or background elements that need to draw subtle attention.",
+      "targetProperty": "Scale",
+      "expression": "freq = 1;\n// Pulses per second\namp = 5;\n// Pulse intensity\nbase = 100;\n// Base scale\npulse = Math.sin(time * freq * Math.PI * 2) * amp;\n[base + pulse, base + pulse];",
+      "params": [
+        "freq",
+        "amp",
+        "base"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/scale-pulse"
+    },
+    {
+      "name": "Scale Up Near Another Layer Expression",
+      "slug": "scale-up-near-expression",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Scales an object based on its proximity to another layer.",
+      "whenToUse": "Great for interactive animations, like UI buttons that grow as a cursor approaches.",
+      "targetProperty": "Position or Scale",
+      "expression": "point1=thisLayer.position;\npoint2=thisComp.layer('targetLayer').position;\ndelta=sub(point1, point2);distance=length(delta);\nstartSize = 10; // you can connect this value to a slider\nendSize = 100; // you can connect this value to a slider\nlinear(distance, 0, 500, [endSize, endSize], [startSize, startSize]);",
+      "params": [
+        "startSize",
+        "endSize"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/scale-up-near-expression"
+    },
+    {
+      "name": "SeedRandom Expression",
+      "slug": "seed-random",
+      "type": "expression",
+      "category": "randomness",
+      "description": "Generates random numbers consistently based on the seed value.",
+      "whenToUse": "Ensuring random values for each layer stay consistent over time based on their index.",
+      "targetProperty": "Any animatable property",
+      "expression": "seedRandom(index, true);\nvalue + random([-50, -50], [50, 50]);",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/seed-random"
+    },
+    {
+      "name": "Show Aspect Ratio",
+      "slug": "show-aspect-ratio",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Calculates your composition’s aspect ratio by finding the greatest common divisor (GCD) between width and height, then displays the simplified format like 16:9, 1:1, or 9:16. Ideal for workflows involving multiple deliverable formats where maintaining correct ratios is crucial.",
+      "whenToUse": "Quickly confirm and display aspect ratios in adaptive templates, after effects automation, and multi-format video exports.",
+      "targetProperty": "Position",
+      "expression": "w = thisComp.width;\nh = thisComp.height;\nfunction gcd(a, b) {\n return (b == 0) ? a : gcd(b, a % b);\n}\ng = gcd(w, h);\n(w / g) + \":\" + (h / g);",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/show-aspect-ratio"
+    },
+    {
+      "name": "Show Composition Duration",
+      "slug": "show-composition-duration",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Automatically calculates your composition’s total length and formats it into a readable minutes:seconds:frames structure.",
+      "whenToUse": "Display the total duration of your video in templates, metadata overlays, or preview exports without manual updates.",
+      "targetProperty": "Position",
+      "expression": "d = thisComp.duration;\nmin = Math.floor(d / 60);\nsec = Math.floor(d % 60);\nfr = Math.floor((d % 1) / thisComp.frameDuration);\n(min < 10 ? \"0\" : \"\") + min + \":\" + (sec < 10 ? \"0\" : \"\") + sec + \":\" + (fr < 10 ? \"0\" : \"\") + fr;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/show-composition-duration"
+    },
+    {
+      "name": "Show Composition Info",
+      "slug": "show-composition-info",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Displays real-time composition information directly inside a text layer. The expression reads properties like duration, frame rate, resolution, layer count, and current time from your active comp and updates them dynamically. Includes optional checkboxes to toggle each stat on or off for a fully customizable overlay.",
+      "whenToUse": "Display live composition metadata for previews or template validation without opening comp settings.",
+      "targetProperty": "Source Text",
+      "expression": "//  Apply to Source Text\ntry {\nshowDuration = effect(\"Show Duration\")(\"Checkbox\").value;\n}\ncatch(e) {\nshowDuration = 1; }\ntry {\nshowFrameRate = effect(\"Show Frame Rate\")(\"Checkbox\").value; }\ncatch(e) {\nshowFrameRate = 1;\n}\ntry {\nshowResolution = effect(\"Show Resolution\")(\"Checkbox\").value;\n} catch(e) {\nshowResolutionx = 1;\n}\ntry {\nshowLayerCount = effect(\"Show Layer Count\")(\"Checkbox\").value;\n}\ncatch(e){\nshowLayerCount = 1;\n}\ntry{\nshowCurrentTime = effect(\"Show Current Time\")(\"Checkbox\").value;\n}\ncatch(e) {\nshowCurrentTime = 1;\n}stats = \"\";\n// Duration\nif (showDuration == 1) {\n d = thisComp.duration;\n min = Math.floor(d / 60);\n sec = Math.floor(d % 60);\n fr = Math.floor((d % 1) / thisComp.frameDuration);\n stats += \"Duration: \" + (min < 10 ? \"0\" : \"\") + min + \":\" + (sec < 10 ? \"0\" : \"\") + sec + \":\" + (fr < 10 ? \"0\" : \"\") + fr + \"\\n\";\n}\n// Frame Rate\nif (showFrameRate == 1) {\n fps = 1 / thisComp.frameDuration;\n frameDisplay = (fps % 1 === 0) ? fps.toFixed(0) : fps.toFixed(2);\n stats += \"Frame Rate: \" + frameDisplay + \" fps\\n\";\n}\n// Resolution\nif (showResolution == 1) {\n stats += \"Resolution: \" + thisComp.width + \"x\" + thisComp.height + \"\\n\";\n}\n// Layer Count\nif (showLayerCount == 1){\n stats += \"Layers: \" + thisComp.numLayers + \"\\n\";\n}\n// Current Time\nif (showCurrentTime == 1){\n t = time;\n tmin = Math.floor(t / 60);\n tsec = Math.floor(t % 60);\n tfr = Math.floor((t % 1) / thisComp.frameDuration);\n stats += \"Time: \" + (tmin < 10 ? \"0\" : \"\") + tmin + \":\" + (tsec < 10 ? \"0\" : \"\") + tsec + \":\" + (tfr < 10 ? \"0\" : \"\") + tfr;\n}\nstats;",
+      "params": [
+        "showDuration",
+        "showFrameRate",
+        "showResolutionx",
+        "showLayerCount",
+        "showCurrentTime"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/show-composition-info"
+    },
+    {
+      "name": "Show Frame Rate",
+      "slug": "show-frame-rate",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Fetches the active comp’s frame duration and converts it into frames per second (FPS), automatically formatting it to match whole or fractional frame rates. This ensures accurate display whether you’re working at 23.976, 24, 29.97, 30, or 60 FPS.",
+      "whenToUse": "Display the frame rate directly inside your video for metadata overlays, debugging multiple deliverables, or automated template workflows.",
+      "targetProperty": "Any animatable property",
+      "expression": "fps = 1 / thisComp.frameDuration;\nfps % 1 === 0 ? fps.toFixed(0) : fps.toFixed(2);",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/show-frame-rate"
+    },
+    {
+      "name": "Show Layer Count",
+      "slug": "show-layer-count",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Counts the total number of layers in the current composition and displays it dynamically in a text layer. Whenever you add or remove layers, the displayed number updates instantly, making it perfect for automated templates and project debugging.",
+      "whenToUse": "Display (calculate) total layer counts in metadata overlays or track layer-heavy comps at a glance.",
+      "targetProperty": "Position",
+      "expression": "thisComp.numLayers;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/show-layer-count"
+    },
+    {
+      "name": "Show Resolution",
+      "slug": "show-resolution",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Reads the active composition’s width and height in pixels and outputs the resolution in a “1920×1080” format. Updates in real-time, so if you switch to a different comp size, the displayed resolution adjusts automatically.",
+      "whenToUse": "Add live resolution metadata to templates, manage multi-resolution deliverables, or debug responsive motion graphics.",
+      "targetProperty": "Position",
+      "expression": "thisComp.width + \"x\" + thisComp.height;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/show-resolution"
+    },
+    {
+      "name": "Procedural Sine Wave Line Expression",
+      "slug": "sine-wave-line",
+      "type": "expression",
+      "category": "motion",
+      "description": "Uses a sine function across many points, with sliders for wave height, wavelength and total length, then draws the path.",
+      "whenToUse": "Like Wave effect but way better. Quickly generate wavy lines for backgrounds, audio visualizers or motion-graphic flourishes.",
+      "targetProperty": "Any animatable property",
+      "expression": "amp = effect(\"Amplitude\")(\"Slider\"); // wave height (px)\nwavelength = effect(\"Wavelength\")(\"Slider\"); // px per cycle\nl = effect(\"Length\")(\"Slider\"); // total wave length (px)\nptsCount = 200;  // change this up if you need even smoother curves\npts = [];\ncycles = l / wavelength;\nfor (i = 0; i < ptsCount; i++) {\n  t = i / (ptsCount - 1);\n  x = t * l - l / 2;\n  y = amp * Math.sin(t * cycles * 2 * Math.PI);\n  pts.push([x, y]);\n}\ncreatePath(pts, [], [], false);",
+      "params": [
+        "ptsCount"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/sine-wave-line"
+    },
+    {
+      "name": "Sine Wave Motion Expression",
+      "slug": "sine-wave-motion",
+      "type": "expression",
+      "category": "motion",
+      "description": "Creates a sine wave motion on a property, such as opacity.",
+      "whenToUse": "Animating the opacity of an object to pulse over time using a sine wave.",
+      "targetProperty": "Opacity",
+      "expression": "Math.sin(time * 2) * 100",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/sine-wave-motion"
+    },
+    {
+      "name": "Single Corner Radius After Effects Expression",
+      "slug": "single-corner-radius",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Lets you dial in a separate roundness slider for each corner and then builds the shape path with proper Beziér curves.",
+      "whenToUse": "Draw one rectangle but round only the corners you want, without extra shape layers or masks.",
+      "targetProperty": "Any animatable property",
+      "expression": "w = effect(\"Width\")(\"Slider\");\nh = effect(\"Height\")(\"Slider\");\nrTL = effect(\"Top Left Roundness\")(\"Slider\");\nrTR = effect(\"Top Right Roundness\")(\"Slider\");\nrBR = effect(\"Bottom Right Roundness\")(\"Slider\");\nrBL = effect(\"Bottom Left Roundness\")(\"Slider\");\n// Clamp each corner's roundness\nrTL = Math.max(0, Math.min(rTL, Math.min(w, h) / 2));\nrTR = Math.max(0, Math.min(rTR, Math.min(w, h) / 2));\nrBR = Math.max(0, Math.min(rBR, Math.min(w, h) / 2));\nrBL = Math.max(0, Math.min(rBL, Math.min(w, h) / 2));\n// Bezier control handle coefficients for each corner\nctrlTL = rTL * 0.55228475;\nctrlTR = rTR * 0.55228475;\nctrlBR = rBR * 0.55228475;\nctrlBL = rBL * 0.55228475;\npts = [];\ninTan = [];\noutTan = [];\nfunction add(p, inT, outT) {\npts.push(p);\ninTan.push(inT);\noutTan.push(outT);\n}\n// Top Left Corner\nif (rTL > 0) {\nadd([rTL, 0], [0, 0], [-ctrlTL, 0]);\nadd([0, rTL], [0, -ctrlTL], [0, 0]);\n} else {\nadd([0, 0], [0, 0], [0, 0]);\n}\n// Left side (only add bottom-left corner point if it's not rounded)\nif (rBL == 0) {  add([0, h], [0, 0], [0, 0]);\n}\n// Bottom Left Corner\nif (rBL > 0) {\nadd([0, h - rBL], [0, 0], [0, ctrlBL]);\nadd([rBL, h], [-ctrlBL, 0], [0, 0]);\n}\n// Bottom side (only add bottom-right corner point if it's not rounded)\nif (rBR == 0) {\nadd([w, h], [0, 0], [0, 0]);\n}\n// Bottom Right Corner\nif (rBR > 0) {\nadd([w - rBR, h], [0, 0], [ctrlBR, 0]);\nadd([w, h - rBR], [0, ctrlBR], [0, 0]);\n}\n// Right side (only add top-right corner point if it's not rounded)\nif (rTR == 0) {\nadd([w, 0], [0, 0], [0, 0]);\n}\n// Top Right Corner\nif (rTR > 0) {\nadd([w, rTR], [0, 0], [0, -ctrlTR]);\nadd([w - rTR, 0], [ctrlTR, 0], [0, 0]);\n}\ncreatePath(pts, inTan, outTan, true);",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/single-corner-radius"
+    },
+    {
+      "name": "Smooth Expression",
+      "slug": "smooth",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Smoothens out the jittery motion of a property over time.",
+      "whenToUse": "Smoothing out the jittery motion of a handheld camera by averaging out its position over time.",
+      "targetProperty": "Position",
+      "expression": "smooth(width = 0.2, samples = 5)",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/smooth"
+    },
+    {
+      "name": "Snap to Layer or Comp Corners",
+      "slug": "snap-to-layer-or-comp-corners",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Snaps any layer exactly where you want it - to the edges, corners, or center of your comp, or perfectly aligned with another layer. It updates automatically if the target layer moves or changes size, and you can fine-tune the position with simple X and Y offset controls.",
+      "whenToUse": "Ideal for neatly lining up text, graphics, or logos without manually dragging them around. You can make lower-thirds stay aligned to a box, keep captions centered under a video, or build layouts that stay tidy no matter how your layers change.",
+      "targetProperty": "Position",
+      "expression": "snapTo = effect(\"Snap to (corner)\")(\"Menu\");\ntargetMode = effect(\"Snap to (target)\")(\"Menu\"); // 1 = layer, 0 = comp\ntargetLayer = effect(\"Target Layer\")(\"Layer\");\nxOffset = effect(\"X offset\")(\"Slider\");\nyOffset = effect(\"Y offset\")(\"Slider\");\nw = thisComp.width;\nh = thisComp.height;\nvar x = 0;\nvar y = 0;\nif (targetMode == 1) {\n // Snap to LAYER\n r = targetLayer.sourceRectAtTime(time, false);\n var localPos = [0, 0];\n if (snapTo == 1) localPos = [r.left + r.width/2, r.top + r.height/2]; // Center\n else if (snapTo == 2) localPos = [r.left, r.top]; // Top Left\n else if (snapTo == 3) localPos = [r.left + r.width/2, r.top]; // Top\n else if (snapTo == 4) localPos = [r.left + r.width, r.top]; // Top Right\n else if (snapTo == 5) localPos = [r.left + r.width, r.top + r.height/2]; // Right\n else if (snapTo == 6) localPos = [r.left + r.width, r.top + r.height]; // Bottom Right\n else if (snapTo == 7) localPos = [r.left + r.width/2, r.top + r.height]; // Bottom\n else if (snapTo == 8) localPos = [r.left, r.top + r.height]; // Bottom Left\n else if (snapTo == 9) localPos = [r.left, r.top + r.height/2]; // Left\n worldPos = targetLayer.toComp(localPos);\n x = worldPos[0];\n y = worldPos[1];\n} else {\n// Snap to COMP\n if (snapTo == 1) {x = w / 2; y = h / 2; } // Center\n else if (snapTo == 2) { x = 0; y = 0; } // Top Left\n else if (snapTo == 3) { x = w / 2; y = 0; } // Top\n else if (snapTo == 4) { x = w; y = 0; } // Top Right\n else if (snapTo == 5) { x = w; y = h / 2; } // Right\n else if (snapTo == 6) { x = w; y = h; } // Bottom Right\n else if (snapTo == 7) { x = w / 2; y = h; } // Bottom\n else if (snapTo == 8) { x = 0; y = h; } // Bottom Left\n else if (snapTo == 9) { x = 0; y = h / 2; } // Left\n}\n[x + xOffset, y + yOffset];",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/snap-to-layer-or-comp-corners"
+    },
+    {
+      "name": "Split Text Layer by Separator",
+      "slug": "split-text",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Splits a text layer’s name or content into two or more parts based on a separator (e.g., hyphen, colon, or space) and extracts either the first or second part. Note: You can experiment with different separators by changing the character inside the brackets (” “). To split into more than two parts, follow the same method.",
+      "whenToUse": "Perfect for automating text-based workflows where layers have structured names like “Title - Subtitle” or “Section: Topic,” allowing you to use each part independently.",
+      "targetProperty": "Source Text",
+      "expression": "thisComp.layer(\"Main Text Layer\").text.sourceText.split(\" \") [0] // First part\nthisComp.layer(\"Main Text Layer\").text.sourceText.split(\" \") [1] // Second part\nthisComp.layer(\"Main Text Layer\").text.sourceText.split(\" \") [2] // Third part (this can continue indefinitely, depending on how many parts you need)",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/split-text"
+    },
+    {
+      "name": "Squash and Stretch Animation Expression",
+      "slug": "squash-stretch",
+      "type": "expression",
+      "category": "motion",
+      "description": "Creates a squash-and-stretch effect at the start of a layer’s timeline, with adjustable duration, speed, and amplitude.",
+      "whenToUse": "Ideal for adding a lively, cartoony effect to bouncing or landing animations.",
+      "targetProperty": "Scale",
+      "expression": "maxDev = 10; // Max deviation in pixelss\npd = 30; // Base speed of oscillation\nduration = 2; // Duration in seconds\nt = time - inPoint;\ndecay = Math.log(100) / duration;\nif (t < duration) {\nx = scale[0] + maxDev * Math.sin(spd * t) / Math.exp(decay * t);\ny = (scale[0] * scale[1]) / x;\n[x, y]; }\nelse {\nscale;}",
+      "params": [
+        "maxDev",
+        "pd",
+        "duration"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/squash-stretch"
+    },
+    {
+      "name": "Strobe Light Expression",
+      "slug": "strobe-light",
+      "type": "expression",
+      "category": "conditional",
+      "description": "Creates a strobe light effect by toggling between values.",
+      "whenToUse": "Making a text layer's opacity blink between 100% and 0% every second.",
+      "targetProperty": "Opacity",
+      "expression": "if (Math.floor(time % 2) == 1)\n{100}\nelse\n{0}",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/strobe-light"
+    },
+    {
+      "name": "Swinging Pendulum Animation",
+      "slug": "swinging-pendulum",
+      "type": "expression",
+      "category": "motion",
+      "description": "Simulates the motion of a swinging pendulum with decaying amplitude over time, mimicking realistic physical movement.",
+      "whenToUse": "Ideal for creating physics-based effects or adding organic motion to objects like hanging signs, swinging decorations, or other elements that need natural oscillation.",
+      "targetProperty": "Any animatable property",
+      "expression": "frequency = 1;\namplitude = 45;\ndecay = 0.1;\namplitude * Math.sin(time * frequency * Math.PI * 2) * Math.exp(-decay * time);",
+      "params": [
+        "frequency",
+        "amplitude",
+        "decay"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/swinging-pendulum"
+    },
+    {
+      "name": "Tapered Wave Line Expression",
+      "slug": "tapered-wave-line",
+      "type": "expression",
+      "category": "motion",
+      "description": "Builds a sine wave whose height tapers off based on a “bias” slider (peak at left, center, or right) and draws the shape path.",
+      "whenToUse": "Animate a wave that fades in or out toward one side for stylized trails or sound-wave graphics.",
+      "targetProperty": "Any animatable property",
+      "expression": "amp = effect(\"Amplitude\")(\"Slider\"); // max wave height (px)\nwavelength = effect(\"Wavelength\")(\"Slider\"); // px per cycle\nl = effect(\"Length\")(\"Slider\"); // total wave length (px)\nbiasS = effect(\"Bias\")(\"Slider\"); // -100 = peak at left, 0 = center, 100 = right\nptsCount = 200; // more points = smoother line but heavier rendering\ncycles = l / wavelength;\nb = clamp((biasS + 100) / 200, 0, 1);\npts = [];\nfor (i = 0; i < ptsCount; i++) {\n  t = i / (ptsCount - 1);\n  x = t * l - l / 2;\n  if (b <= 0) falloff = 1 - t;\n  else if (b >= 1) falloff = t;\n  else {\n    m = Math.max(b, 1 - b);\n    falloff = clamp(1 - Math.abs(t - b) / m, 0, 1);\n  }\n  y = amp * falloff * Math.sin(t * cycles * 2 * Math.PI);\n  pts.push([x, y]);\n}\ncreatePath(pts, [], [], false);",
+      "params": [
+        "ptsCount"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/tapered-wave-line"
+    },
+    {
+      "name": "Text Change Based on Layer Position",
+      "slug": "text-change-on-layer-position",
+      "type": "expression",
+      "category": "conditional",
+      "description": "Checks where your layer sits on screen and updates its text to match which quadrant it’s in.",
+      "whenToUse": "Auto-label elements like “Top Left” or “Bottom Right” as you drag them around the comp. Handy for interactive mockups.",
+      "targetProperty": "Position",
+      "expression": "if (position[0] < thisComp.width / 2 && position[1] < thisComp.height / 2) {\n  \"Top Left\";\n} else if (position[0] > thisComp.width / 2 && position[1] < thisComp.height / 2) {\n  \"Top Right\";\n} else if (position[0] < thisComp.width / 2) {\n  \"Bottom Left\";\n} else {\n  \"Bottom Right\";\n}",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/text-change-on-layer-position"
+    },
+    {
+      "name": "Text Glitch Effect Expression",
+      "slug": "text-glitch-effect",
+      "type": "expression",
+      "category": "randomness",
+      "description": "Applies a real-time text glitch effect by randomly corrupting characters each frame using ASCII symbols, Unicode blocks, duplicates, and case flips. Sliders let you control glitch speed and corruption intensity. *For best results, use fonts like Arial that support a wide range of symbols.",
+      "whenToUse": "Create glitchy titles, cyberpunk-style typography, or hacking-inspired motion graphics with full control over speed and distortion.",
+      "targetProperty": "Source Text",
+      "expression": "// Apply to Source Text\noriginalText = text.sourceText; // Replace with your text or use: text.sourceText\nglitchSpeed = effect(\"Speed\")(\"Slider\"); // Glitch speed - Connect to a Slider Control for easier adjustments\ncorruption = effect(\"Corruption\")(\"Slider\"); // Corruption level (0-100) - Connect to a Slider Control for easier adjustments\ncorruptionLevel = corruption / 100; // 0-1\n// Glitch character sets\nglitchChars = \"!@#$%^&*()_+-=[]{}|;':\\\"<>?,./~`\";\nunicodeGlitch = \"▓▒░█▄▀■□▪▫◘◙☼♠♣♥♦\";\nresult = \"\";\nseedRandom(Math.floor(time * glitchSpeed * 10), true);\nfor (i = 0; i < originalText.length; i++) {\nchar = originalText.charAt(i);\nif (char == \" \") {\nresult += \" \";\n// Preserve spaces\n}\nelse if (random() < corruptionLevel) {\n// Apply corruption\ncorruptionType = Math.floor(random(4));\nswitch (corruptionType) {\ncase 0:\n// Random ASCII glitch\nresult += glitchChars.charAt(Math.floor(random(glitchChars.length)));\nbreak;\ncase 1:\n// Unicode blocks\nresult += unicodeGlitch.charAt(Math.floor(random(unicodeGlitch.length)));\nbreak;\ncase 2:\n// Duplicate character\nresult += char + char;\nbreak;\ncase 3:\n// Random case change\nresult += (random() > 0.5) ? char.toUpperCase() : char.toLowerCase();\nbreak;\n}}\nelse {\nresult += char;\n// Keep original character\n}}\nresult;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/text-glitch-effect"
+    },
+    {
+      "name": "Text Scramble Reveal Animation",
+      "slug": "text-scramble",
+      "type": "expression",
+      "category": "motion",
+      "description": "Seeds a random charset each frame and gradually replaces random letters with the target text based on a linear progress tied to time and inPoint.",
+      "whenToUse": "Great for sci-fi titles, glitch-style reveals, or data-driven infographics where you reveal text over time with randomized characters.",
+      "targetProperty": "Any animatable property",
+      "expression": "text = \"HELLO WORLD\";\nseedRandom(time*10, true);\nrevealProgress = linear(time - inPoint, 0, 1, 0, text.length);\npartial = \"\";\ncharset = \"ABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890\";\nfor (i = 0; i < text.length; i++) {\nif (i < revealProgress) partial += text[i];\nelse partial += charset[Math.floor(random(charset.length))];\n}\npartial;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/text-scramble"
+    },
+    {
+      "name": "Time Expression",
+      "slug": "time",
+      "type": "expression",
+      "category": "motion",
+      "description": "Creates continuous motion like rotation or movement over time.",
+      "whenToUse": "Rotating an object at a steady rate over time by applying it to the Rotation property.",
+      "targetProperty": "Rotation",
+      "expression": "time * 100",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/time"
+    },
+    {
+      "name": "Time-Remap Control Expression",
+      "slug": "time-remap",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Slows down time remap for a layer to 50%.",
+      "whenToUse": "Slowing down a video clip by half its speed using time remapping.",
+      "targetProperty": "Any animatable property",
+      "expression": "timeRemap * 0.5",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/time-remap"
+    },
+    {
+      "name": "Timecode Counter with Drop Frame Support",
+      "slug": "timecode-counter-drop-frame",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Displays a timecode counter, formatted correctly with hours, minutes, seconds, and frames.",
+      "whenToUse": "Used for creating on-screen timecode displays that match frame rates accurately.",
+      "targetProperty": "Source Text",
+      "expression": "fps = 30 // Insert frame rate here\nframes = Math.floor(time * fps);\nhours = Math.floor(frames / (fps * 3600));\nminutes = Math.floor((frames % (fps * 3600)) / (fps * 60));\nseconds = Math.floor((frames % (fps * 60)) / fps);\nframes = frames % fps;(hours < 10 ? \"0\" : \"\") + hours + \":\" +(minutes < 10 ? \"0\" : \"\") + minutes + \":\" +(seconds < 10 ? \"0\" : \"\") + seconds + \":\" +(frames < 10 ? \"0\" : \"\") + frames;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/timecode-counter-drop-frame"
+    },
+    {
+      "name": "ToComp Expression",
+      "slug": "to-comp",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Converts the position of a 3D layer to 2D comp space.",
+      "whenToUse": "Use when you want the 2D element to track the position of the 3D layer but stay flat and readable without 3D distortions.",
+      "targetProperty": "Position",
+      "expression": "toComp(anchorPoint)",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/to-comp"
+    },
+    {
+      "name": "Toggle Layer Visibility with a Dropdown Menu",
+      "slug": "toggle-visibility-dropdown",
+      "type": "expression",
+      "category": "conditional",
+      "description": "This expression links opacity to a dropdown menu, allowing users to toggle visibility based on selection.",
+      "whenToUse": "Easily turn layers on or off using a dropdown menu for better control over variations in templates.",
+      "targetProperty": "Opacity",
+      "expression": "dropdown = thisLayer.effect(\"Dropdown Menu Control\")(\"Menu\");\ndropdown == 1 ? 100 : 0;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/toggle-visibility-dropdown"
+    },
+    {
+      "name": "Trigger Animation with Markers",
+      "slug": "trigger-animation-marker",
+      "type": "expression",
+      "category": "conditional",
+      "description": "Starts an animation sequence each time a marker is encountered on a specified layer.",
+      "whenToUse": "Useful for triggering UI animations on click or hover, like button highlights or tooltips.",
+      "targetProperty": "Any animatable property",
+      "expression": "markerLayer = thisLayer;\nif (markerLayer){\nif (markerLayer.marker.numKeys > 0){\nvar n = markerLayer.marker.nearestKey(time).index;\nif (markerLayer.marker.key(n).time > time) n--;\nif (n > 0) {\nt = time - markerLayer.marker.key(n).time;\nanimStart = key(1).time;\nanimEnd = key(numKeys).time;\nanimDur = animEnd - animStart;\nif (t >= 0 && t <= animDur) {\nvalueAtTime(animStart + t);}\nelse if (t > animDur) {\nvalueAtTime(animEnd); }\nelse {\nvalueAtTime(animStart);\n}}\nelse{\nvalue;\n}}\nelse {\nvalue;}}\nelse {\nvalue;\n}",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/trigger-animation-marker"
+    },
+    {
+      "name": "Unique Snowflake Generator",
+      "slug": "unique-snowflake",
+      "type": "expression",
+      "category": "randomness",
+      "description": "A complex generative art script that uses branching algorithms to draw a unique, crystalline vector path. It uses the layer index as a random seed, meaning every duplicate of the layer will generate a completely different fractal design.",
+      "whenToUse": "Perfect for winter-themed motion graphics where you need variety. Instead of using the same asset repeatedly, you can generate an infinite number of unique ice crystals instantly.",
+      "targetProperty": "Rotation",
+      "expression": "seedRandom(index, true);\narms = 8;\nradius = 100;\nbranchCount = Math.floor(random(3, 6));\narmWidth = 5;\n// Store shape of ONE arm (right side)\narmProfile = [];\n// Generate one arm\nfor (j = 1; j <= branchCount; j++) {\n t = j / (branchCount + 1);\n dist = t * radius;\n currentWidth = armWidth * random(0.5, 1.5);\n armProfile.push({x: currentWidth, y: -dist});\n branchLen = random(20, 60) * (1 - t);\n branchAngle = -Math.PI / 3;\n bx = currentWidth + Math.cos(branchAngle) * branchLen;\n by = -dist + Math.sin(branchAngle) * branchLen;\n armProfile.push({x: bx, y: by});\n armProfile.push({x: currentWidth, y: -(dist + 15)});\n}\n// Rotate helper\nfunction rotatePoint(x, y, angle) {\n ca = Math.cos(angle);\n sa = Math.sin(angle);\n return [x * ca - y * sa, x * sa + y * ca];\n}\n// Build full snowflake\npts = [];\nfor (i = 0; i < arms; i++) {\n rotAngle = (i / arms) * Math.PI * 2;\n // Right side\n for (k = 0; k < armProfile.length; k++) {\n  p = rotatePoint(armProfile[k].x, armProfile[k].y, rotAngle);\n  pts.push(p);\n }\n // Main tip\n tip = rotatePoint(0, -radius, rotAngle);\n pts.push(tip);\n // Left side (mirrored)\n for (k = armProfile.length - 1; k >= 0; k--) {\n  p = rotatePoint(-armProfile[k].x, armProfile[k].y, rotAngle);\n  pts.push(p);\n }\n}\ncreatePath(pts, [], [], true);",
+      "params": [
+        "arms",
+        "radius",
+        "armWidth"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/unique-snowflake"
+    },
+    {
+      "name": "ValueAtTime Expression",
+      "slug": "value-at-time",
+      "type": "expression",
+      "category": "transformation",
+      "description": "Offsets animation by retrieving a property value from a specific time.",
+      "whenToUse": "Delaying the position animation of a layer so it follows another layer with a slight lag.",
+      "targetProperty": "Position",
+      "expression": "thisComp.layer(\"LayerName\").transform.position.valueAtTime(time - 1)",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/value-at-time"
+    },
+    {
+      "name": "Value Relative to Time Expression",
+      "slug": "value-relative-to-time",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Gradually changes a value over time within a specified range.",
+      "whenToUse": "Gradually changing the scale of an object from 0 to 100% over 5 seconds.",
+      "targetProperty": "Scale",
+      "expression": "linear(time, 0, 10, 0, 100)",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/value-relative-to-time"
+    },
+    {
+      "name": "Layer Visibility Based on Day of the Week",
+      "slug": "week-day-layer-visibility",
+      "type": "expression",
+      "category": "conditional",
+      "description": "Reads today’s weekday from your computer clock and sets layer opacity to 100% only if it matches your chosen day.",
+      "whenToUse": "Show or hide graphics automatically on specific weekdays - ideal for daily promos or social-media templates used in After Effects automation.",
+      "targetProperty": "Opacity",
+      "expression": "// Opacity property\ndays = [\"Sunday\", \"Monday\", \"Tuesday\", \"Wednesday\", \"Thursday\", \"Friday\", \"Saturday\"];\ntargetDay = \"Tuesday\";\n// Change this to desired day\ntoday = days[(new Date(Date.now())).getDay()];\ntoday == targetDay ? 100 : 0;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/week-day-layer-visibility"
+    },
+    {
+      "name": "Wiggle Expression",
+      "slug": "wiggle",
+      "type": "expression",
+      "category": "motion",
+      "description": "Adds randomness (e.g., jitter) to a property. The first number is frequency, second is amplitude.",
+      "whenToUse": "Creating a subtle shake in a text layer to simulate a hand-held camera effect.",
+      "targetProperty": "Position or any multi-dimensional property",
+      "expression": "wiggle(2, 50)",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/wiggle"
+    },
+    {
+      "name": "Wiggle One Dimension Only Expression",
+      "slug": "wiggle-one-dimension",
+      "type": "expression",
+      "category": "randomness",
+      "description": "Applies a wiggle effect to only one dimension (e.g., X or Y) of a layer’s position.",
+      "whenToUse": "Ideal for subtle jitter effects on text or images that should only move horizontally or vertically.",
+      "targetProperty": "Position or any multi-dimensional property",
+      "expression": "w = wiggle(2,50);\n[w[0],value[1]]",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/wiggle-one-dimension"
+    },
+    {
+      "name": "Wiggle Based on Speed",
+      "slug": "wiggle-reactive-speed",
+      "type": "expression",
+      "category": "randomness",
+      "description": "Adds more wiggle the faster the layer moves by linking wiggle amplitude to position speed in real time.",
+      "whenToUse": "Ideal for dynamic particles, trailing effects, or elements that should “shake” only when in motion.",
+      "targetProperty": "Position or any multi-dimensional property",
+      "expression": "sensitivity = 50;\n// Lower = more reactive. You can connect this to a Slider Control\nmaxAmount = 20;\n// Maximum wiggle intensity. Also connectable to a slider\nspeedValue = transform.position.speed;\namt = clamp(speedValue / sensitivity, 0, maxAmount);\nwiggle(10, amt);",
+      "params": [
+        "sensitivity",
+        "maxAmount"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/wiggle-reactive-speed"
+    },
+    {
+      "name": "Wiggle with Seed Expression",
+      "slug": "wiggle-with-seed",
+      "type": "expression",
+      "category": "randomness",
+      "description": "Creates a wiggle effect with a consistent seed for randomization.",
+      "whenToUse": "Creating a wiggle effect on position with a set seed, ensuring the randomness is consistent across renders.",
+      "targetProperty": "Position or any multi-dimensional property",
+      "expression": "seedRandom(index, true);\nwiggle(2, 50)",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/wiggle-with-seed"
+    },
+    {
+      "name": "Word Counter for Text Layers",
+      "slug": "word-counter-text",
+      "type": "expression",
+      "category": "interpolation",
+      "description": "Counts the number of words in a text layer and displays the result.",
+      "whenToUse": "Useful for dynamically counting words in scripts, subtitles, or infographic animations.",
+      "targetProperty": "Source Text",
+      "expression": "myText = thisComp.layer(\"Source\").text.sourceText;\nmyText.split(\" \").length;",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/word-counter-text"
+    },
+    {
+      "name": "Letter-by-Letter Write-On Text Animation",
+      "slug": "write-on-text-letter",
+      "type": "expression",
+      "category": "motion",
+      "description": "Animates text layer visibility by revealing letters one at a time for a typewriter-style effect.",
+      "whenToUse": "Great for animating headlines, intros, or coding-themed sequences where text needs to appear letter-by-letter.",
+      "targetProperty": "Source Text",
+      "expression": "chars = text.sourceText.length;\ntimePerChar = 0.1;\nvisibleChars = Math.floor((time - inPoint) / timePerChar);\ntext.sourceText.substr(0, visibleChars);",
+      "params": [
+        "timePerChar"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/write-on-text-letter"
+    },
+    {
+      "name": "Word-by-Word Write-On Text Animation",
+      "slug": "write-on-text-word",
+      "type": "expression",
+      "category": "motion",
+      "description": "Animates text layer visibility by revealing words one at a time, simulating a typewriter or write-on effect.",
+      "whenToUse": "Perfect for captions, subtitles, or kinetic typography where text is revealed incrementally.",
+      "targetProperty": "Source Text",
+      "expression": "words = text.sourceText.split(\" \");\ntimePerWord = 0.2;\nvisibleWords = Math.floor((time - inPoint) / timePerWord);\nwords.slice(0, visibleWords).join(\" \");",
+      "params": [
+        "timePerWord"
+      ],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/write-on-text-word"
+    },
+    {
+      "name": "Procedural Zig-Zag Line Expression",
+      "slug": "zig-zag-line",
+      "type": "expression",
+      "category": "motion",
+      "description": "Evenly spaces a set number of points along a line and alternates their Y-positions up/down to form a zig-zag.",
+      "whenToUse": "Create customizable zig-zag dividers or energy lines in seconds.",
+      "targetProperty": "Position",
+      "expression": "verts = Math.max(2, Math.floor(effect(\"Vertices\")(\"Slider\"))); // number of points\nl = effect(\"Length\")(\"Slider\"); // total line length in px\namplitude = effect(\"Amplitude\")(\"Slider\"); // zig-zag height in px\nseg  = l / (verts - 1);\nhalf = l / 2;\npts = [];\ninT = [];\noutT = [];\nfor (i = 0; i < verts; i++) {\n  x = -half + seg * i;\n  y = (i % 2 === 0) ? amplitude : -amplitude;\n  pts.push([x, y]);\n  inT.push([0, 0]);\n  outT.push([0, 0]);\n}\ncreatePath(pts, inT, outT, false);",
+      "params": [],
+      "source_url": "https://www.plainlyvideos.com/after-effects-expressions-library/zig-zag-line"
+    }
+  ]
+}

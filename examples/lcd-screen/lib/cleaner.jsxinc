@@ -1,0 +1,24 @@
+// LCD Screen — Project Cleaner
+// Removes every comp this example creates (by exact name), safe for re-runs.
+// Iterates project items backwards so removal doesn't shift indices.
+
+function cleanLcdScreen(project, cfg) {
+    var names = {
+        "LCD_Content": true,
+        "LCD_Panel": true,
+        "LCD_Screen": true,
+        "LCD_SUBPIXEL_CELL": true
+    };
+    if (cfg && cfg.MASTER_COMP_NAME) {
+        names[cfg.MASTER_COMP_NAME] = true;
+    }
+
+    var removed = 0;
+    for (var i = project.numItems; i >= 1; i--) {
+        var item = project.item(i);
+        if (item instanceof CompItem && names[item.name]) {
+            try { item.remove(); removed++; } catch (_) {}
+        }
+    }
+    return removed;
+}

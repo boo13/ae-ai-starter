@@ -1,0 +1,57 @@
+/**
+ * @name Add Depth Of Field Rake
+ * @description Adds a raked (angled) depth-of-field blur via Camera Lens Blur driven by a linear Gradient Ramp blur map — the effect-based route to Perfect Screen's "thin slice of focus" macro-lens look, for use when a real 3D camera isn't wired up.
+ * @category effect
+ * @tier block
+ * @inputs comp: CompItem; opts: { targetLayer: AVLayer (required), axis: "horizontal"|"vertical" (default "horizontal"), blurRadius: number (default 30), focalPercent: number (0-100, default 50 — where along the ramp is sharpest), bokehGain: number (default 0), bokehThreshold: number (0-100 percent, default 90 -- divided by 100 internally, the effect stores 0-1), invert: boolean (default false) }
+ * @outputs Object — { blurEffect: PropertyGroup, mapLayer: AVLayer }
+ * @whenToUse You want a focal plane raked across a tilted screen without setting up a real 3D camera with Depth of Field.
+ * @example var dof = addDepthOfFieldRake(comp, { targetLayer: screenLayer, blurRadius: 40, focalPercent: 35 });
+ * @pluginDeps ADBE Ramp, ADBE Camera Lens Blur
+ * @note Blur Focal Distance's exact scripting range is not independently verified against the map's 0-255 luminance — value is set defensively (non-fatal) and should be checked visually. Highlight Threshold IS verified as normalized 0-1 (default 0.8); bokehThreshold is passed as 0-100 and divided internally.
+ */
+function addDepthOfFieldRake(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Depth Of Field Rake: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    if (!o.targetLayer) {
+        throw new Error("Add Depth Of Field Rake: opts.targetLayer is required.");
+    }
+    var axis = o.axis ? String(o.axis).toLowerCase() : "horizontal";
+    var blurRadius = (o.blurRadius !== undefined) ? Number(o.blurRadius) : 30;
+    var focalPercent = (o.focalPercent !== undefined) ? Number(o.focalPercent) : 50;
+    var bokehGain = (o.bokehGain !== undefined) ? Number(o.bokehGain) : 0;
+    var bokehThreshold = (o.bokehThreshold !== undefined) ? Number(o.bokehThreshold) : 90;
+    var invert = !!o.invert;
+
+    setStep("build blur map ramp");
+    var mapLayer = comp.layers.addSolid([0, 0, 0], "DOF BLUR MAP", comp.width, comp.height, comp.pixelAspect, comp.duration);
+    try { mapLayer.enabled = false; } catch (_) {} // hidden source; blur-map effects still sample disabled layers
+    var ramp = mapLayer.property("ADBE Effect Parade").addProperty("ADBE Ramp");
+    var start, end;
+    if (axis === "vertical") {
+        start = [comp.width / 2, 0];
+        end = [comp.width / 2, comp.height];
+    } else {
+        start = [0, comp.height / 2];
+        end = [comp.width, comp.height / 2];
+    }
+    try { ramp.property("ADBE Ramp-0001").setValue(start); } catch (_) {}
+    try { ramp.property("ADBE Ramp-0002").setValue([0, 0, 0, 1]); } catch (_) {}
+    try { ramp.property("ADBE Ramp-0003").setValue(end); } catch (_) {}
+    try { ramp.property("ADBE Ramp-0004").setValue([1, 1, 1, 1]); } catch (_) {}
+    try { ramp.property("ADBE Ramp-0005").setValue(1); } catch (_) {} // Linear Ramp
+
+    setStep("apply camera lens blur");
+    var mapLayerRef = comp.layer("DOF BLUR MAP"); // re-resolve by name — index may have shifted
+    var fx = o.targetLayer.property("ADBE Effect Parade").addProperty("ADBE Camera Lens Blur");
+    try { fx.property("ADBE Camera Lens Blur-0001").setValue(blurRadius); } catch (_) {}            // Blur Radius
+    try { fx.property("ADBE Camera Lens Blur-0010").setValue(mapLayerRef.index); } catch (_) {}     // Blur Map: Layer
+    try { fx.property("ADBE Camera Lens Blur-0013").setValue(focalPercent / 100 * 255); } catch (_) {} // Blur Focal Distance
+    try { fx.property("ADBE Camera Lens Blur-0014").setValue(invert ? 1 : 0); } catch (_) {}        // Invert Blur Map
+    try { fx.property("ADBE Camera Lens Blur-0017").setValue(bokehGain); } catch (_) {}             // Highlight Gain
+    try { fx.property("ADBE Camera Lens Blur-0018").setValue(bokehThreshold / 100); } catch (_) {}  // Highlight Threshold — normalized 0-1 in scripting (default 0.8)
+
+    return { blurEffect: fx, mapLayer: mapLayerRef };
+}

@@ -1,0 +1,46 @@
+/**
+ * @name Add Backlight Tint
+ * @description Adds an LCD backlight color-temperature adjustment layer using Photo Filter — the physically-correct way to warm, cool, or green-shift a panel's white point.
+ * @category effect
+ * @tier block
+ * @inputs comp: CompItem; opts: { preset: "warm"|"cool"|"green"|"none" (default "none"), color: [r,g,b] (overrides preset), density: number (0-100, default 25), preserveLuminosity: boolean (default true) }
+ * @outputs AVLayer — the adjustment layer
+ * @whenToUse You want to simulate a warm/cool/green LCD backlight, matching Perfect Screen's color tinting control.
+ * @example var tint = addBacklightTint(comp, { preset: "cool", density: 20 });
+ * @pluginDeps ADBE Photo Filter
+ */
+function addBacklightTint(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Backlight Tint: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var density = (o.density !== undefined) ? Number(o.density) : 25;
+    var preserveLuminosity = (o.preserveLuminosity !== undefined) ? !!o.preserveLuminosity : true;
+
+    var presetColors = {
+        warm:  [1.0, 0.71, 0.30, 1],
+        cool:  [0.42, 0.65, 1.0, 1],
+        green: [0.55, 0.92, 0.55, 1],
+        none:  [1, 1, 1, 1]
+    };
+    var presetName = o.preset ? String(o.preset).toLowerCase() : "none";
+    var color = o.color ? [o.color[0], o.color[1], o.color[2], 1] : (presetColors[presetName] || presetColors.none);
+
+    setStep("create backlight tint adjustment layer");
+    var solid = comp.layers.addSolid([1, 1, 1], "BACKLIGHT TINT", comp.width, comp.height, comp.pixelAspect, comp.duration);
+    solid.adjustmentLayer = true;
+    solid.blendingMode = BlendingMode.NORMAL;
+
+    setStep("apply photo filter");
+    var fx = solid.property("ADBE Effect Parade").addProperty("ADBE Photo Filter");
+    try { fx.property("ADBE Photo Filter-0001").setValue(20); } catch (_) {}         // Filter: 20 = Custom (color-driven) per verified enum map
+    try { fx.property("ADBE Photo Filter-0002").setValue(color); } catch (_) {}      // Color (4-element RGBA)
+    try { fx.property("ADBE Photo Filter-0003").setValue(density); } catch (_) {}    // Density
+    try { fx.property("ADBE Photo Filter-0004").setValue(preserveLuminosity ? 1 : 0); } catch (_) {}
+
+    if (presetName === "none" && !o.color) {
+        try { solid.property("Transform").property("Opacity").setValue(0); } catch (_) {}
+    }
+
+    return solid;
+}

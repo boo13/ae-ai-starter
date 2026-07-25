@@ -1,0 +1,82 @@
+/**
+ * @name Add Glass Surface
+ * @description Builds a single GLASS overlay layer (Screen blend) combining dust motes, bump-mapped smudges, a broad sheen gradient, and an animated specular sweep — the physical-monitor surface detail that a pure camera/lens simulator like Perfect Screen doesn't attempt.
+ * @category scene
+ * @tier block
+ * @inputs comp: CompItem; opts: { dust: number (0-100, default 30), smudge: number (0-100, default 20), sheen: number (0-100, default 25), sweep: boolean (default true), sweepSpeed: number (seconds per pass, default 6) }
+ * @outputs Object — { glassLayer: AVLayer, sweepEffect: PropertyGroup|null }
+ * @whenToUse You want dust, fingerprints, sheen, and a moving specular highlight on top of a screen layer.
+ * @example var glass = addGlassSurface(comp, { dust: 20, smudge: 15, sweep: true });
+ * @pluginDeps ADBE Noise HLS Auto2, ADBE Threshold2, ADBE Fractal Noise, CC Glass, ADBE Ramp, CC Light Sweep
+ */
+function addGlassSurface(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Glass Surface: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var dust = (o.dust !== undefined) ? Number(o.dust) : 30;
+    var smudge = (o.smudge !== undefined) ? Number(o.smudge) : 20;
+    var sheen = (o.sheen !== undefined) ? Number(o.sheen) : 25;
+    var sweep = (o.sweep !== undefined) ? !!o.sweep : true;
+    var sweepSpeed = (o.sweepSpeed !== undefined) ? Number(o.sweepSpeed) : 6;
+
+    setStep("create glass layer");
+    var glass = comp.layers.addSolid([0, 0, 0], "GLASS", comp.width, comp.height, comp.pixelAspect, comp.duration);
+    glass.blendingMode = BlendingMode.SCREEN;
+
+    if (dust > 0) {
+        setStep("add dust");
+        var noiseFx = glass.property("ADBE Effect Parade").addProperty("ADBE Noise HLS Auto2");
+        try { noiseFx.property("ADBE Noise HLS Auto2-0001").setValue(dust); } catch (_) {}   // Noise
+        try { noiseFx.property("ADBE Noise HLS Auto2-0005").setValue(1); } catch (_) {}      // Grain Size (fine)
+        var threshFx = glass.property("ADBE Effect Parade").addProperty("ADBE Threshold2");
+        try { threshFx.property("ADBE Threshold2-0001").setValue(0.94); } catch (_) {}       // Level — normalized 0-1 (240/255); isolate brightest specks only
+    }
+
+    if (smudge > 0) {
+        setStep("add smudge bump map");
+        var bumpSolid = comp.layers.addSolid([0.5, 0.5, 0.5], "GLASS SMUDGE BUMP", comp.width, comp.height, comp.pixelAspect, comp.duration);
+        try { bumpSolid.enabled = false; } catch (_) {} // hidden source; bump-map effects still sample disabled layers
+        var fractal = bumpSolid.property("ADBE Effect Parade").addProperty("ADBE Fractal Noise");
+        try { fractal.property("ADBE Fractal Noise-0004").setValue(150); } catch (_) {} // Contrast — blobby smears
+        try { fractal.property("ADBE Fractal Noise-0009").setValue(0); } catch (_) {}   // Uniform Scaling off — else Scale Width/Height are ignored
+        try { fractal.property("ADBE Fractal Noise-0011").setValue(300); } catch (_) {} // Scale Width
+        try { fractal.property("ADBE Fractal Noise-0012").setValue(300); } catch (_) {} // Scale Height
+
+        var glassFx = glass.property("ADBE Effect Parade").addProperty("CC Glass");
+        var bumpLayer = comp.layer("GLASS SMUDGE BUMP"); // re-resolve by name — index may have shifted
+        try { glassFx.property("CC Glass-0002").setValue(bumpLayer.index); } catch (_) {} // Bump Map
+        try { glassFx.property("CC Glass-0004").setValue(60); } catch (_) {}              // Softness
+        try { glassFx.property("CC Glass-0005").setValue(smudge); } catch (_) {}          // Height
+        try { glassFx.property("CC Glass-0009").setValue(80); } catch (_) {}              // Light Intensity
+    }
+
+    if (sheen > 0) {
+        setStep("add sheen ramp");
+        var rampFx = glass.property("ADBE Effect Parade").addProperty("ADBE Ramp");
+        try { rampFx.property("ADBE Ramp-0001").setValue([0, 0]); } catch (_) {}
+        try { rampFx.property("ADBE Ramp-0002").setValue([1, 1, 1, 1]); } catch (_) {}
+        try { rampFx.property("ADBE Ramp-0003").setValue([comp.width * 0.6, comp.height]); } catch (_) {}
+        try { rampFx.property("ADBE Ramp-0004").setValue([0, 0, 0, 1]); } catch (_) {}
+        try { rampFx.property("ADBE Ramp-0005").setValue(1); } catch (_) {}   // Linear Ramp
+        try { rampFx.property("ADBE Ramp-0007").setValue(Math.max(0, 100 - sheen)); } catch (_) {} // Blend With Original
+    }
+
+    var sweepFx = null;
+    if (sweep) {
+        setStep("add specular sweep");
+        sweepFx = glass.property("ADBE Effect Parade").addProperty("CC Light Sweep");
+        try { sweepFx.property("CC Light Sweep-0002").setValue(120); } catch (_) {}       // Direction
+        try { sweepFx.property("CC Light Sweep-0004").setValue(40); } catch (_) {}        // Width
+        try { sweepFx.property("CC Light Sweep-0005").setValue(sheen || 25); } catch (_) {} // Sweep Intensity
+        try { sweepFx.property("CC Light Sweep-0008").setValue([1, 1, 1, 1]); } catch (_) {} // Light Color
+        try {
+            var p = Math.max(0.1, sweepSpeed);
+            sweepFx.property("CC Light Sweep-0001").expression =
+                "var p = " + p + ";\n" +
+                "[thisComp.width * ((time % p) / p * 1.6 - 0.3), thisComp.height * 0.3]";
+        } catch (_) {}
+    }
+
+    return { glassLayer: glass, sweepEffect: sweepFx };
+}

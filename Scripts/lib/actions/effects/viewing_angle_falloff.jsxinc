@@ -1,0 +1,61 @@
+/**
+ * @name Add Viewing Angle Falloff
+ * @description Simulates LCD viewing-angle falloff (IPS glow / TN gamma shift): duplicates the target layer, desaturates and washes out the copy, then uses a linear Gradient Ramp as a luma track matte so the wash-out only affects the far side of the panel. This is the single biggest thing camera/lens simulator plugins (like Perfect Screen) omit.
+ * @category effect
+ * @tier block
+ * @inputs comp: CompItem; opts: { targetLayer: AVLayer (required), axis: "horizontal"|"vertical" (default "horizontal"), amount: number (0-100, default 40), tintColor: [r,g,b] (default cool [0.6,0.7,1]), direction: number (1 or -1, default 1 — which side falls off) }
+ * @outputs Object — { falloffLayer: AVLayer, matteLayer: AVLayer }
+ * @whenToUse The camera or content is tilted and you want the far edge of the panel to lose contrast and cool off like a real LCD viewed off-angle.
+ * @example var falloff = addViewingAngleFalloff(comp, { targetLayer: screenLayer, axis: "horizontal", amount: 50 });
+ * @pluginDeps ADBE Tint, ADBE Easy Levels2, ADBE Ramp
+ */
+function addViewingAngleFalloff(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Viewing Angle Falloff: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    if (!o.targetLayer) {
+        throw new Error("Add Viewing Angle Falloff: opts.targetLayer is required.");
+    }
+    var axis = o.axis ? String(o.axis).toLowerCase() : "horizontal";
+    var amount = (o.amount !== undefined) ? Number(o.amount) : 40;
+    var tintColor = o.tintColor || [0.6, 0.7, 1];
+    var direction = (o.direction !== undefined) ? Number(o.direction) : 1;
+
+    setStep("duplicate layer for falloff pass");
+    var falloff = o.targetLayer.duplicate();
+    falloff.name = "VIEW ANGLE FALLOFF";
+
+    setStep("apply wash-out treatment");
+    var tint = falloff.property("ADBE Effect Parade").addProperty("ADBE Tint");
+    try { tint.property("ADBE Tint-0002").setValue([tintColor[0], tintColor[1], tintColor[2], 1]); } catch (_) {} // Map White To
+    try { tint.property("ADBE Tint-0003").setValue(amount); } catch (_) {} // Amount to Tint
+
+    var levels = falloff.property("ADBE Effect Parade").addProperty("ADBE Easy Levels2");
+    // Levels channel values are normalized 0-1 in scripting (see Scripts/verified/gotchas.md).
+    try { levels.property("ADBE Easy Levels2-0006").setValue((amount / 100) * 0.18); } catch (_) {} // Output Black — lift blacks (milky IPS glow)
+    try { levels.property("ADBE Easy Levels2-0005").setValue(1 + (amount / 100) * 0.35); } catch (_) {} // Gamma — flatten midtone contrast
+
+    setStep("build ramp matte");
+    var ramp = comp.layers.addSolid([1, 1, 1], "VIEW ANGLE MATTE", comp.width, comp.height, comp.pixelAspect, comp.duration);
+    var start, end;
+    if (axis === "vertical") {
+        start = [comp.width / 2, direction >= 0 ? comp.height : 0];
+        end = [comp.width / 2, direction >= 0 ? 0 : comp.height];
+    } else {
+        start = [direction >= 0 ? comp.width : 0, comp.height / 2];
+        end = [direction >= 0 ? 0 : comp.width, comp.height / 2];
+    }
+    var rampFx = ramp.property("ADBE Effect Parade").addProperty("ADBE Ramp");
+    try { rampFx.property("ADBE Ramp-0001").setValue(start); } catch (_) {}
+    try { rampFx.property("ADBE Ramp-0002").setValue([0, 0, 0, 1]); } catch (_) {} // Start Color (black = matte hides falloff)
+    try { rampFx.property("ADBE Ramp-0003").setValue(end); } catch (_) {}
+    try { rampFx.property("ADBE Ramp-0004").setValue([1, 1, 1, 1]); } catch (_) {} // End Color (white = matte reveals falloff)
+    try { rampFx.property("ADBE Ramp-0005").setValue(1); } catch (_) {} // Linear Ramp
+
+    setStep("wire track matte");
+    ramp.moveBefore(falloff);
+    falloff.setTrackMatte(ramp, TrackMatteType.LUMA);
+
+    return { falloffLayer: falloff, matteLayer: ramp };
+}

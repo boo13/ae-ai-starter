@@ -1,0 +1,57 @@
+/**
+ * @name Add Vignette
+ * @description Adds a lens-style vignette. Native mode (default) uses a solid + radial Gradient Ramp so no third-party plugin is required; optional CS Vignette mode uses the bundled-but-third-party "CC Vignette" effect for a sharper falloff curve.
+ * @category effect
+ * @tier block
+ * @inputs comp: CompItem; opts: { amount: number (0-100, default 40), useCS: boolean (default false), softness: number (native mode only, 0-100, default 60) }
+ * @outputs AVLayer — the vignette layer
+ * @whenToUse You want frame-edge darkening without inheriting the CS Vignette third-party dependency that color_grade.jsxinc carries. Set useCS to true only if you specifically need CS Vignette's Pin Highlights behavior and know the plugin is installed.
+ * @example var vig = addVignette(comp, { amount: 50 });
+ * @pluginDeps ADBE Ramp, CS Vignette
+ * @note CS Vignette's match name is "CS Vignette", NOT "CC Vignette" — its display name is misleading. AE throws when addProperty is called if the plugin is missing.
+ */
+function addVignette(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Vignette: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var amount = (o.amount !== undefined) ? Number(o.amount) : 40;
+    var useCS = !!o.useCS;
+    var softness = (o.softness !== undefined) ? Number(o.softness) : 60;
+
+    if (useCS) {
+        setStep("create CS Vignette adjustment layer");
+        var solidCS = comp.layers.addSolid([1, 1, 1], "VIGNETTE (CS)", comp.width, comp.height, comp.pixelAspect, comp.duration);
+        solidCS.adjustmentLayer = true;
+        var fxCS = null;
+        try {
+            fxCS = solidCS.property("ADBE Effect Parade").addProperty("CS Vignette");
+        } catch (e) {
+            throw new Error("Add Vignette: CS Vignette is not installed. Use the native (useCS: false) mode instead. " + e.message);
+        }
+        try { fxCS.property("CS Vignette-0001").setValue(amount); } catch (_) {}
+        return solidCS;
+    }
+
+    setStep("create native vignette solid");
+    var solid = comp.layers.addSolid([0, 0, 0], "VIGNETTE", comp.width, comp.height, comp.pixelAspect, comp.duration);
+    solid.blendingMode = BlendingMode.MULTIPLY;
+
+    setStep("apply radial ramp");
+    var ramp = solid.property("ADBE Effect Parade").addProperty("ADBE Ramp");
+    var cx = comp.width / 2;
+    var cy = comp.height / 2;
+    var cornerRadius = Math.sqrt(cx * cx + cy * cy);
+    // Gradient Ramp has no inner-radius control, so softness drives how far out the ramp
+    // reaches: a short ramp darkens tightly near the centre, a long one falls off gradually.
+    var endRadius = cornerRadius * (0.55 + Math.max(0, Math.min(100, softness)) / 100 * 0.75);
+
+    try { ramp.property("ADBE Ramp-0001").setValue([cx, cy]); } catch (_) {}                       // Start of Ramp (center)
+    try { ramp.property("ADBE Ramp-0002").setValue([1, 1, 1, 1]); } catch (_) {}                   // Start Color (white = no darkening)
+    try { ramp.property("ADBE Ramp-0003").setValue([cx + endRadius, cy]); } catch (_) {}           // End of Ramp
+    try { ramp.property("ADBE Ramp-0004").setValue([1 - amount / 100, 1 - amount / 100, 1 - amount / 100, 1]); } catch (_) {} // End Color (darkened)
+    try { ramp.property("ADBE Ramp-0005").setValue(2); } catch (_) {}                               // Ramp Shape: 2 = Radial Ramp
+    try { ramp.property("ADBE Ramp-0006").setValue(15); } catch (_) {}                              // Ramp Scatter (break up banding)
+
+    return solid;
+}

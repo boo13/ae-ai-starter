@@ -1,0 +1,104 @@
+/**
+ * @name Add LCD Screen
+ * @description Applies the full "physical panel" treatment to an existing content layer: screen glow, RGB subpixel grid, scanlines, viewing-angle falloff, backlight tint, backlight bleed, glass surface (dust/smudge/sheen/sweep), and vignette — everything a pure camera/lens simulator plugin (like ProductionCrate Perfect Screen) omits, since that class of plugin only simulates the camera looking at the panel, not the panel itself. Call order matters: effects that touch contentLayer directly run before it is duplicated for the viewing-angle pass, so the duplicate correctly inherits them; overlay layers are added afterward so they land above both the base and the falloff duplicate.
+ * @category preset
+ * @tier compound
+ * @inputs comp: CompItem; opts: { contentLayer: AVLayer (required), glow: {enabled,thresholdPercent,radius,intensity}, subpixel: {enabled,mode,pixelSize,amount}, scanlines: {enabled,pitch,amount,rollBar}, viewingAngle: {enabled,axis,amount,tintColor,direction}, backlightTint: {enabled,preset,density}, backlightBleed: {enabled,corners,intensity,muraAmount}, glass: {enabled,dust,smudge,sheen,sweep}, vignette: {enabled,amount} } — pass { enabled: false } on any sub-object to skip that layer of treatment
+ * @outputs Object — { contentLayer, glowEffect, subpixelResult, scanlineResult, viewingAngleResult, tintLayer, bleedResult, glassResult, vignetteLayer }
+ * @whenToUse You have a raw screen-recording layer already placed in a comp and want the complete physical-monitor panel look in one call. Pair with addBezel (frame + rounded corners) and addAmbientSpill (light bleed onto surroundings) at the containing comp level, and with the lens/camera blocks (lens_distortion, chromatic_aberration, depth_of_field_rake) on the final rendered camera pass — those three are deliberately NOT part of this compound because they operate one level up, on the whole framed shot rather than the panel itself.
+ * @example var lcd = addLcdScreen(contentComp, { contentLayer: footageLayer, subpixel: { pixelSize: 8 }, scanlines: { enabled: false } });
+ * @requires subpixel_grid.jsxinc, scanlines.jsxinc, backlight_tint.jsxinc, backlight_bleed.jsxinc, viewing_angle_falloff.jsxinc, glass_surface.jsxinc, screen_glow.jsxinc, vignette.jsxinc
+ * @pluginDeps ADBE Glo2, ADBE Mosaic, ADBE Tile, CC Griddler, CC Ball Action, ADBE Venetian Blinds, ADBE Tint, ADBE Easy Levels2, ADBE Ramp, ADBE Photo Filter, ADBE Fractal Noise, ADBE Noise HLS Auto2, ADBE Threshold2, CC Glass, CC Light Sweep
+ */
+function addLcdScreen(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add LCD Screen: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    if (!o.contentLayer) {
+        throw new Error("Add LCD Screen: opts.contentLayer is required.");
+    }
+    var contentLayer = o.contentLayer;
+
+    var result = {
+        contentLayer: contentLayer,
+        glowEffect: null,
+        subpixelResult: null,
+        scanlineResult: null,
+        viewingAngleResult: null,
+        tintLayer: null,
+        bleedResult: null,
+        glassResult: null,
+        vignetteLayer: null
+    };
+
+    // 1. Effects applied directly to contentLayer's own stack — must happen before it is
+    //    duplicated in step 3, so the viewing-angle falloff copy inherits them.
+    var glowOpts = o.glow || {};
+    if (glowOpts.enabled !== false) {
+        setStep("lcd screen: glow");
+        result.glowEffect = addScreenGlow(contentLayer, glowOpts);
+    }
+
+    var subpixelOpts = o.subpixel || {};
+    if (subpixelOpts.enabled !== false) {
+        setStep("lcd screen: subpixel grid");
+        var spOpts = { targetLayer: contentLayer, mode: subpixelOpts.mode, pixelSize: subpixelOpts.pixelSize, amount: subpixelOpts.amount, sharpColors: subpixelOpts.sharpColors };
+        result.subpixelResult = addSubpixelGrid(comp, spOpts);
+    }
+
+    var scanlineOpts = o.scanlines || {};
+    if (scanlineOpts.enabled !== false) {
+        setStep("lcd screen: scanlines");
+        result.scanlineResult = addScanlines(comp, scanlineOpts);
+    }
+
+    // 2. Viewing-angle falloff duplicates contentLayer now (with glow + mosaic already baked
+    //    in) and inserts directly above it — below the subpixel/scanline overlay layers, which
+    //    is correct: panel micro-structure should render uniformly over the falloff blend.
+    var viewingAngleOpts = o.viewingAngle || {};
+    if (viewingAngleOpts.enabled !== false) {
+        setStep("lcd screen: viewing angle falloff");
+        var vaOpts = { targetLayer: contentLayer, axis: viewingAngleOpts.axis, amount: viewingAngleOpts.amount, tintColor: viewingAngleOpts.tintColor, direction: viewingAngleOpts.direction };
+        result.viewingAngleResult = addViewingAngleFalloff(comp, vaOpts);
+    }
+
+    // 3. Panel-wide overlays, each added at the top of the stack in this order.
+    var tintOpts = o.backlightTint || {};
+    if (tintOpts.enabled !== false) {
+        setStep("lcd screen: backlight tint");
+        result.tintLayer = addBacklightTint(comp, tintOpts);
+    }
+
+    var bleedOpts = o.backlightBleed || {};
+    if (bleedOpts.enabled !== false) {
+        setStep("lcd screen: backlight bleed");
+        result.bleedResult = addBacklightBleed(comp, bleedOpts);
+    }
+
+    var glassOpts = o.glass || {};
+    if (glassOpts.enabled !== false) {
+        setStep("lcd screen: glass surface");
+        result.glassResult = addGlassSurface(comp, glassOpts);
+    }
+
+    var vignetteOpts = o.vignette || {};
+    if (vignetteOpts.enabled !== false) {
+        setStep("lcd screen: vignette");
+        result.vignetteLayer = addVignette(comp, vignetteOpts);
+    }
+
+    // addSubpixelGrid adds Mosaic to contentLayer's effect parade, which invalidates the
+    // Glow reference captured in step 1 (see "addProperty() Invalidates Sibling References"
+    // in Scripts/verified/gotchas.md). Re-fetch by match name once every addProperty is done.
+    if (result.glowEffect) {
+        setStep("lcd screen: re-resolve glow reference");
+        try {
+            result.glowEffect = contentLayer.property("ADBE Effect Parade").property("ADBE Glo2");
+        } catch (_) {
+            result.glowEffect = null;
+        }
+    }
+
+    return result;
+}

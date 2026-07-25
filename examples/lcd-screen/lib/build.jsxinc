@@ -1,0 +1,115 @@
+// LCD Screen — Build Orchestrator
+// The full pipeline in one function, shared by setup.jsx (headless) and
+// lcd_screen_panel.jsx's Build button, so both entry points stay in sync.
+
+function buildLcdScreen(source, rawCfg) {
+    if (!source) {
+        throw new Error("buildLcdScreen: source footage item is required.");
+    }
+
+    setStep("clean existing comps");
+    var removedCount = cleanLcdScreen(app.project, rawCfg);
+
+    setStep("apply preset");
+    var cfg = mergePreset(rawCfg);
+
+    setStep("build content comp");
+    var content = buildContentComp(source, cfg);
+
+    setStep("build panel comp");
+    var panel = buildPanelComp(content, cfg);
+
+    setStep("build screen comp");
+    var screen = buildScreenComp(panel, cfg);
+
+    setStep("build master comp");
+    var master = buildMasterComp(screen, cfg);
+
+    setStep("build camera rig");
+    var camera = buildCameraRig(master.comp, master.layer, cfg);
+
+    setStep("build lens stack");
+    var lens = buildLensStack(master.comp, cfg);
+
+    setStep("build control rig");
+    var rig = buildControlRig(master.comp, cfg);
+
+    setStep("link control rig");
+    linkAllControls(master.comp, "LCD CONTROLS", { camera: camera, lens: lens, panel: panel, screen: screen }, cfg);
+
+    return {
+        removedCount: removedCount, cfg: cfg, content: content, panel: panel,
+        screen: screen, master: master, camera: camera, lens: lens, rig: rig
+    };
+}
+
+/**
+ * Finds a previously-built master comp by name.
+ */
+function findLcdMasterComp(compName) {
+    for (var i = 1; i <= app.project.numItems; i++) {
+        var item = app.project.item(i);
+        if (item instanceof CompItem && item.name === compName) return item;
+    }
+    return null;
+}
+
+/**
+ * Finds the "LCD CONTROLS" null layer inside a previously-built master comp.
+ */
+function findLcdControlsNull(masterComp, nullName) {
+    if (!masterComp) return null;
+    try { return masterComp.layer(nullName || "LCD CONTROLS"); } catch (_) { return null; }
+}
+
+/**
+ * Freezes every expression-driven property in a comp to its current static value —
+ * used before final render so playback doesn't pay for expression evaluation, and so
+ * the rendered result matches whatever the live controls were last set to.
+ *
+ * Recurses into nested comps: most of the live controls drive properties inside
+ * LCD_Panel / LCD_Screen, so a master-comp-only walk would leave them all expression-driven.
+ */
+function bakeAllExpressions(comp, _visited) {
+    var visited = _visited || {};
+    var key = "id" + comp.id;
+    if (visited[key]) return 0;
+    visited[key] = true;
+
+    var count = 0;
+    for (var i = 1; i <= comp.numLayers; i++) {
+        var layer = comp.layer(i);
+        count += _be_walkAndBake(layer);
+        var src = null;
+        try { src = layer.source; } catch (_) {}
+        if (src && src instanceof CompItem) {
+            count += bakeAllExpressions(src, visited);
+        }
+    }
+    return count;
+}
+
+/** @private */
+function _be_walkAndBake(propGroup) {
+    var count = 0;
+    var n;
+    try { n = propGroup.numProperties; } catch (_) { return 0; }
+    for (var i = 1; i <= n; i++) {
+        var prop;
+        try { prop = propGroup.property(i); } catch (_) { continue; }
+        if (!prop) continue;
+        if (prop.propertyType === PropertyType.PROPERTY) {
+            if (prop.expressionEnabled) {
+                try {
+                    var val = prop.value;
+                    prop.expressionEnabled = false;
+                    prop.setValue(val);
+                    count++;
+                } catch (_) {}
+            }
+        } else {
+            count += _be_walkAndBake(prop);
+        }
+    }
+    return count;
+}

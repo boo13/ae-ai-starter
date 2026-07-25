@@ -1,0 +1,40 @@
+/**
+ * @name Add Ambient Spill
+ * @description Adds "bias lighting" ambient light spill: duplicates a layer, blurs and scales it up, pushes it to the back of the stack, and blends it Add at low opacity — the classic trick for light bleeding onto the surroundings behind a monitor.
+ * @category effect
+ * @tier block
+ * @inputs comp: CompItem; opts: { targetLayer: AVLayer (required), scale: number (percent, default 130), blurRadius: number (default 120), opacity: number (0-100, default 30) }
+ * @outputs AVLayer — the ambient spill layer (moved to the bottom of the stack)
+ * @whenToUse You want light from the screen to visibly wash the wall/desk behind the monitor. Something a pure camera/lens simulator like Perfect Screen never attempts since it has no concept of "surroundings".
+ * @example var spill = addAmbientSpill(comp, { targetLayer: screenLayer, opacity: 25 });
+ * @pluginDeps ADBE Box Blur2
+ */
+function addAmbientSpill(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Ambient Spill: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    if (!o.targetLayer) {
+        throw new Error("Add Ambient Spill: opts.targetLayer is required.");
+    }
+    var scale = (o.scale !== undefined) ? Number(o.scale) : 130;
+    var blurRadius = (o.blurRadius !== undefined) ? Number(o.blurRadius) : 120;
+    var opacity = (o.opacity !== undefined) ? Number(o.opacity) : 30;
+
+    setStep("duplicate layer for spill");
+    var spill = o.targetLayer.duplicate();
+    spill.name = "AMBIENT SPILL";
+    try { spill.moveToEnd(); } catch (_) {}
+
+    setStep("blur and scale spill");
+    var blur = spill.property("ADBE Effect Parade").addProperty("ADBE Box Blur2");
+    try { blur.property("ADBE Box Blur2-0001").setValue(blurRadius); } catch (_) {} // Blur Radius
+    try { blur.property("ADBE Box Blur2-0002").setValue(3); } catch (_) {}          // Iterations
+    try { blur.property("ADBE Box Blur2-0004").setValue(1); } catch (_) {}          // Repeat Edge Pixels
+
+    try { spill.property("Transform").property("Scale").setValue([scale, scale]); } catch (_) {}
+    spill.blendingMode = BlendingMode.ADD;
+    try { spill.property("Transform").property("Opacity").setValue(opacity); } catch (_) {}
+
+    return spill;
+}

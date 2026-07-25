@@ -1,0 +1,42 @@
+/**
+ * @name Add Screen Glow
+ * @description Adds a Glow adjustment layer for LCD bloom on bright pixels, handling the Glow Threshold normalization trap (UI shows percent, scripting stores 0-255).
+ * @category effect
+ * @tier block
+ * @inputs layer: AVLayer (required — glow applies directly to this layer, not the whole comp); opts: { thresholdPercent: number (0-100, default 60), radius: number (default 15), intensity: number (0-4, default 1) }
+ * @outputs PropertyGroup — the Glow effect
+ * @whenToUse You want bloom on bright screen content (backlight/highlight bleed). Applies directly to a layer rather than an adjustment layer so it stays scoped to the screen.
+ * @example var glow = addScreenGlow(screenLayer, { thresholdPercent: 55, intensity: 1.2 });
+ * @pluginDeps ADBE Glo2
+ * @note "Glow Threshold" (ADBE Glo2-0002) is stored 0-255 while the UI shows a percent (default 153 = 60%). This action accepts thresholdPercent (0-100) and multiplies by 2.55 internally — never pass a raw 0-255 value here.
+ */
+function addScreenGlow(layer, opts) {
+    if (!layer) {
+        throw new Error("Add Screen Glow: layer is required.");
+    }
+    var o = opts || {};
+    var thresholdPercent = (o.thresholdPercent !== undefined) ? Number(o.thresholdPercent) : 60;
+    var radius = (o.radius !== undefined) ? Number(o.radius) : 15;
+    var intensity = (o.intensity !== undefined) ? Number(o.intensity) : 1;
+
+    var effectParade = null;
+    try {
+        effectParade = layer.property("ADBE Effect Parade");
+    } catch (e) {
+        throw new Error("Add Screen Glow: layer \"" + layer.name + "\" does not support effects.");
+    }
+
+    setStep("apply glow");
+    var fx = null;
+    try {
+        fx = effectParade.addProperty("ADBE Glo2");
+    } catch (e) {
+        throw new Error("Add Screen Glow: failed to apply Glow. " + e.message);
+    }
+    try { fx.property("ADBE Glo2-0002").setValue(thresholdPercent * 2.55); } catch (_) {} // Glow Threshold (0-255)
+    try { fx.property("ADBE Glo2-0003").setValue(radius); } catch (_) {}                  // Glow Radius
+    try { fx.property("ADBE Glo2-0004").setValue(intensity); } catch (_) {}               // Glow Intensity
+    try { fx.property("ADBE Glo2-0006").setValue(6); } catch (_) {}                       // Glow Operation: 6 = Screen (2 is Normal)
+
+    return fx;
+}

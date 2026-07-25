@@ -1,0 +1,54 @@
+/**
+ * @name Add Scanlines
+ * @description Adds a horizontal CRT/LCD scanline overlay via Venetian Blinds on a black solid (Multiply), with an optional bright roll bar that loops vertically over time.
+ * @category effect
+ * @tier block
+ * @inputs comp: CompItem; opts: { pitch: number (default 4, px between lines), amount: number (0-100, default 50), feather: number (default 1), rollBar: boolean (default false), rollBarSpeed: number (seconds per cycle, default 4), rollBarWidthPercent: number (default 15, % of comp height) }
+ * @outputs Object — { scanlineLayer: AVLayer, rollBarLayer: AVLayer|null }
+ * @whenToUse You want visible horizontal scan lines on a screen recording, with an optional refresh-rate roll bar effect.
+ * @example var lines = addScanlines(comp, { pitch: 3, amount: 35, rollBar: true });
+ * @pluginDeps ADBE Venetian Blinds
+ */
+function addScanlines(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Scanlines: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var pitch = (o.pitch !== undefined) ? Number(o.pitch) : 4;
+    var amount = (o.amount !== undefined) ? Number(o.amount) : 50;
+    var feather = (o.feather !== undefined) ? Number(o.feather) : 1;
+    var rollBar = !!o.rollBar;
+    var rollBarSpeed = (o.rollBarSpeed !== undefined) ? Number(o.rollBarSpeed) : 4;
+    var rollBarWidthPercent = (o.rollBarWidthPercent !== undefined) ? Number(o.rollBarWidthPercent) : 15;
+
+    setStep("create scanline solid");
+    var solid = comp.layers.addSolid([0, 0, 0], "SCANLINES", comp.width, comp.height, comp.pixelAspect, comp.duration);
+    solid.blendingMode = BlendingMode.MULTIPLY;
+    try { solid.property("Transform").property("Opacity").setValue(amount); } catch (_) {}
+
+    setStep("apply venetian blinds");
+    var vb = solid.property("ADBE Effect Parade").addProperty("ADBE Venetian Blinds");
+    try { vb.property("ADBE Venetian Blinds-0001").setValue(50); } catch (_) {}     // Transition Completion
+    try { vb.property("ADBE Venetian Blinds-0002").setValue(0); } catch (_) {}      // Direction (0 = horizontal lines)
+    try { vb.property("ADBE Venetian Blinds-0003").setValue(pitch); } catch (_) {}  // Width
+    try { vb.property("ADBE Venetian Blinds-0004").setValue(feather); } catch (_) {}
+
+    var rollBarLayer = null;
+    if (rollBar) {
+        setStep("create roll bar");
+        var barHeight = Math.max(2, Math.round(comp.height * (rollBarWidthPercent / 100)));
+        rollBarLayer = comp.layers.addSolid([1, 1, 1], "SCANLINE ROLL BAR", comp.width, barHeight, comp.pixelAspect, comp.duration);
+        rollBarLayer.blendingMode = BlendingMode.ADD;
+        try { rollBarLayer.property("Transform").property("Opacity").setValue(8); } catch (_) {}
+        var period = Math.max(0.1, rollBarSpeed);
+        try {
+            rollBarLayer.property("Transform").property("Position").expression =
+                "var p = " + period + ";\n" +
+                "var travel = thisComp.height + " + barHeight + ";\n" +
+                "var y = (time % p) / p * travel - " + (barHeight / 2) + ";\n" +
+                "[" + (comp.width / 2) + ", y]";
+        } catch (_) {}
+    }
+
+    return { scanlineLayer: solid, rollBarLayer: rollBarLayer };
+}

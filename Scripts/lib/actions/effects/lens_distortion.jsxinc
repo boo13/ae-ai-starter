@@ -1,0 +1,41 @@
+/**
+ * @name Add Lens Distortion
+ * @description Applies Optics Compensation to simulate camera-lens barrel/pincushion distortion — the native equivalent of Perfect Screen's "Distortion" (glass bulge) control.
+ * @category effect
+ * @tier block
+ * @inputs layer: AVLayer (required); opts: { amount: number (-100 to 100, default 20 — positive is barrel/bulge), autoResize: boolean (default true — avoids transparent edges), reverse: boolean (default true — ADDS distortion rather than removing it) }
+ * @outputs PropertyGroup — the Optics Compensation effect
+ * @whenToUse You want whole-frame lens barrel distortion on the final camera pass, not panel curvature.
+ * @example var lens = addLensDistortion(cameraPassLayer, { amount: 15 });
+ * @pluginDeps ADBE Optics Compensation
+ * @note Optics Compensation REMOVES distortion by default; "Reverse Lens Distortion" (ADBE Optics Compensation-0002) is what makes it ADD barrel bulge, and AE only honours the Resize control while Reverse is on. Resize is a 1-indexed enum (1=Off, 2=Max 2X, 3=Max 4X, 4=Unlimited), not a 0/1 checkbox.
+ */
+function addLensDistortion(layer, opts) {
+    if (!layer) {
+        throw new Error("Add Lens Distortion: layer is required.");
+    }
+    var o = opts || {};
+    var amount = (o.amount !== undefined) ? Number(o.amount) : 20;
+    var autoResize = (o.autoResize !== undefined) ? !!o.autoResize : true;
+    var reverse = (o.reverse !== undefined) ? !!o.reverse : true;
+
+    var effectParade = null;
+    try {
+        effectParade = layer.property("ADBE Effect Parade");
+    } catch (e) {
+        throw new Error("Add Lens Distortion: layer \"" + layer.name + "\" does not support effects.");
+    }
+
+    setStep("apply optics compensation");
+    var fx = null;
+    try {
+        fx = effectParade.addProperty("ADBE Optics Compensation");
+    } catch (e) {
+        throw new Error("Add Lens Distortion: failed to apply Optics Compensation. " + e.message);
+    }
+    try { fx.property("ADBE Optics Compensation-0001").setValue(amount); } catch (_) {}             // Field Of View (FOV)
+    try { fx.property("ADBE Optics Compensation-0002").setValue(reverse ? 1 : 0); } catch (_) {}    // Reverse Lens Distortion — must be on for barrel bulge AND for Resize to apply
+    try { fx.property("ADBE Optics Compensation-0006").setValue(autoResize ? 4 : 1); } catch (_) {} // Resize: 4 = Unlimited, 1 = Off
+
+    return fx;
+}

@@ -1,0 +1,242 @@
+// LCD Screen — Auto Zoom
+//
+// Computes and bakes the scale correction needed so the orbited/tilted screen layer
+// never shows a transparent edge inside the master comp's frame — the native-AE
+// equivalent of Perfect Screen's "Auto Zoom" toggle.
+//
+// Implemented as a script-side bake, not a live expression. The correct scale at frame T
+// has to be read from the screen's UN-zoomed footprint, but the auto-zoom value itself
+// lives on a parent null in the same transform chain as the screen layer — a live
+// expression referencing the screen's own toComp() would be self-referential through that
+// parent chain (AE breaks such cycles by falling back to a stale value, which defeats the
+// point). A two-pass bake sidesteps this cleanly:
+//   1. Read every frame's projected footprint from a static, unparented "ghost" layer
+//      that shares the real screen layer's base position/orientation but is never touched
+//      by auto-zoom itself.
+//   2. Write the computed scale as keyframes onto the real auto-zoom null.
+// This is also what the panel's "Bake Auto Zoom" button re-runs after camera tweaks.
+//
+// toComp() is EXPRESSION-ONLY. AVLayer has no toComp/toWorld/fromComp scripting method --
+// calling one throws "undefined is not a function" and takes the whole build down. The
+// projection is therefore read through the same temporary expression-control bridge the
+// repo already uses in Scripts/lib/actions/utility/calculate_distance_between_layers.jsxinc:
+// add a Point3D Control, give it a toComp() expression, read valueAtTime(), remove it.
+
+var _AZ_PROBE_NAMES = ["AZ PROBE TL", "AZ PROBE TR", "AZ PROBE BR", "AZ PROBE BL", "AZ PROBE C"];
+
+/**
+ * Adds five temporary Point3D Controls to the ghost layer: one per source-rect corner plus
+ * one at the anchor point. Each carries a toComp() expression, so reading the property
+ * gives the camera-projected comp-space position of that layer-space point.
+ *
+ * Every addProperty() invalidates references handed out by earlier ones on the same effect
+ * parade (Scripts/verified/gotchas.md), so all five are added first and re-fetched after.
+ * @private
+ */
+function _az_addProbes(ghostLayer) {
+    _az_removeProbes(ghostLayer); // clear leftovers from an aborted run, so names stay unique
+    var rect = ghostLayer.sourceRectAtTime(0, false);
+    var anchor = ghostLayer.property("Transform").property("Anchor Point").value;
+    var points = [
+        [rect.left, rect.top],
+        [rect.left + rect.width, rect.top],
+        [rect.left + rect.width, rect.top + rect.height],
+        [rect.left, rect.top + rect.height],
+        [anchor[0], anchor[1]]
+    ];
+
+    var parade = ghostLayer.property("ADBE Effect Parade");
+    for (var i = 0; i < _AZ_PROBE_NAMES.length; i++) {
+        var ctrl = parade.addProperty("ADBE Point3D Control");
+        ctrl.name = _AZ_PROBE_NAMES[i];
+        // Pad to 3 elements: toComp returns a 2-vector if the layer is ever left 2D, which
+        // a Point3D Control rejects (a rejected expression is silently disabled by AE).
+        ctrl.property(1).expression =
+            "var p = toComp([" + points[i][0] + ", " + points[i][1] + ", 0]);\n" +
+            "[p[0], p[1], p.length > 2 ? p[2] : 0]";
+    }
+
+    var probes = [];
+    for (var j = 0; j < _AZ_PROBE_NAMES.length; j++) {
+        probes.push(parade.property(_AZ_PROBE_NAMES[j]).property(1));
+    }
+    return probes;
+}
+
+/** @private */
+function _az_removeProbes(ghostLayer) {
+    var parade = ghostLayer.property("ADBE Effect Parade");
+    for (var i = _AZ_PROBE_NAMES.length - 1; i >= 0; i--) {
+        try { parade.property(_AZ_PROBE_NAMES[i]).remove(); } catch (_) {}
+    }
+}
+
+/**
+ * Reads the projected quad (4 corners) and its centre at `time`.
+ * @private
+ */
+function _az_readQuad(probes, time) {
+    var pts = [];
+    for (var i = 0; i < 5; i++) {
+        var v = probes[i].valueAtTime(time, false);
+        pts.push([v[0], v[1]]);
+    }
+    return { corners: [pts[0], pts[1], pts[2], pts[3]], center: pts[4] };
+}
+
+/**
+ * Returns the parameter u >= 0 at which the ray center + u*(target - center) exits the
+ * convex quad, i.e. u = 1 means the target sits exactly on the quad's boundary and u < 1
+ * means the target is already outside. Returns 0 when no forward intersection is found.
+ * @private
+ */
+function _az_rayExit(center, target, quad) {
+    var dx = target[0] - center[0];
+    var dy = target[1] - center[1];
+    if (dx === 0 && dy === 0) return 1e9;
+
+    var best = 0;
+    for (var i = 0; i < 4; i++) {
+        var a = quad[i];
+        var b = quad[(i + 1) % 4];
+        var ex = b[0] - a[0];
+        var ey = b[1] - a[1];
+        var det = dx * ey - dy * ex;
+        if (Math.abs(det) < 1e-9) continue; // parallel
+        var wx = a[0] - center[0];
+        var wy = a[1] - center[1];
+        var u = (wx * ey - wy * ex) / det;
+        var v = (wx * dy - wy * dx) / det;
+        if (u >= 0 && v >= -1e-6 && v <= 1 + 1e-6) {
+            if (u > best) best = u;
+        }
+    }
+    return best;
+}
+
+/**
+ * Given the quad projected at some trial scale, returns the multiplier that quad still
+ * needs so it fully covers the comp frame (plus padding). 1 means "already covers".
+ *
+ * A quad projected under perspective is a trapezoid, not a rectangle, so the previous
+ * axis-aligned bounding-box test under-reported the requirement: the bbox can cover the
+ * frame while the trapezoid's slanted edges still cut a transparent wedge out of a corner.
+ * Testing each frame corner against the quad's actual edges is what closes that gap.
+ * Because scaling the layer about its anchor moves every projected point along a straight
+ * line out of the projected anchor (lines map to lines under a perspective projection),
+ * the ray parameter is the right quantity to measure -- though it is not linear in the
+ * scale itself, hence the iteration in _az_solveScaleAtTime.
+ * @private
+ */
+function _az_coverageDeficit(quad, center, compWidth, compHeight, paddingPercent) {
+    var pad = 1 + (paddingPercent || 0) / 100;
+    var hw = compWidth / 2 * pad;
+    var hh = compHeight / 2 * pad;
+    var cx = compWidth / 2;
+    var cy = compHeight / 2;
+    var targets = [
+        [cx - hw, cy - hh], [cx + hw, cy - hh],
+        [cx + hw, cy + hh], [cx - hw, cy + hh]
+    ];
+
+    // Starts at 0, not 1: a factor below 1 means every frame corner is comfortably inside
+    // and the trial scale can come back DOWN. Flooring at 1 here would make the solver
+    // monotonically increasing, so a seeded start above the true answer could never recover.
+    var worst = 0;
+    for (var i = 0; i < targets.length; i++) {
+        var u = _az_rayExit(center, targets[i], quad);
+        if (u <= 1e-6) return 1e9; // degenerate projection -- caller clamps
+        if (1 / u > worst) worst = 1 / u;
+    }
+    return worst;
+}
+
+/**
+ * Returns the scale percentage (>= 100) the auto-zoom null needs at `time` so the screen
+ * covers the whole frame. Iterates because the projected expansion is not linear in the
+ * layer's scale under perspective; converges in 2-3 passes for realistic camera angles.
+ * @private
+ */
+function _az_solveScaleAtTime(probes, ghostScaleProp, comp, time, paddingPercent, seedScale) {
+    var s = (seedScale && seedScale > 100) ? seedScale : 100;
+    var maxScale = 1000;
+
+    for (var iter = 0; iter < 6; iter++) {
+        ghostScaleProp.setValue([s, s, 100]);
+        var q = _az_readQuad(probes, time);
+        var factor = _az_coverageDeficit(q.corners, q.center, comp.width, comp.height, paddingPercent);
+        if (factor >= 1e8) return 100; // projection collapsed (camera behind the plane) -- no useful answer
+        if (Math.abs(factor - 1) <= 0.001) break;
+        s = Math.min(maxScale, Math.max(1, s * factor));
+    }
+    return Math.max(100, s);
+}
+
+/**
+ * Walks the comp (every frameStep frames) and writes Scale keyframes onto zoomNull so the
+ * real screen layer (parented to zoomNull) always fills the frame. When the camera is
+ * static the required scale is constant, so a plain static value is written instead of a
+ * keyframe per frame.
+ *
+ * @returns Object -- { keyframes: number, staticScale: number|null }
+ */
+function bakeAutoZoom(comp, ghostLayer, zoomNull, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Bake Auto Zoom: comp must be a CompItem.");
+    }
+    if (!ghostLayer || !zoomNull) {
+        throw new Error("Bake Auto Zoom: ghostLayer and zoomNull are required.");
+    }
+    var o = opts || {};
+    var paddingPercent = (o.paddingPercent !== undefined) ? Number(o.paddingPercent) : 2;
+    var frameStep = (o.frameStep !== undefined) ? Math.max(1, Number(o.frameStep)) : 1;
+
+    setStep("bake auto zoom keyframes");
+    var scaleProp = zoomNull.property("Transform").property("Scale");
+    while (scaleProp.numKeys > 0) { scaleProp.removeKey(1); }
+
+    var ghostScaleProp = ghostLayer.property("Transform").property("Scale");
+    var ghostScaleBefore = ghostScaleProp.value;
+
+    var frameDuration = comp.frameDuration;
+    var numFrames = Math.max(1, Math.ceil(comp.duration / frameDuration));
+    var result = { keyframes: 0, staticScale: null };
+
+    var probes = null;
+    try {
+        probes = _az_addProbes(ghostLayer);
+
+        // Probe a handful of spread-out times first. With no procedural camera motion the
+        // answer is the same at every one of them, and a static value beats N keyframes.
+        var sampleCount = Math.min(5, numFrames);
+        var samples = [];
+        var maxSample = 0;
+        var isStatic = true;
+        for (var i = 0; i < sampleCount; i++) {
+            var frac = (sampleCount === 1) ? 0 : i / (sampleCount - 1);
+            var st = Math.round(frac * (numFrames - 1)) * frameDuration;
+            var sv = _az_solveScaleAtTime(probes, ghostScaleProp, comp, st, paddingPercent, maxSample);
+            samples.push(sv);
+            if (sv > maxSample) maxSample = sv;
+            if (Math.abs(sv - samples[0]) > 0.05) isStatic = false;
+        }
+
+        if (isStatic) {
+            scaleProp.setValue([maxSample, maxSample, 100]);
+            result.staticScale = maxSample;
+        } else {
+            var seed = 100;
+            for (var f = 0; f < numFrames; f += frameStep) {
+                var t = f * frameDuration;
+                var scaleValue = _az_solveScaleAtTime(probes, ghostScaleProp, comp, t, paddingPercent, seed);
+                seed = scaleValue;
+                scaleProp.setValueAtTime(t, [scaleValue, scaleValue, 100]);
+                result.keyframes++;
+            }
+        }
+    } finally {
+        _az_removeProbes(ghostLayer);
+        try { ghostScaleProp.setValue(ghostScaleBefore); } catch (_) {}
+    }
+    return result;
+}

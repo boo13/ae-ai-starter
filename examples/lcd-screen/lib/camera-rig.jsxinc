@@ -1,0 +1,103 @@
+// LCD Screen — Master Comp + Camera Rig
+// Places the finished LCD_Screen comp as a 3D layer in the master comp, adds a real AE
+// camera (true perspective + optical Depth of Field — no corner-pin math needed), an
+// AUTO ZOOM parent null baked via autozoom.jsxinc, and optional seeded-wiggle procedural
+// motion on the camera (the native equivalent of Perfect Screen's keyframe-free
+// "Animate Movements": Moving Target, Animate Angle, Moving Focus Point).
+
+function buildMasterComp(screen, cfg) {
+    var masterComp = app.project.items.addComp(cfg.MASTER_COMP_NAME, cfg.WIDTH, cfg.HEIGHT, 1, cfg.DURATION, cfg.FRAME_RATE);
+    try { masterComp.bgColor = [0, 0, 0]; } catch (_) {}
+
+    var layer = masterComp.layers.add(screen.comp);
+    layer.name = "LCD Screen";
+
+    return { comp: masterComp, layer: layer };
+}
+
+function buildCameraRig(masterComp, panelLayer, cfg) {
+    setStep("make screen layer 3D");
+    panelLayer.threeDLayer = true;
+    var cx = masterComp.width / 2;
+    var cy = masterComp.height / 2;
+    try { panelLayer.property("Transform").property("Position").setValue([cx, cy, 0]); } catch (_) {}
+
+    setStep("create auto zoom null");
+    var zoomNull = addNull(masterComp, { name: "AUTO ZOOM", is3D: true, position: [cx, cy] });
+    try { zoomNull.property("Transform").property("Position").setValue([cx, cy, 0]); } catch (_) {}
+    setLayerParent(masterComp, { child: panelLayer.index, parent: zoomNull.index });
+
+    setStep("create auto zoom ghost reference");
+    // Unparented duplicate at the screen's base (pre-zoom) position — used only to sample
+    // toComp() projections for the bake pass. See autozoom.jsxinc header for why this can't
+    // be a live expression on zoomNull itself.
+    var ghost = panelLayer.duplicate();
+    ghost.name = "AUTO ZOOM GHOST (do not delete)";
+    try { ghost.parent = null; } catch (_) {}
+    try { ghost.property("Transform").property("Position").setValue([cx, cy, 0]); } catch (_) {}
+    try { ghost.enabled = false; } catch (_) {}
+    try { ghost.guideLayer = true; } catch (_) {}
+
+    setStep("create camera");
+    var camera = addCamera(masterComp, { name: "LCD Camera", zoom: cfg.CAMERA_ZOOM, depthOfField: cfg.DEPTH_OF_FIELD });
+    var orbitRad = (cfg.CAMERA_ORBIT_DEG || 0) * Math.PI / 180;
+    var tiltRad = (cfg.CAMERA_TILT_DEG || 0) * Math.PI / 180;
+    var dist = cfg.CAMERA_DISTANCE || 1400;
+    var camX = cx + Math.sin(orbitRad) * dist;
+    var camY = cy - Math.sin(tiltRad) * dist;
+    var camZ = -Math.cos(orbitRad) * Math.cos(tiltRad) * dist;
+    try { camera.property("Transform").property("Position").setValue([camX, camY, camZ]); } catch (_) {}
+    try { camera.property("Transform").property("Point of Interest").setValue([cx, cy, 0]); } catch (_) {}
+
+    var camOpts = null;
+    try { camOpts = camera.property("ADBE Camera Options Group"); } catch (_) {}
+    if (cfg.DEPTH_OF_FIELD && camOpts) {
+        try { camOpts.property("ADBE Camera Aperture").setValue(cfg.APERTURE); } catch (_) {}
+        try { camOpts.property("ADBE Camera Focus Distance").setValue(dist); } catch (_) {}
+    }
+
+    setStep("add procedural motion");
+    addProceduralMotion(camera, camOpts, cfg);
+
+    var autoZoom = null;
+    if (cfg.AUTO_ZOOM) {
+        setStep("bake auto zoom");
+        autoZoom = bakeAutoZoom(masterComp, ghost, zoomNull, { paddingPercent: cfg.AUTO_ZOOM_PADDING_PERCENT });
+    }
+
+    return { camera: camera, camOpts: camOpts, zoomNull: zoomNull, ghost: ghost, dist: dist, autoZoom: autoZoom };
+}
+
+/**
+ * Seeded, keyframe-free camera motion — the equivalent of Perfect Screen's "Animate
+ * Movements" (Moving Target / Animate Angle / Moving Focus Point). Each wiggle() call
+ * jitters the property around whatever static value was already set above, per the
+ * pattern already used by Scripts/lib/actions/effects/flicker.jsxinc.
+ */
+function addProceduralMotion(camera, camOpts, cfg) {
+    var seed = cfg.MOTION_SEED || 1;
+
+    if (cfg.MOTION_TARGET_AMOUNT > 0) {
+        try {
+            camera.property("Transform").property("Point of Interest").expression =
+                "seedRandom(" + (seed * 13) + ", true);\n" +
+                "wiggle(" + cfg.MOTION_TARGET_SPEED + ", " + cfg.MOTION_TARGET_AMOUNT + ")";
+        } catch (_) {}
+    }
+
+    if (cfg.MOTION_ANGLE_AMOUNT > 0) {
+        try {
+            camera.property("Transform").property("Orientation").expression =
+                "seedRandom(" + (seed * 29) + ", true);\n" +
+                "wiggle(" + cfg.MOTION_ANGLE_SPEED + ", " + cfg.MOTION_ANGLE_AMOUNT + ")";
+        } catch (_) {}
+    }
+
+    if (cfg.MOTION_FOCUS_AMOUNT > 0 && camOpts) {
+        try {
+            camOpts.property("ADBE Camera Focus Distance").expression =
+                "seedRandom(" + (seed * 7) + ", true);\n" +
+                "wiggle(" + cfg.MOTION_FOCUS_SPEED + ", " + cfg.MOTION_FOCUS_AMOUNT + ")";
+        } catch (_) {}
+    }
+}

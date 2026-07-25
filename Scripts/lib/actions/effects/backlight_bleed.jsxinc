@@ -1,0 +1,59 @@
+/**
+ * @name Add Backlight Bleed
+ * @description Adds LCD backlight bleed at one or more comp corners via radial Gradient Ramp solids (Add blend), plus a low-opacity Fractal Noise panel mura layer for organic unevenness.
+ * @category effect
+ * @tier block
+ * @inputs comp: CompItem; opts: { corners: string[] (any of "topLeft","topRight","bottomLeft","bottomRight", default ["topLeft","bottomRight"]), color: [r,g,b] (default warm white [1,0.92,0.75]), intensity: number (0-100, default 25), muraAmount: number (0-100, default 4) }
+ * @outputs Object — { bleedLayers: AVLayer[], muraLayer: AVLayer }
+ * @whenToUse You want the uneven corner brightening and low-level panel mura real LCD backlights show — an omission in pure camera/lens simulator plugins.
+ * @example var bleed = addBacklightBleed(comp, { corners: ["topLeft"], intensity: 30 });
+ * @pluginDeps ADBE Ramp, ADBE Fractal Noise
+ */
+function addBacklightBleed(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Backlight Bleed: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    var corners = o.corners || ["topLeft", "bottomRight"];
+    var color = o.color || [1, 0.92, 0.75];
+    var intensity = (o.intensity !== undefined) ? Number(o.intensity) : 25;
+    var muraAmount = (o.muraAmount !== undefined) ? Number(o.muraAmount) : 4;
+
+    var cornerPositions = {
+        topLeft: [0, 0],
+        topRight: [comp.width, 0],
+        bottomLeft: [0, comp.height],
+        bottomRight: [comp.width, comp.height]
+    };
+    var center = [comp.width / 2, comp.height / 2];
+    var col4 = [color[0], color[1], color[2], 1];
+
+    setStep("create corner bleed layers");
+    var bleedLayers = [];
+    for (var i = 0; i < corners.length; i++) {
+        var pos = cornerPositions[corners[i]];
+        if (!pos) continue;
+        var solid = comp.layers.addSolid(color, "BACKLIGHT BLEED " + corners[i], comp.width, comp.height, comp.pixelAspect, comp.duration);
+        var ramp = solid.property("ADBE Effect Parade").addProperty("ADBE Ramp");
+        try { ramp.property("ADBE Ramp-0001").setValue(pos); } catch (_) {}
+        try { ramp.property("ADBE Ramp-0002").setValue(col4); } catch (_) {}
+        try { ramp.property("ADBE Ramp-0003").setValue(center); } catch (_) {}
+        try { ramp.property("ADBE Ramp-0004").setValue([color[0], color[1], color[2], 0]); } catch (_) {}
+        try { ramp.property("ADBE Ramp-0005").setValue(2); } catch (_) {} // Radial Ramp
+        solid.blendingMode = BlendingMode.ADD;
+        try { solid.property("Transform").property("Opacity").setValue(intensity); } catch (_) {}
+        bleedLayers.push(solid);
+    }
+
+    setStep("create panel mura layer");
+    var mura = comp.layers.addSolid([0.5, 0.5, 0.5], "PANEL MURA", comp.width, comp.height, comp.pixelAspect, comp.duration);
+    var fractal = mura.property("ADBE Effect Parade").addProperty("ADBE Fractal Noise");
+    try { fractal.property("ADBE Fractal Noise-0004").setValue(30); } catch (_) {}   // Contrast
+    try { fractal.property("ADBE Fractal Noise-0009").setValue(0); } catch (_) {}    // Uniform Scaling off — else Scale Width/Height are ignored
+    try { fractal.property("ADBE Fractal Noise-0011").setValue(400); } catch (_) {}  // Scale Width
+    try { fractal.property("ADBE Fractal Noise-0012").setValue(400); } catch (_) {}  // Scale Height
+    mura.blendingMode = BlendingMode.OVERLAY;
+    try { mura.property("Transform").property("Opacity").setValue(muraAmount); } catch (_) {}
+
+    return { bleedLayers: bleedLayers, muraLayer: mura };
+}

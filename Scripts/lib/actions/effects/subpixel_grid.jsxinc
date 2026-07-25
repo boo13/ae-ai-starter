@@ -1,0 +1,94 @@
+/**
+ * @name Add Subpixel Grid
+ * @description Adds an LCD-style RGB subpixel structure to a layer. Quantizes the source with Mosaic, then multiplies a tiled cell pattern (RGB stripe, grille, or dot) over it at the SAME pitch so the pixel grid and color stripes register instead of beating against each other.
+ * @category effect
+ * @tier block
+ * @inputs comp: CompItem; opts: { targetLayer: AVLayer (required), mode: "stripe"|"grille"|"dot" (default "stripe"), pixelSize: number (default 6, px per LCD cell), amount: number (0-100, default 60), sharpColors: boolean (default true) }
+ * @outputs Object — { mosaicEffect: PropertyGroup, gridLayer: AVLayer }
+ * @whenToUse You want a macro LCD look with visible RGB subpixels registered to the pixelation, not misaligned gray gridlines from Mosaic + Grid.
+ * @example var grid = addSubpixelGrid(comp, { targetLayer: screenLayer, pixelSize: 8, amount: 50 });
+ * @pluginDeps ADBE Mosaic, ADBE Tile, CC Griddler, CC Ball Action
+ * @note "stripe" builds a comp-sized cell comp whose leftmost pixelSize-wide strip holds the RGB bars, then repeats that strip with Motion Tile at Tile Width = pixelSize/comp.width. Keeping every Motion Tile percentage inside 0-100 is deliberate — see the _spg_buildStripeCell header. pixelSize is snapped to a multiple of 3 so the three bars tile seamlessly, and the Mosaic block count is derived from the same snapped value so grid and stripes stay registered.
+ */
+
+/**
+ * Builds a HOST-SIZED precomp whose leftmost `pixelSize`-wide strip holds three full-height
+ * R/G/B bars. Motion Tile then repeats that strip across the frame.
+ *
+ * The cell comp is host-sized rather than pixelSize-sized on purpose: Motion Tile's Tile and
+ * Output percentages are both relative to the layer, so a 6px-wide layer would need an
+ * Output Width of ~32000% to cover a 1920px comp — far outside the property's range, which
+ * makes setValue throw and leaves a single unreplicated cell in the middle of the frame.
+ * Host-sized keeps every percentage inside 0-100.
+ * @private
+ */
+function _spg_buildStripeCell(hostComp, pixelSize) {
+    var cellComp = app.project.items.addComp("LCD_SUBPIXEL_CELL", hostComp.width, hostComp.height, 1, hostComp.duration, hostComp.frameRate);
+    try { cellComp.bgColor = [0, 0, 0]; } catch (_) {}
+
+    var barW = pixelSize / 3;
+    var colors = [[1, 0, 0], [0, 1, 0], [0, 0, 1]];
+    for (var i = 2; i >= 0; i--) {
+        var bar = cellComp.layers.addSolid(colors[i], "Bar " + i, Math.max(1, Math.ceil(barW)), cellComp.height, cellComp.pixelAspect, cellComp.duration);
+        try { bar.property("Transform").property("Position").setValue([barW * i + barW / 2, cellComp.height / 2]); } catch (_) {}
+    }
+    return cellComp;
+}
+
+function addSubpixelGrid(comp, opts) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("Add Subpixel Grid: comp must be a CompItem.");
+    }
+    var o = opts || {};
+    if (!o.targetLayer) {
+        throw new Error("Add Subpixel Grid: opts.targetLayer is required.");
+    }
+    var mode = o.mode ? String(o.mode).toLowerCase() : "stripe";
+    var pixelSize = (o.pixelSize !== undefined) ? Number(o.pixelSize) : 6;
+    pixelSize = 3 * Math.max(1, Math.round(pixelSize / 3)); // snap to a multiple of 3 so the R/G/B bars tile without a seam
+    var amount = (o.amount !== undefined) ? Number(o.amount) : 60;
+    var sharpColors = (o.sharpColors !== undefined) ? !!o.sharpColors : true;
+
+    setStep("apply mosaic quantization");
+    var mosaic = null;
+    try {
+        mosaic = o.targetLayer.property("ADBE Effect Parade").addProperty("ADBE Mosaic");
+        mosaic.property("ADBE Mosaic-0001").setValue(Math.max(1, Math.round(comp.width / pixelSize)));
+        mosaic.property("ADBE Mosaic-0002").setValue(Math.max(1, Math.round(comp.height / pixelSize)));
+        mosaic.property("ADBE Mosaic-0003").setValue(sharpColors ? 1 : 0);
+    } catch (e) {
+        throw new Error("Add Subpixel Grid: failed to apply Mosaic. " + e.message);
+    }
+
+    setStep("build grid overlay layer");
+    var gridLayer = null;
+
+    if (mode === "dot") {
+        gridLayer = comp.layers.addSolid([1, 1, 1], "SUBPIXEL DOTS", comp.width, comp.height, comp.pixelAspect, comp.duration);
+        var ball = gridLayer.property("ADBE Effect Parade").addProperty("CC Ball Action");
+        try { ball.property("CC Ball Action-0006").setValue(pixelSize); } catch (_) {} // Grid Spacing (px)
+        try { ball.property("CC Ball Action-0007").setValue(65); } catch (_) {}        // Ball Size — a PERCENT of grid spacing (default 100), not pixels
+
+    } else if (mode === "grille") {
+        gridLayer = comp.layers.addSolid([1, 1, 1], "SUBPIXEL GRILLE", comp.width, comp.height, comp.pixelAspect, comp.duration);
+        var griddler = gridLayer.property("ADBE Effect Parade").addProperty("CC Griddler");
+        try { griddler.property("CC Griddler-0003").setValue(pixelSize); } catch (_) {}       // Tile Size
+        try { griddler.property("CC Griddler-0005").setValue(20); } catch (_) {}              // Cut Tiles
+
+    } else {
+        var cellComp = _spg_buildStripeCell(comp, pixelSize);
+        gridLayer = comp.layers.add(cellComp);
+        gridLayer.name = "SUBPIXEL STRIPES";
+        var tile = gridLayer.property("ADBE Effect Parade").addProperty("ADBE Tile");
+        try { tile.property("ADBE Tile-0001").setValue([pixelSize / 2, cellComp.height / 2]); } catch (_) {} // Tile Center — the leftmost RGB strip
+        try { tile.property("ADBE Tile-0002").setValue((pixelSize / cellComp.width) * 100); } catch (_) {}   // Tile Width % (one cell)
+        try { tile.property("ADBE Tile-0003").setValue(100); } catch (_) {}                                  // Tile Height % (full-height stripes)
+        try { tile.property("ADBE Tile-0004").setValue(100); } catch (_) {}                                  // Output Width %
+        try { tile.property("ADBE Tile-0005").setValue(100); } catch (_) {}                                  // Output Height %
+    }
+
+    gridLayer.blendingMode = BlendingMode.MULTIPLY;
+    try { gridLayer.property("Transform").property("Opacity").setValue(amount); } catch (_) {}
+
+    return { mosaicEffect: mosaic, gridLayer: gridLayer };
+}
