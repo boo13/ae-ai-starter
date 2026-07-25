@@ -33,6 +33,7 @@
  * consistent with Scripts/lib/ conventions):
  *
  *   beginScript(scriptName, comp)
+ *   setResultData(key, value)
  *   writeResult(status, step, error, comp)
  *
  * Requires: io.jsxinc (writeJsonFile, formatTimestampISO), prop-walker.jsxinc
@@ -48,6 +49,7 @@ var _rw_beforeSnapshot = null;   // flat map: matchPath -> serialized value
 var _rw_beforeMs = 0;
 var _rw_runsDir = null;          // resolved once in beginScript()
 var _rw_currentStep = null;      // last value set by setStep(); used by writeResult
+var _rw_resultData = {};         // caller-provided JSON-safe diagnostic payloads
 
 // Capture module path at parse time ($.fileName is reliable here — points to THIS file
 // during #include processing, regardless of which entry script included us).
@@ -273,6 +275,7 @@ function _rw_writeRunFile(data) {
 function beginScript(scriptName, comp) {
     _rw_scriptName = scriptName || "unknown";
     _rw_currentStep = null;
+    _rw_resultData = {};
     _rw_beforeMs = (new Date()).getTime();
     _rw_runsDir = _rw_resolveRunsDir();
 
@@ -292,10 +295,24 @@ function beginScript(scriptName, comp) {
         step: null,
         error: null,
         warnings: [],
+        resultData: {},
         diff: [],
         changeCount: 0,
         snapshotMs: 0
     });
+}
+
+/**
+ * Adds a JSON-safe diagnostic payload to the next writeResult() record.
+ *
+ * @param {string} key
+ * @param {*} value
+ */
+function setResultData(key, value) {
+    if (!key) {
+        throw new Error("setResultData: key is required.");
+    }
+    _rw_resultData[String(key)] = value;
 }
 
 /**
@@ -348,6 +365,7 @@ function writeResult(status, step, error, comp) {
         errorLine: errorLine,
         errorFile: errorFile,
         warnings: [],
+        resultData: _rw_resultData,
         diff: diff,
         changeCount: diff.length,
         snapshotMs: snapshotMs

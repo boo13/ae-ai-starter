@@ -1,11 +1,14 @@
 // LCD Screen — Project Cleaner
-// Removes every comp this example creates (by exact name), safe for re-runs.
+// Removes only comps that carry the v2 ownership marker AND have an exact managed name.
 // Iterates project items backwards so removal doesn't shift indices.
 
 function cleanLcdScreen(project, cfg) {
+    var marker = "ae:lcd-screen:v2";
     var names = {
         "LCD_Content": true,
         "LCD_Panel": true,
+        "LCD_SubpixelPattern": true,
+        "LCD_Scene": true,
         "LCD_Screen": true,
         "LCD_SUBPIXEL_CELL": true
     };
@@ -13,12 +16,59 @@ function cleanLcdScreen(project, cfg) {
         names[cfg.MASTER_COMP_NAME] = true;
     }
 
-    var removed = 0;
+    var report = {
+        marker: marker,
+        removedCount: 0,
+        removedNames: [],
+        errors: [],
+        conflicts: []
+    };
+
     for (var i = project.numItems; i >= 1; i--) {
         var item = project.item(i);
-        if (item instanceof CompItem && names[item.name]) {
-            try { item.remove(); removed++; } catch (_) {}
+        if (!(item instanceof CompItem) || !names[item.name]) continue;
+
+        var owned = false;
+        try { owned = item.comment === marker; } catch (_) {}
+        if (!owned) {
+            report.conflicts.push(item.name);
+            continue;
+        }
+
+        try {
+            var removedName = item.name;
+            item.remove();
+            report.removedCount++;
+            report.removedNames.push(removedName);
+        } catch (e) {
+            report.errors.push({
+                name: item.name,
+                message: e.message || String(e),
+                line: e.line || null
+            });
         }
     }
-    return removed;
+
+    setResultData("lcdCleanup", report);
+
+    if (report.errors.length > 0) {
+        throw new Error("LCD cleanup failed for " + report.errors.length + " owned comp(s). See last_run.json resultData.lcdCleanup.");
+    }
+    if (report.conflicts.length > 0) {
+        throw new Error(
+            "LCD cleanup found unowned comps with managed names: " +
+            report.conflicts.join(", ") +
+            ". Rename or remove those comps manually; the safe cleaner will not delete them."
+        );
+    }
+
+    return report;
+}
+
+function markLcdComp(comp) {
+    if (!comp || !(comp instanceof CompItem)) {
+        throw new Error("markLcdComp: comp must be a CompItem.");
+    }
+    comp.comment = "ae:lcd-screen:v2";
+    return comp;
 }

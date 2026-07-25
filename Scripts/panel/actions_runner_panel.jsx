@@ -120,9 +120,17 @@
 #include "../lib/actions/effects/star_trim_animation.jsxinc"
 #include "../lib/actions/effects/apply_effect.jsxinc"
 #include "../lib/actions/effects/add_posterize_time_adjustment_layer.jsxinc"
+#include "../lib/actions/effects/backlight_bleed.jsxinc"
+#include "../lib/actions/effects/backlight_tint.jsxinc"
 #include "../lib/actions/effects/enable_motion_blur.jsxinc"
+#include "../lib/actions/effects/lens_distortion.jsxinc"
+#include "../lib/actions/effects/scanlines.jsxinc"
+#include "../lib/actions/effects/screen_glow.jsxinc"
+#include "../lib/actions/effects/vignette.jsxinc"
 #include "../lib/actions/scene/backdrop.jsxinc"
+#include "../lib/actions/scene/bezel.jsxinc"
 #include "../lib/actions/scene/camera_rig.jsxinc"
+#include "../lib/actions/scene/glass_surface.jsxinc"
 #include "../lib/actions/scene/title_stack.jsxinc"
 #include "../lib/actions/presets/demo_scene.jsxinc"
 #include "../lib/actions/presets/film_damage_treatment.jsxinc"
@@ -153,6 +161,9 @@
         "addSelectedCompositionsToRenderQueue": addSelectedCompositionsToRenderQueue,
         "addSelectionToNewFolder": addSelectionToNewFolder,
         "addBeatMarkers":          addBeatMarkers,
+        "addBacklightBleed":       addBacklightBleed,
+        "addBacklightTint":        addBacklightTint,
+        "addBezel":                addBezel,
         "addCamera":               addCamera,
         "addCameraRig":            addCameraRig,
         "calculateDistanceBetweenLayers": calculateDistanceBetweenLayers,
@@ -169,19 +180,24 @@
         "addLayerFromItem":        addLayerFromItem,
         "addFlicker":              addFlicker,
         "addGateWeave":            addGateWeave,
+        "addGlassSurface":         addGlassSurface,
         "addGrain":                addGrain,
         "addGuidePreset":          addGuidePreset,
         "addLight":                addLight,
+        "addLensDistortion":       addLensDistortion,
         "addMask":                 addMask,
         "addNull":                 addNull,
         "addSimpleLoopExpression": addSimpleLoopExpression,
         "addShapeLayer":           addShapeLayer,
+        "addScanlines":            addScanlines,
+        "addScreenGlow":           addScreenGlow,
         "addSolid":                addSolid,
         "addStarTrimAnimation":    addStarTrimAnimation,
         "addTextAnimator":         addTextAnimator,
         "addTextLayer":            addTextLayer,
         "addTitleStack":           addTitleStack,
         "addVisibilityController": addVisibilityController,
+        "addVignette":             addVignette,
         "applyEffect":             applyEffect,
         "buildDropdownSelector":   buildDropdownSelector,
         "buildDemoScene":          buildDemoScene,

@@ -1,0 +1,194 @@
+// LCD Screen - Acceptance State Renderer
+// Applies temporary control overrides, renders named PNGs, then restores every value.
+
+var LcdScreenStateSets = {
+    m1: [
+        {
+            name: "front-close",
+            time: 0,
+            overrides: {
+                "CAM Distance": 850,
+                "CAM Orbit": 0,
+                "CAM Tilt": 0,
+                "CAM Roll": 0,
+                "CAM Zoom": 2400,
+                "PIX Pixel Density": 6
+            }
+        },
+        {
+            name: "orbit25",
+            time: 0,
+            overrides: {
+                "CAM Distance": 1000,
+                "CAM Orbit": 25,
+                "CAM Tilt": 4,
+                "CAM Roll": 0,
+                "CAM Zoom": 2200,
+                "FOC Aperture": 100
+            }
+        },
+        {
+            name: "tilt15-roll8",
+            time: 0,
+            overrides: {
+                "CAM Distance": 1000,
+                "CAM Orbit": 8,
+                "CAM Tilt": 15,
+                "CAM Roll": 8,
+                "CAM Zoom": 2200
+            }
+        },
+        {
+            name: "wide",
+            time: 0,
+            overrides: {
+                "CAM Distance": 1900,
+                "CAM Orbit": 12,
+                "CAM Tilt": 6,
+                "CAM Roll": 0,
+                "CAM Zoom": 1500
+            }
+        },
+        {
+            name: "density-3",
+            time: 0,
+            overrides: {
+                "CAM Distance": 850,
+                "CAM Orbit": 0,
+                "CAM Tilt": 0,
+                "CAM Zoom": 2400,
+                "PIX Pixel Density": 3
+            }
+        },
+        {
+            name: "density-12",
+            time: 0,
+            overrides: {
+                "CAM Distance": 850,
+                "CAM Orbit": 0,
+                "CAM Tilt": 0,
+                "CAM Zoom": 2400,
+                "PIX Pixel Density": 12
+            }
+        }
+    ]
+};
+
+function getLcdStateSet(milestone) {
+    var key = String(milestone || "").toLowerCase();
+    var states = LcdScreenStateSets[key];
+    if (!states) {
+        throw new Error("Unknown LCD state milestone: " + milestone);
+    }
+    return states;
+}
+
+function getLcdPreviewFolder(entryFile) {
+    if (!entryFile) {
+        throw new Error("getLcdPreviewFolder: entryFile is required.");
+    }
+    var repoRoot = entryFile.parent.parent.parent;
+    var previewDir = new Folder(String(repoRoot.fsName) + "/Scripts/runs/preview");
+    if (!previewDir.exists && !previewDir.create()) {
+        throw new Error("Could not create preview folder: " + previewDir.fsName);
+    }
+    return previewDir;
+}
+
+function _lcdStateControlProperty(rigNull, controlName) {
+    var effect = null;
+    try { effect = rigNull.property("ADBE Effect Parade").property(controlName); } catch (_) {}
+    if (!effect) {
+        throw new Error("LCD state control not found: " + controlName);
+    }
+    var prop = null;
+    try { prop = effect.property(1); } catch (_) {}
+    if (!prop || prop.propertyType !== PropertyType.PROPERTY) {
+        throw new Error("LCD state control has no value property: " + controlName);
+    }
+    return prop;
+}
+
+function _lcdStateSafeName(name) {
+    return String(name || "state").replace(/[^A-Za-z0-9_-]+/g, "-");
+}
+
+function renderLcdStates(masterComp, rigNull, milestone, states, previewDir) {
+    if (!masterComp || !(masterComp instanceof CompItem)) {
+        throw new Error("renderLcdStates: masterComp must be a CompItem.");
+    }
+    if (!rigNull) {
+        throw new Error("renderLcdStates: rigNull is required.");
+    }
+    if (!states || !states.length) {
+        throw new Error("renderLcdStates: at least one state is required.");
+    }
+    if (!previewDir || !previewDir.exists) {
+        throw new Error("renderLcdStates: previewDir must exist.");
+    }
+
+    var originals = {};
+    var touched = {};
+    var rendered = [];
+    var milestoneName = _lcdStateSafeName(String(milestone || "preview").toLowerCase());
+    var s;
+    var key;
+
+    for (s = 0; s < states.length; s++) {
+        var scanOverrides = states[s].overrides || {};
+        for (key in scanOverrides) {
+            if (!scanOverrides.hasOwnProperty(key) || touched[key]) continue;
+            var scanProp = _lcdStateControlProperty(rigNull, key);
+            originals[key] = scanProp.value;
+            touched[key] = true;
+        }
+    }
+
+    try {
+        for (s = 0; s < states.length; s++) {
+            var state = states[s];
+            var overrides = state.overrides || {};
+
+            for (key in originals) {
+                if (!originals.hasOwnProperty(key)) continue;
+                _lcdStateControlProperty(rigNull, key).setValue(originals[key]);
+            }
+            for (key in overrides) {
+                if (!overrides.hasOwnProperty(key)) continue;
+                _lcdStateControlProperty(rigNull, key).setValue(overrides[key]);
+            }
+
+            var renderTime = Number(state.time || 0);
+            if (renderTime < 0) renderTime = 0;
+            if (renderTime >= masterComp.duration) {
+                renderTime = Math.max(0, masterComp.duration - masterComp.frameDuration);
+            }
+
+            var fileName = milestoneName + "_" + _lcdStateSafeName(state.name) + ".png";
+            var outFile = new File(String(previewDir.fsName) + "/" + fileName);
+            setStep("render state " + state.name);
+            masterComp.saveFrameToPng(renderTime, outFile);
+
+            rendered.push({
+                name: state.name,
+                time: renderTime,
+                overrides: overrides,
+                output: outFile.fsName
+            });
+        }
+    } finally {
+        for (key in originals) {
+            if (!originals.hasOwnProperty(key)) continue;
+            try { _lcdStateControlProperty(rigNull, key).setValue(originals[key]); } catch (_) {}
+        }
+    }
+
+    var report = {
+        milestone: milestoneName,
+        previewDir: previewDir.fsName,
+        stateCount: rendered.length,
+        states: rendered
+    };
+    setResultData("lcdStates", report);
+    return report;
+}

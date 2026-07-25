@@ -246,6 +246,7 @@ function buildActionsIndex(actionsDir, outFile) {
         "layer":   "Individual layer creation and manipulation: footage import, shape layers",
         "marker":  "Timeline markers and beat grids",
         "preset":  "Compound actions composing multiple blocks into curated looks or scenes",
+        "property":"Property values, expressions, controls, and keyframes",
         "render":  "Render queue and output operations",
         "scene":   "Multi-layer scene building blocks: backdrops, title stacks, camera rigs",
         "utility": "Data processing, timing calculations, and non-AE helpers",
@@ -257,15 +258,18 @@ function buildActionsIndex(actionsDir, outFile) {
         categoryMap[cat] += 1;
     }
     var categories = {};
-    for (var cat in categoryMap) {
-        if (categoryMap.hasOwnProperty(cat)) {
-            categories[cat] = {
-                count:   categoryMap[cat],
-                summary: categorySummaries[cat] || cat
+    var categoryOrder = ["comp", "effect", "layer", "marker", "preset", "property", "render", "scene", "utility", "other"];
+    for (var ci = 0; ci < categoryOrder.length; ci++) {
+        var orderedCategory = categoryOrder[ci];
+        if (categoryMap[orderedCategory]) {
+            categories[orderedCategory] = {
+                count: categoryMap[orderedCategory],
+                summary: categorySummaries[orderedCategory] || orderedCategory
             };
         }
     }
 
+    outFile.lineFeed = "Unix";
     writeJsonFile(outFile, {
         generatedAt:  formatTimestampISO(new Date()),
         actionCount:  actions.length,

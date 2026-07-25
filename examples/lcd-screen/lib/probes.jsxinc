@@ -1,0 +1,100 @@
+// LCD Screen - M1 Capability Probes
+// Verifies the cross-comp projection used by live auto zoom and records effect schemas.
+
+function _lcdProbeEffect(effect) {
+    var report = {
+        name: effect ? effect.name : null,
+        matchName: effect ? effect.matchName : null,
+        properties: []
+    };
+    if (!effect) return report;
+
+    for (var i = 1; i <= effect.numProperties; i++) {
+        var prop = effect.property(i);
+        var value = null;
+        try { value = serializePropertyValue(prop); } catch (_) {}
+        report.properties.push({
+            index: i,
+            name: prop.name,
+            matchName: prop.matchName,
+            value: value
+        });
+    }
+    return report;
+}
+
+function runLcdM1Probes(refs) {
+    if (!refs || !refs.masterComp || !refs.rigNull || !refs.scenePanelLayer || !refs.masterSceneLayer || !refs.exposureEffect) {
+        throw new Error("runLcdM1Probes: incomplete build references.");
+    }
+
+    var report = {
+        crossCompToComp: {
+            value: null,
+            expressionError: null,
+            passed: false
+        },
+        channelMixer: null,
+        exposure: null
+    };
+    var slider = null;
+    var mixer = null;
+
+    try {
+        setStep("probe cross-comp toComp");
+        var panelSource = refs.scenePanelLayer.source;
+        var probeX = panelSource ? panelSource.width / 2 : 0;
+        var probeY = panelSource ? panelSource.height / 2 : 0;
+        var sceneName = String(refs.scenePanelLayer.containingComp.name).replace(/"/g, "\\\"");
+        var layerName = String(refs.scenePanelLayer.name).replace(/"/g, "\\\"");
+        slider = refs.rigNull.property("ADBE Effect Parade").addProperty("ADBE Slider Control");
+        slider.name = "LCD PROBE Cross Comp toComp";
+        var sliderProp = slider.property(1);
+        sliderProp.expression =
+            "var p = comp(\"" + sceneName + "\").layer(\"" + layerName + "\").toComp([" +
+            probeX + ", " + probeY + ", 0]);\n" +
+            "p[0]";
+
+        report.crossCompToComp.value = sliderProp.value;
+        try { report.crossCompToComp.expressionError = sliderProp.expressionError || null; } catch (_) {}
+        report.crossCompToComp.passed =
+            report.crossCompToComp.expressionError === null &&
+            !isNaN(Number(report.crossCompToComp.value)) &&
+            Number(report.crossCompToComp.value) > 0;
+
+        setStep("probe channel mixer schema");
+        mixer = refs.masterSceneLayer.property("ADBE Effect Parade").addProperty("ADBE CHANNEL MIXER");
+        report.channelMixer = _lcdProbeEffect(mixer);
+
+        setStep("probe exposure schema");
+        report.exposure = _lcdProbeEffect(refs.exposureEffect);
+    } catch (e) {
+        report.error = {
+            message: e.message || String(e),
+            line: e.line || null
+        };
+    } finally {
+        try { if (mixer) mixer.remove(); } catch (_) {}
+        try { if (slider) slider.remove(); } catch (_) {}
+    }
+
+    setResultData("lcdM1Probes", report);
+
+    if (report.error) {
+        throw new Error("LCD M1 probe failed: " + report.error.message);
+    }
+    if (!report.crossCompToComp.passed) {
+        throw new Error(
+            "Cross-comp toComp probe failed" +
+            (report.crossCompToComp.expressionError ? ": " + report.crossCompToComp.expressionError : ".")
+        );
+    }
+    if (!report.channelMixer || report.channelMixer.matchName !== "ADBE CHANNEL MIXER") {
+        throw new Error("Channel Mixer probe did not resolve ADBE CHANNEL MIXER.");
+    }
+    if (!report.exposure || report.exposure.matchName !== "ADBE Exposure2") {
+        throw new Error("Exposure probe did not resolve ADBE Exposure2.");
+    }
+
+    return report;
+}

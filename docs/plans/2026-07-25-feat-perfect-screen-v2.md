@@ -10,6 +10,17 @@ A first attempt exists at `examples/lcd-screen/`. An independent review judged i
 
 **Git strategy (user-decided): commit the entire current working tree as a baseline first**, before any rebuild work. Then one commit per milestone. Never amend published commits; never `--no-verify`.
 
+## Execution Status
+
+- [x] Baseline working tree committed
+- [x] M0 — Infra & safety
+- [ ] M1 — Core macro image + live camera + live auto zoom
+- [ ] M2 — Lens realism
+- [ ] M3 — Exposure, Auto Exposure, tint
+- [ ] M4 — Animate Movements under auto zoom
+- [ ] M5 — 20 live presets + panel v2
+- [ ] M6 — Quality dropdown, opt-in extras path, docs, contact sheet
+
 ## The feedback loop (read this before writing any code)
 
 The human user runs scripts in After Effects (File > Scripts > Run Script File); you cannot. Your only feedback channels are:
