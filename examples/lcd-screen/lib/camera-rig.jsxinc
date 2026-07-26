@@ -66,6 +66,25 @@ function buildCameraRig(sceneComp, panelLayer, cfg) {
     };
 }
 
+function _lcdAddIsolatedSceneChannel(masterComp, scene, name, diagonalIndex, baseFit, blendMode) {
+    var layer = masterComp.layers.add(scene.comp);
+    layer.name = name;
+    layer.blendingMode = blendMode;
+    layer.property("Transform").property("Position")
+        .setValue([masterComp.width / 2, masterComp.height / 2]);
+    layer.property("Transform").property("Scale").setValue([baseFit, baseFit]);
+
+    var mixer = layer.property("ADBE Effect Parade").addProperty("ADBE CHANNEL MIXER");
+    for (var i = 1; i <= 12; i++) {
+        mixer.property("ADBE CHANNEL MIXER-" + (i < 10 ? "000" : "00") + i).setValue(0);
+    }
+    mixer.property(
+        "ADBE CHANNEL MIXER-" + (diagonalIndex < 10 ? "000" : "00") + diagonalIndex
+    ).setValue(100);
+    mixer.property("ADBE CHANNEL MIXER-0013").setValue(0);
+    return layer;
+}
+
 function buildMasterComp(scene, cfg) {
     var masterComp = markLcdComp(
         app.project.items.addComp(
@@ -79,16 +98,25 @@ function buildMasterComp(scene, cfg) {
     );
     try { masterComp.bgColor = [0, 0, 0]; } catch (_) {}
 
-    var sceneLayer = masterComp.layers.add(scene.comp);
-    sceneLayer.name = "CA GREEN";
-    sceneLayer.property("Transform").property("Position")
-        .setValue([masterComp.width / 2, masterComp.height / 2]);
     var baseFit = Math.min(masterComp.width / scene.width, masterComp.height / scene.height) * 100;
-    sceneLayer.property("Transform").property("Scale").setValue([baseFit, baseFit]);
+    var green = _lcdAddIsolatedSceneChannel(
+        masterComp, scene, "CA GREEN", 6, baseFit, BlendingMode.NORMAL
+    );
+    var red = _lcdAddIsolatedSceneChannel(
+        masterComp, scene, "CA RED", 1, baseFit, BlendingMode.ADD
+    );
+    var blue = _lcdAddIsolatedSceneChannel(
+        masterComp, scene, "CA BLUE", 11, baseFit, BlendingMode.ADD
+    );
 
     return {
         comp: masterComp,
-        sceneLayer: sceneLayer,
+        sceneLayer: green,
+        caLayers: [
+            { layer: red, coefficient: 0.00006 },
+            { layer: green, coefficient: 0 },
+            { layer: blue, coefficient: -0.00006 }
+        ],
         baseFit: baseFit
     };
 }

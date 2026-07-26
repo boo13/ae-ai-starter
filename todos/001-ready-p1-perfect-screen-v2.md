@@ -81,7 +81,7 @@ Execute `docs/plans/2026-07-25-feat-perfect-screen-v2.md` milestone by milestone
 - [x] Baseline working tree committed before rebuild work
 - [x] M0 infrastructure and safety complete
 - [x] M1 macro core, live camera, and live auto zoom accepted
-- [ ] M2 lens realism accepted
+- [x] M2 lens realism accepted
 - [ ] M3 exposure, auto exposure, and tint accepted
 - [ ] M4 animated movement under live auto zoom accepted
 - [ ] M5 twenty live presets and panel v2 accepted
@@ -199,6 +199,107 @@ Execute `docs/plans/2026-07-25-feat-perfect-screen-v2.md` milestone by milestone
 
 **Learnings:**
 - The accepted baseline uses a 3px density, 10% Color-blended RGB structure, +1 stop exposure, and reduced glow.
+
+### 2026-07-26 - M2 Ready for After Effects Validation
+
+**By:** Codex
+
+**Actions:**
+- Replaced the single Master scene instance with channel-isolated Red, Green, and Blue instances that reconstruct through Normal plus Add blending.
+- Added live edge-scaled chromatic aberration on the same auto-zoom solve.
+- Added live base blur, radial blur, grain, lens-space dust strength/density, and a feathered elliptical vignette.
+- Added six M2 acceptance states for CA, radial blur, dust density, and vignette.
+- Passed ES3 syntax, state/control consistency, expression-parser, and whitespace checks.
+
+**Learnings:**
+- Channel Mixer diagonal gains are sufficient for exact zero-offset reconstruction; the live CA amount only changes Red and Blue scale around frame center.
+- Dust density maps to the normalized Threshold level while dust strength remains independent layer opacity.
+
+### 2026-07-26 - M2 First After Effects Run
+
+**By:** Codex
+
+**Actions:**
+- Verified a successful six-state run with all 37 live links and no cleanup conflicts.
+- Confirmed CA-0 matches the accepted M1 frame within a normalized RMSE of 0.000008.
+- Confirmed CA-70, radial blur, vignette, and opacity coverage visually.
+- Rejected the dust pair because density 10 and 80 differed by only 0.000094 normalized RMSE.
+- Moved the dust source to middle gray and remapped density across the noise's usable threshold range.
+
+**Learnings:**
+- A black Noise HLS source with Threshold levels from 0.755 to 0.965 produces almost no visible lens dust.
+
+### 2026-07-26 - M2 Numeric Validation Passed
+
+**By:** Codex
+
+**Actions:**
+- Verified the corrected run completed with all 37 live links and no cleanup conflicts.
+- Confirmed dust density 10 renders sparse motes while density 80 renders a dense field at the same 45% strength.
+- Rechecked zero-offset CA fidelity, CA-70 edge fringing, radial blur, vignette, and full opacity.
+
+**Learnings:**
+- The corrected dust pair differs by 0.129 normalized RMSE while retaining the same per-speck layer strength.
+- CA-0 remains within 0.000008 normalized RMSE of the accepted M1 baseline.
+
+### 2026-07-26 - M2 Visual Review Reopened
+
+**By:** Codex
+
+**Actions:**
+- Rejected the prior numeric pass after full-resolution review and direct user correction.
+- Reduced CA displacement by 70%, reduced the radial test from 18 to 4 with only 0.35px base blur, and compressed the dust-density threshold range.
+- Reduced dust acceptance-state strength from 45% to 30%.
+
+**Learnings:**
+- A large difference metric proves a control changes pixels, not that the result is plausible.
+- Stress states still need to read as photographic extremes: CA-70 cannot become a prism split, radial blur cannot erase text, and dust-80 cannot become snowfall.
+
+### 2026-07-26 - Preview Write Failure Detected
+
+**By:** Codex
+
+**Actions:**
+- Detected that the retuned M2 run reported success while only two of six preview files existed.
+- Confirmed both existing PNGs ended inside an IDAT chunk rather than with the required IEND trailer.
+- Updated the renderer to remove stale output, wait for each PNG sequentially, verify IEND, and fail explicitly after 60 seconds.
+
+**Learnings:**
+- `saveFrameToPng()` can queue writes and let the success dialog appear even when low disk space leaves every output truncated.
+
+### 2026-07-26 - Preview Poll Cache Fix
+
+**By:** Codex
+
+**Actions:**
+- Diagnosed a false timeout after the first retuned frame completed with a valid IEND trailer.
+- Changed every poll to construct a fresh ExtendScript `File` handle before checking length and reading the final chunk.
+
+**Learnings:**
+- An ExtendScript `File` object created before `saveFrameToPng()` can retain stale metadata even after the asynchronous write completes.
+
+### 2026-07-26 - ExtendScript Seek Fix
+
+**By:** Codex
+
+**Actions:**
+- Traced the second false timeout to `File.seek(-12, 2)`.
+- Changed the call to `File.seek(12, 2)` and restored its return-value check.
+
+**Learnings:**
+- ExtendScript seek mode 2 interprets a positive offset as bytes backward from EOF; it is not POSIX `SEEK_END` arithmetic.
+
+### 2026-07-26 - M2 Accepted
+
+**By:** Codex
+
+**Actions:**
+- Verified the final run completed all six sequential PNG writes with valid IEND trailers.
+- Inspected every frame at full resolution after retuning CA, radial blur, and dust.
+- Confirmed all frames are fully opaque and CA-0 remains effectively identical to M1.
+
+**Learnings:**
+- The accepted CA coefficient is 0.00006 per slider point, radial stress is 4 with 0.35px base blur, and dust density maps only across Threshold 0.85-0.93.
 
 ## Notes
 

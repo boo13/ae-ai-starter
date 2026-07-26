@@ -1,6 +1,59 @@
 // LCD Screen - Master Lens Stack
 
+function _lcdBuildDustLayer(masterComp, cfg) {
+    setStep("create lens dust");
+    var dust = addSolid(masterComp, { color: [0.5, 0.5, 0.5], name: "DUST" });
+    dust.blendingMode = BlendingMode.SCREEN;
+    dust.property("Transform").property("Opacity").setValue(cfg.DUST_STRENGTH);
+
+    var parade = dust.property("ADBE Effect Parade");
+    var noise = parade.addProperty("ADBE Noise HLS Auto2");
+    noise.property("ADBE Noise HLS Auto2-0001").setValue(3);
+    noise.property("ADBE Noise HLS Auto2-0003").setValue(100);
+    noise.property("ADBE Noise HLS Auto2-0005").setValue(3);
+    noise.property("ADBE Noise HLS Auto2-0006").setValue(0);
+
+    var threshold = parade.addProperty("ADBE Threshold2");
+    threshold.property("ADBE Threshold2-0001")
+        .setValue(Math.max(0.85, Math.min(0.93, 0.93 - cfg.DUST_DENSITY * 0.00075)));
+
+    var blur = parade.addProperty("ADBE Box Blur2");
+    blur.property("ADBE Box Blur2-0001").setValue(1);
+    blur.property("ADBE Box Blur2-0002").setValue(1);
+    blur.property("ADBE Box Blur2-0004").setValue(1);
+
+    return {
+        layer: dust,
+        threshold: parade.property("ADBE Threshold2"),
+        blur: parade.property("ADBE Box Blur2")
+    };
+}
+
+function _lcdBuildVignetteLayer(masterComp, cfg) {
+    setStep("create lens vignette");
+    var vignette = addSolid(masterComp, { color: [0, 0, 0], name: "VIGNETTE" });
+    vignette.property("Transform").property("Opacity").setValue(cfg.VIGNETTE_AMOUNT);
+
+    var insetX = masterComp.width * 0.08;
+    var insetY = masterComp.height * 0.05;
+    addMask(vignette, {
+        shape: "ellipse",
+        rect: [
+            insetX,
+            insetY,
+            masterComp.width - insetX * 2,
+            masterComp.height - insetY * 2
+        ],
+        mode: "subtract",
+        feather: [masterComp.width * 0.18, masterComp.height * 0.18],
+        name: "Lens Falloff"
+    });
+    return vignette;
+}
+
 function buildLensStack(masterComp, cfg) {
+    var dust = _lcdBuildDustLayer(masterComp, cfg);
+
     setStep("create lens adjustment");
     var lens = addSolid(masterComp, { name: "LENS", isAdjustment: true });
 
@@ -11,15 +64,41 @@ function buildLensStack(masterComp, cfg) {
         reverse: true
     });
 
+    setStep("apply base blur");
+    var parade = lens.property("ADBE Effect Parade");
+    var baseBlur = parade.addProperty("ADBE Box Blur2");
+    baseBlur.property("ADBE Box Blur2-0001").setValue(cfg.BASE_BLUR);
+    baseBlur.property("ADBE Box Blur2-0002").setValue(1);
+    baseBlur.property("ADBE Box Blur2-0004").setValue(1);
+
+    setStep("apply radial blur");
+    var radialBlur = parade.addProperty("CC Radial Fast Blur");
+    radialBlur.property("CC Radial Fast Blur-0001")
+        .setValue([masterComp.width / 2, masterComp.height / 2]);
+    radialBlur.property("CC Radial Fast Blur-0002").setValue(cfg.RADIAL_BLUR);
+    radialBlur.property("CC Radial Fast Blur-0003").setValue(1);
+
     setStep("apply exposure");
-    var exposure = lens.property("ADBE Effect Parade").addProperty("ADBE Exposure2");
+    var exposure = parade.addProperty("ADBE Exposure2");
     exposure.property("ADBE Exposure2-0001").setValue(1);
     exposure.property("ADBE Exposure2-0003").setValue(cfg.EXPOSURE);
 
-    var parade = lens.property("ADBE Effect Parade");
+    setStep("apply lens grain");
+    var grain = parade.addProperty("ADBE Noise");
+    grain.property("ADBE Noise-0001").setValue(cfg.LENS_GRAIN_AMOUNT);
+    grain.property("ADBE Noise-0002").setValue(1);
+    grain.property("ADBE Noise-0003").setValue(1);
+
+    var vignette = _lcdBuildVignetteLayer(masterComp, cfg);
+
     return {
         lensLayer: lens,
         distortion: parade.property("ADBE Optics Compensation"),
-        exposure: parade.property("ADBE Exposure2")
+        baseBlur: parade.property("ADBE Box Blur2"),
+        radialBlur: parade.property("CC Radial Fast Blur"),
+        exposure: parade.property("ADBE Exposure2"),
+        grain: parade.property("ADBE Noise"),
+        dust: dust,
+        vignetteLayer: vignette
     };
 }

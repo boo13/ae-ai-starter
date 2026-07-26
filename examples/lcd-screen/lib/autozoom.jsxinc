@@ -24,19 +24,22 @@
 
 var _AZ_PROBE_NAMES = ["AZ PROBE TL", "AZ PROBE TR", "AZ PROBE BR", "AZ PROBE BL", "AZ PROBE C"];
 
-function buildLiveAutoZoomExpression(masterCompName, sceneCompName, panelLayerName, baseFit) {
+function buildLiveAutoZoomExpression(masterCompName, sceneCompName, panelLayerName, baseFit, caCoefficient) {
     var masterName = String(masterCompName).replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
     var sceneName = String(sceneCompName).replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
     var panelName = String(panelLayerName).replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
     var fit = Number(baseFit);
+    var coefficient = (caCoefficient !== undefined) ? Number(caCoefficient) : 0;
+    if (isNaN(coefficient)) coefficient = 0;
 
     return [
         "var controls = comp(\"" + masterName + "\").layer(\"LCD CONTROLS\");",
         "var enabled = controls.effect(\"FRM Auto Zoom\")(1);",
         "var padding = 1 + controls.effect(\"FRM Padding\")(1) / 100;",
         "var baseFit = " + fit + ";",
+        "var caScale = 1 + controls.effect(\"LEN Chromatic Aberration\")(1) * " + coefficient + ";",
         "if (!enabled) {",
-        "  [baseFit, baseFit];",
+        "  [baseFit * caScale, baseFit * caScale];",
         "} else {",
         "  var scene = comp(\"" + sceneName + "\");",
         "  var panel = scene.layer(\"" + panelName + "\");",
@@ -88,7 +91,7 @@ function buildLiveAutoZoomExpression(masterCompName, sceneCompName, panelLayerNa
         "    if (exitAt > 0.000001) need = Math.max(need, 1 / exitAt);",
         "  }",
         "  var solved = baseFit * Math.min(10, Math.max(1, need));",
-        "  [solved, solved];",
+        "  [solved * caScale, solved * caScale];",
         "}"
     ].join("\n");
 }

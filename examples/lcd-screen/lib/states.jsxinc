@@ -71,6 +71,94 @@ var LcdScreenStateSets = {
                 "PIX Pixel Density": 12
             }
         }
+    ],
+    m2: [
+        {
+            name: "ca-0",
+            time: 0,
+            overrides: {
+                "CAM Distance": 850,
+                "CAM Orbit": 0,
+                "CAM Tilt": 0,
+                "CAM Roll": 0,
+                "CAM Zoom": 2400,
+                "PIX Pixel Density": 3,
+                "LEN Chromatic Aberration": 0,
+                "BLR Base Blur": 0,
+                "BLR Radial Blur": 0,
+                "LEN Vignette": 0,
+                "LEN Grain": 0,
+                "LEN Dust Strength": 0
+            }
+        },
+        {
+            name: "ca-70",
+            time: 0,
+            overrides: {
+                "CAM Distance": 850,
+                "CAM Orbit": 0,
+                "CAM Tilt": 0,
+                "CAM Roll": 0,
+                "CAM Zoom": 2400,
+                "PIX Pixel Density": 3,
+                "LEN Chromatic Aberration": 70,
+                "BLR Base Blur": 0,
+                "BLR Radial Blur": 0,
+                "LEN Vignette": 0,
+                "LEN Grain": 0,
+                "LEN Dust Strength": 0
+            }
+        },
+        {
+            name: "radial-on",
+            time: 0,
+            overrides: {
+                "LEN Chromatic Aberration": 0,
+                "BLR Base Blur": 0.35,
+                "BLR Radial Blur": 4,
+                "LEN Vignette": 0,
+                "LEN Grain": 0,
+                "LEN Dust Strength": 0
+            }
+        },
+        {
+            name: "dust-density-10",
+            time: 0,
+            overrides: {
+                "LEN Chromatic Aberration": 0,
+                "BLR Base Blur": 0,
+                "BLR Radial Blur": 0,
+                "LEN Vignette": 0,
+                "LEN Grain": 0,
+                "LEN Dust Strength": 30,
+                "LEN Dust Density": 10
+            }
+        },
+        {
+            name: "dust-density-80",
+            time: 0,
+            overrides: {
+                "LEN Chromatic Aberration": 0,
+                "BLR Base Blur": 0,
+                "BLR Radial Blur": 0,
+                "LEN Vignette": 0,
+                "LEN Grain": 0,
+                "LEN Dust Strength": 30,
+                "LEN Dust Density": 80
+            }
+        },
+        {
+            name: "vignette-heavy",
+            time: 0,
+            overrides: {
+                "LEN Chromatic Aberration": 0,
+                "BLR Base Blur": 0,
+                "BLR Radial Blur": 0,
+                "LEN Vignette": 75,
+                "LEN Grain": 0,
+                "LEN Dust Strength": 0
+            }
+        }
     ]
 };
 
@@ -111,6 +199,40 @@ function _lcdStateControlProperty(rigNull, controlName) {
 
 function _lcdStateSafeName(name) {
     return String(name || "state").replace(/[^A-Za-z0-9_-]+/g, "-");
+}
+
+function _lcdStatePngIsComplete(file) {
+    if (!file) return false;
+    var probe = new File(file.fsName);
+    if (!probe.exists || probe.length < 12) return false;
+    var opened = false;
+    try {
+        probe.encoding = "BINARY";
+        opened = probe.open("r");
+        if (!opened) return false;
+        if (!probe.seek(12, 2)) return false;
+        var tail = probe.read(12);
+        return tail.length === 12 &&
+            tail.charCodeAt(4) === 73 &&
+            tail.charCodeAt(5) === 69 &&
+            tail.charCodeAt(6) === 78 &&
+            tail.charCodeAt(7) === 68;
+    } catch (_) {
+        return false;
+    } finally {
+        if (opened) {
+            try { probe.close(); } catch (_) {}
+        }
+    }
+}
+
+function _lcdStateWaitForPng(file, timeoutMs) {
+    var deadline = new Date().getTime() + timeoutMs;
+    while (new Date().getTime() < deadline) {
+        if (_lcdStatePngIsComplete(file)) return true;
+        $.sleep(250);
+    }
+    return false;
 }
 
 function renderLcdStates(masterComp, rigNull, milestone, states, previewDir) {
@@ -166,8 +288,18 @@ function renderLcdStates(masterComp, rigNull, milestone, states, previewDir) {
 
             var fileName = milestoneName + "_" + _lcdStateSafeName(state.name) + ".png";
             var outFile = new File(String(previewDir.fsName) + "/" + fileName);
+            if (outFile.exists && !outFile.remove()) {
+                throw new Error("Could not replace stale preview: " + outFile.fsName);
+            }
             setStep("render state " + state.name);
             masterComp.saveFrameToPng(renderTime, outFile);
+            if (!_lcdStateWaitForPng(outFile, 60000)) {
+                throw new Error(
+                    "Preview did not finish writing within 60 seconds: " +
+                    outFile.fsName +
+                    ". Check available disk space."
+                );
+            }
 
             rendered.push({
                 name: state.name,

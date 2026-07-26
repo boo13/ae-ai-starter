@@ -121,19 +121,6 @@ function linkAllControls(masterComp, refs, cfg) {
             }
         },
         {
-            getProp: function (r) { return r.master.sceneLayer.property("Transform").property("Scale"); },
-            control: null,
-            subProp: null,
-            mapExpr: function () {
-                return buildLiveAutoZoomExpression(
-                    masterComp.name,
-                    refs.scene.comp.name,
-                    refs.scene.panelLayer.name,
-                    refs.master.baseFit
-                );
-            }
-        },
-        {
             getProp: function (r) { return r.panel.mosaicEffect.property("ADBE Mosaic-0001"); },
             control: "PIX Pixel Density",
             subProp: "Slider",
@@ -184,8 +171,68 @@ function linkAllControls(masterComp, refs, cfg) {
             control: "COL Exposure",
             subProp: "Slider",
             mapExpr: function (ref) { return ref; }
+        },
+        {
+            getProp: function (r) { return r.lens.baseBlur.property("ADBE Box Blur2-0001"); },
+            control: "BLR Base Blur",
+            subProp: "Slider",
+            mapExpr: function (ref) { return ref; }
+        },
+        {
+            getProp: function (r) { return r.lens.radialBlur.property("CC Radial Fast Blur-0002"); },
+            control: "BLR Radial Blur",
+            subProp: "Slider",
+            mapExpr: function (ref) { return ref; }
+        },
+        {
+            getProp: function (r) { return r.lens.grain.property("ADBE Noise-0001"); },
+            control: "LEN Grain",
+            subProp: "Slider",
+            mapExpr: function (ref) { return ref; }
+        },
+        {
+            getProp: function (r) { return r.lens.vignetteLayer.property("Transform").property("Opacity"); },
+            control: "LEN Vignette",
+            subProp: "Slider",
+            mapExpr: function (ref) { return ref; }
+        },
+        {
+            getProp: function (r) { return r.lens.dust.layer.property("Transform").property("Opacity"); },
+            control: "LEN Dust Strength",
+            subProp: "Slider",
+            mapExpr: function (ref) { return ref; }
+        },
+        {
+            getProp: function (r) { return r.lens.dust.threshold.property("ADBE Threshold2-0001"); },
+            control: "LEN Dust Density",
+            subProp: "Slider",
+            mapExpr: function (ref) {
+                return "clamp(0.93 - " + ref + " * 0.00075, 0.85, 0.93);";
+            }
         }
     ];
+
+    for (var c = 0; c < refs.master.caLayers.length; c++) {
+        links.push({
+            getProp: (function (index) {
+                return function (r) {
+                    return r.master.caLayers[index].layer.property("Transform").property("Scale");
+                };
+            })(c),
+            control: null,
+            subProp: null,
+            coefficient: refs.master.caLayers[c].coefficient,
+            mapExpr: function (ref, link) {
+                return buildLiveAutoZoomExpression(
+                    masterComp.name,
+                    refs.scene.comp.name,
+                    refs.scene.panelLayer.name,
+                    refs.master.baseFit,
+                    link.coefficient
+                );
+            }
+        });
+    }
 
     for (var p = 0; p < refs.panel.patternLayers.length; p++) {
         links.push({
