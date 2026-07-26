@@ -24,6 +24,75 @@
 
 var _AZ_PROBE_NAMES = ["AZ PROBE TL", "AZ PROBE TR", "AZ PROBE BR", "AZ PROBE BL", "AZ PROBE C"];
 
+function buildLiveAutoZoomExpression(masterCompName, sceneCompName, panelLayerName, baseFit) {
+    var masterName = String(masterCompName).replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
+    var sceneName = String(sceneCompName).replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
+    var panelName = String(panelLayerName).replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
+    var fit = Number(baseFit);
+
+    return [
+        "var controls = comp(\"" + masterName + "\").layer(\"LCD CONTROLS\");",
+        "var enabled = controls.effect(\"FRM Auto Zoom\")(1);",
+        "var padding = 1 + controls.effect(\"FRM Padding\")(1) / 100;",
+        "var baseFit = " + fit + ";",
+        "if (!enabled) {",
+        "  [baseFit, baseFit];",
+        "} else {",
+        "  var scene = comp(\"" + sceneName + "\");",
+        "  var panel = scene.layer(\"" + panelName + "\");",
+        "  var r = panel.sourceRectAtTime(time, false);",
+        "  var sceneCenter = [scene.width / 2, scene.height / 2];",
+        "  var frameCenter = [thisComp.width / 2, thisComp.height / 2];",
+        "  function mapPoint(p) {",
+        "    return [",
+        "      frameCenter[0] + (p[0] - sceneCenter[0]) * baseFit / 100,",
+        "      frameCenter[1] + (p[1] - sceneCenter[1]) * baseFit / 100",
+        "    ];",
+        "  }",
+        "  function rayExit(center, target, quad) {",
+        "    var dx = target[0] - center[0];",
+        "    var dy = target[1] - center[1];",
+        "    var best = 0;",
+        "    for (var i = 0; i < 4; i++) {",
+        "      var a = quad[i];",
+        "      var b = quad[(i + 1) % 4];",
+        "      var ex = b[0] - a[0];",
+        "      var ey = b[1] - a[1];",
+        "      var det = dx * ey - dy * ex;",
+        "      if (Math.abs(det) < 0.000000001) continue;",
+        "      var wx = a[0] - center[0];",
+        "      var wy = a[1] - center[1];",
+        "      var u = (wx * ey - wy * ex) / det;",
+        "      var v = (wx * dy - wy * dx) / det;",
+        "      if (u >= 0 && v >= -0.000001 && v <= 1.000001 && u > best) best = u;",
+        "    }",
+        "    return best;",
+        "  }",
+        "  var quad = [",
+        "    mapPoint(panel.toComp([r.left, r.top, 0])),",
+        "    mapPoint(panel.toComp([r.left + r.width, r.top, 0])),",
+        "    mapPoint(panel.toComp([r.left + r.width, r.top + r.height, 0])),",
+        "    mapPoint(panel.toComp([r.left, r.top + r.height, 0]))",
+        "  ];",
+        "  var hw = thisComp.width / 2 * padding;",
+        "  var hh = thisComp.height / 2 * padding;",
+        "  var targets = [",
+        "    [frameCenter[0] - hw, frameCenter[1] - hh],",
+        "    [frameCenter[0] + hw, frameCenter[1] - hh],",
+        "    [frameCenter[0] + hw, frameCenter[1] + hh],",
+        "    [frameCenter[0] - hw, frameCenter[1] + hh]",
+        "  ];",
+        "  var need = 1;",
+        "  for (var j = 0; j < targets.length; j++) {",
+        "    var exitAt = rayExit(frameCenter, targets[j], quad);",
+        "    if (exitAt > 0.000001) need = Math.max(need, 1 / exitAt);",
+        "  }",
+        "  var solved = baseFit * Math.min(10, Math.max(1, need));",
+        "  [solved, solved];",
+        "}"
+    ].join("\n");
+}
+
 /**
  * Adds five temporary Point3D Controls to the ghost layer: one per source-rect corner plus
  * one at the anchor point. Each carries a toComp() expression, so reading the property

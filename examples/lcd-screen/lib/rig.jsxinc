@@ -1,172 +1,80 @@
-// LCD Screen — Control Rig
-// One "LCD CONTROLS" null carries expression controls for every live-tweakable
-// parameter, mirroring Perfect Screen's single-effect-panel feel — reuses the repo's
-// addExpressionRig/addExpressionControl blocks (Scripts/lib/actions/presets/expression_rig.jsxinc).
-//
-// Scope note: camera framing (distance/orbit/tilt/zoom) is NOT expression-linked here —
-// its 3D position math interacts with the Auto Zoom bake (autozoom.jsxinc), so those
-// values are re-applied by rebuilding the camera (the panel's "Rebuild Camera" button)
-// rather than live-dragged. Structural parameters (subpixel mode/pixel size, bezel
-// geometry, dust/smudge amounts, procedural motion) are config-time only — edit
-// example_config.jsxinc and re-run setup.jsx. Everything else below IS live: tweak the
-// slider on the LCD CONTROLS null (or the panel) and the render updates immediately.
-//
-// Expression-scope note: the null lives in the MASTER comp, but most of what it drives
-// lives on layers inside the nested LCD_Panel / LCD_Screen comps, where `thisComp` is the
-// nested comp and the null is not reachable. Those links must be written as
-// comp("<master name>").layer("LCD CONTROLS"). Only layers that actually sit in the master
-// comp (camera, LENS stack) may use `thisComp`.
+// LCD Screen - Unified Live Control Rig
+
+function getLcdControlDefinitions(cfg) {
+    return [
+        { group: "Camera", name: "CAM Distance", type: "slider", value: cfg.CAMERA_DISTANCE, min: 200, max: 5000 },
+        { group: "Camera", name: "CAM Orbit", type: "angle", value: cfg.CAMERA_ORBIT_DEG, min: -70, max: 70 },
+        { group: "Camera", name: "CAM Tilt", type: "angle", value: cfg.CAMERA_TILT_DEG, min: -50, max: 50 },
+        { group: "Camera", name: "CAM Roll", type: "angle", value: cfg.CAMERA_ROLL_DEG, min: -45, max: 45 },
+        { group: "Camera", name: "CAM Zoom", type: "slider", value: cfg.CAMERA_ZOOM, min: 300, max: 6000 },
+
+        { group: "Target", name: "TGT Target X", type: "slider", value: cfg.TARGET_X, min: -1000, max: 1000 },
+        { group: "Target", name: "TGT Target Y", type: "slider", value: cfg.TARGET_Y, min: -1000, max: 1000 },
+
+        { group: "Focus", name: "FOC Focus Offset", type: "slider", value: cfg.FOCUS_OFFSET, min: -1000, max: 1000 },
+        { group: "Focus", name: "FOC Depth Of Field", type: "checkbox", value: cfg.DEPTH_OF_FIELD },
+        { group: "Focus", name: "FOC Aperture", type: "slider", value: cfg.APERTURE, min: 0, max: 500 },
+
+        { group: "Framing", name: "FRM Auto Zoom", type: "checkbox", value: cfg.AUTO_ZOOM },
+        { group: "Framing", name: "FRM Padding", type: "slider", value: cfg.AUTO_ZOOM_PADDING_PERCENT, min: 0, max: 20 },
+
+        { group: "Blur", name: "BLR Base Blur", type: "slider", value: cfg.BASE_BLUR, min: 0, max: 100 },
+        { group: "Blur", name: "BLR Radial Blur", type: "slider", value: cfg.RADIAL_BLUR, min: -100, max: 100 },
+
+        { group: "Pixels", name: "PIX Pixel Density", type: "slider", value: cfg.PIXEL_DENSITY, min: 3, max: 60 },
+        { group: "Pixels", name: "PIX Pixel Amount", type: "slider", value: cfg.PIXEL_AMOUNT, min: 0, max: 100 },
+        { group: "Pixels", name: "PIX Glow", type: "slider", value: cfg.GLOW_INTENSITY * 100, min: 0, max: 400 },
+        { group: "Pixels", name: "PIX Glow Threshold", type: "slider", value: cfg.GLOW_THRESHOLD_PERCENT, min: 0, max: 100 },
+
+        { group: "Lens", name: "LEN Distortion", type: "slider", value: cfg.LENS_DISTORTION_AMOUNT, min: -100, max: 100 },
+        { group: "Lens", name: "LEN Chromatic Aberration", type: "slider", value: cfg.LENS_CA_AMOUNT, min: 0, max: 100 },
+        { group: "Lens", name: "LEN Vignette", type: "slider", value: cfg.VIGNETTE_AMOUNT, min: 0, max: 100 },
+        { group: "Lens", name: "LEN Grain", type: "slider", value: cfg.LENS_GRAIN_AMOUNT, min: 0, max: 100 },
+        { group: "Lens", name: "LEN Dust Strength", type: "slider", value: cfg.DUST_STRENGTH, min: 0, max: 100 },
+        { group: "Lens", name: "LEN Dust Density", type: "slider", value: cfg.DUST_DENSITY, min: 0, max: 100 },
+
+        { group: "Color", name: "COL Tint Color", type: "color", value: [cfg.TINT_COLOR[0], cfg.TINT_COLOR[1], cfg.TINT_COLOR[2], 1] },
+        { group: "Color", name: "COL Tint Amount", type: "slider", value: cfg.TINT_AMOUNT, min: 0, max: 100 },
+        { group: "Color", name: "COL Exposure", type: "slider", value: cfg.EXPOSURE, min: -5, max: 5 },
+        { group: "Color", name: "COL Auto Exposure", type: "checkbox", value: cfg.AUTO_EXPOSURE },
+
+        { group: "Motion", name: "MOT Target Amount", type: "slider", value: cfg.MOTION_TARGET_AMOUNT, min: 0, max: 300 },
+        { group: "Motion", name: "MOT Target Speed", type: "slider", value: cfg.MOTION_TARGET_SPEED, min: 0, max: 3 },
+        { group: "Motion", name: "MOT Angle Amount", type: "slider", value: cfg.MOTION_ANGLE_AMOUNT, min: 0, max: 20 },
+        { group: "Motion", name: "MOT Angle Speed", type: "slider", value: cfg.MOTION_ANGLE_SPEED, min: 0, max: 3 },
+        { group: "Motion", name: "MOT Focus Amount", type: "slider", value: cfg.MOTION_FOCUS_AMOUNT, min: 0, max: 500 },
+        { group: "Motion", name: "MOT Focus Speed", type: "slider", value: cfg.MOTION_FOCUS_SPEED, min: 0, max: 3 },
+        { group: "Motion", name: "MOT Seed", type: "slider", value: cfg.MOTION_SEED, min: 1, max: 10000 },
+
+        { group: "Quality", name: "QUAL Level", type: "slider", value: cfg.QUALITY_LEVEL, min: 0, max: 2 }
+    ];
+}
 
 function buildControlRig(masterComp, cfg) {
-    setStep("build control rig");
+    setStep("build unified controls");
+    var definitions = getLcdControlDefinitions(cfg);
+    var controls = [];
+    for (var i = 0; i < definitions.length; i++) {
+        controls.push({
+            name: definitions[i].name,
+            type: definitions[i].type,
+            value: definitions[i].value
+        });
+    }
+
     var rig = addExpressionRig(masterComp, {
         nullName: "LCD CONTROLS",
-        controls: [
-            { name: "CAM Distance", type: "slider", value: cfg.CAMERA_DISTANCE },
-            { name: "CAM Orbit", type: "angle", value: cfg.CAMERA_ORBIT_DEG },
-            { name: "CAM Tilt", type: "angle", value: cfg.CAMERA_TILT_DEG },
-            { name: "CAM Zoom", type: "slider", value: cfg.CAMERA_ZOOM },
-            { name: "FOC Depth Of Field", type: "checkbox", value: cfg.DEPTH_OF_FIELD },
-            { name: "FOC Aperture", type: "slider", value: cfg.APERTURE },
-            { name: "LEN Distortion", type: "slider", value: cfg.LENS_DISTORTION_AMOUNT },
-            { name: "LEN Chromatic Aberration", type: "slider", value: cfg.LENS_CA_AMOUNT },
-            { name: "LEN Vignette", type: "slider", value: cfg.VIGNETTE_AMOUNT },
-            { name: "LEN Bloom", type: "slider", value: cfg.GLOW_INTENSITY * 100 },
-            { name: "LEN Bloom Threshold", type: "slider", value: cfg.GLOW_THRESHOLD_PERCENT },
-            { name: "LEN Grain", type: "slider", value: cfg.LENS_GRAIN_AMOUNT },
-            { name: "PNL Subpixel Amount", type: "slider", value: cfg.SUBPIXEL_AMOUNT },
-            { name: "PNL Scanline Amount", type: "slider", value: cfg.SCANLINE_AMOUNT },
-            { name: "BKL Tint Amount", type: "slider", value: cfg.BACKLIGHT_TINT_DENSITY },
-            { name: "BKL Bleed Amount", type: "slider", value: cfg.BACKLIGHT_BLEED_INTENSITY },
-            { name: "BKL Mura", type: "slider", value: cfg.BACKLIGHT_MURA },
-            { name: "BKL View Angle Falloff", type: "slider", value: cfg.VIEWING_ANGLE_AMOUNT },
-            { name: "GLS Reflection", type: "slider", value: cfg.GLASS_SHEEN },
-            { name: "BDY Ambient Spill", type: "slider", value: cfg.AMBIENT_SPILL_OPACITY }
-        ]
+        controls: controls
     });
-    return rig;
+    try { rig["null"].shy = true; } catch (_) {}
+    return {
+        "null": rig["null"],
+        controls: rig.controls,
+        definitions: definitions
+    };
 }
 
-/**
- * Builds a comp-scope prefix for an expression. Pass null/"" for layers that live in the
- * master comp itself (thisComp); pass the master comp's name for layers in nested comps.
- * @private
- */
-function _rig_scope(masterCompName) {
-    if (!masterCompName) return "thisComp";
-    return "comp(\"" + String(masterCompName).replace(/"/g, "\\\"") + "\")";
-}
-
-/** @private */
-function _rig_ref(scope, rigNullName, controlName, subProp) {
-    return scope + ".layer(\"" + rigNullName + "\").effect(\"" + controlName + "\")(\"" + (subProp || "Slider") + "\")";
-}
-
-/** @private */
-function _rig_link(prop, scope, rigNullName, controlName, subProp) {
-    if (!prop) return;
-    try { prop.expression = _rig_ref(scope, rigNullName, controlName, subProp); } catch (_) {}
-}
-
-/**
- * Links the camera's own focus controls. Split out from linkAllControls because the panel's
- * "Rebuild Camera" button deletes and recreates the camera, which drops these two
- * expressions; it re-calls this instead of rebuilding the whole project.
- */
-function linkCameraControls(masterComp, rigNullName, cameraRefs) {
-    if (!cameraRefs || !cameraRefs.camOpts) return;
-    setStep("link camera controls");
-    var local = _rig_scope(null); // camera lives in the master comp
-    // NOTE: "ADBE Camera Aperture" / "ADBE Camera Depth of Field" are standard, widely
-    // documented AE camera match names but are not independently verified against this
-    // repo's Scripts/verified/effects corpus (cameras aren't effects). Wrapped defensively.
-    try { _rig_link(cameraRefs.camOpts.property("ADBE Camera Depth of Field"), local, rigNullName, "FOC Depth Of Field", "Checkbox"); } catch (_) {}
-    try { _rig_link(cameraRefs.camOpts.property("ADBE Camera Aperture"), local, rigNullName, "FOC Aperture"); } catch (_) {}
-}
-
-/**
- * Wires every live control's expression onto the effects/layers created during build.
- * `refs` aggregates the return values from buildCameraRig, buildLensStack, and
- * buildPanelComp/buildScreenComp (see build.jsxinc for the exact shape passed in).
- */
-function linkAllControls(masterComp, rigNullName, refs, cfg) {
-    setStep("link control rig");
-
-    var local = _rig_scope(null);                 // layers in the master comp
-    var remote = _rig_scope(masterComp.name);     // layers inside LCD_Panel / LCD_Screen
-
-    // Focus — camera's own native properties, no intermediary needed
-    linkCameraControls(masterComp, rigNullName, refs.camera);
-
-    // Lens (master comp)
-    if (refs.lens && refs.lens.distortion) {
-        _rig_link(refs.lens.distortion.property("ADBE Optics Compensation-0001"), local, rigNullName, "LEN Distortion");
-    }
-    if (refs.lens && refs.lens.chromaticAberration) {
-        var ca = refs.lens.chromaticAberration;
-        if (ca.channelBlur) {
-            try {
-                ca.channelBlur.property("ADBE Channel Blur-0001").expression = _rig_ref(local, rigNullName, "LEN Chromatic Aberration") + " * 0.02";
-                ca.channelBlur.property("ADBE Channel Blur-0003").expression = _rig_ref(local, rigNullName, "LEN Chromatic Aberration") + " * 0.05";
-            } catch (_) {}
-        } else if (ca.layers) {
-            var scaleSigns = [0.02, 0, -0.02];
-            for (var i = 0; i < ca.layers.length && i < scaleSigns.length; i++) {
-                if (scaleSigns[i] === 0) continue;
-                try {
-                    var xformProp = ca.layers[i].property("ADBE Effect Parade").property("ADBE Geometry2").property("ADBE Geometry2-0003");
-                    xformProp.expression = "100 + " + _rig_ref(local, rigNullName, "LEN Chromatic Aberration") + " * " + scaleSigns[i];
-                } catch (_) {}
-            }
-        }
-    }
-    if (refs.lens && refs.lens.grain) {
-        _rig_link(refs.lens.grain.property("ADBE Noise-0001"), local, rigNullName, "LEN Grain");
-    }
-
-    // Panel treatment — every one of these lives inside the LCD_Panel comp
-    var lcd = (refs.panel && refs.panel.lcd) ? refs.panel.lcd : null;
-
-    if (lcd && lcd.vignetteLayer) {
-        // Vignette strength is baked into the ramp's end color at build time; the layer's
-        // own opacity makes a reasonable live "how strong" dial on top of that.
-        _rig_link(lcd.vignetteLayer.property("Transform").property("Opacity"), remote, rigNullName, "LEN Vignette");
-    }
-    if (lcd && lcd.glowEffect) {
-        try { lcd.glowEffect.property("ADBE Glo2-0004").expression = _rig_ref(remote, rigNullName, "LEN Bloom") + " / 100"; } catch (_) {}
-        try { lcd.glowEffect.property("ADBE Glo2-0002").expression = _rig_ref(remote, rigNullName, "LEN Bloom Threshold") + " * 2.55"; } catch (_) {}
-    }
-    if (lcd && lcd.subpixelResult) {
-        _rig_link(lcd.subpixelResult.gridLayer.property("Transform").property("Opacity"), remote, rigNullName, "PNL Subpixel Amount");
-    }
-    if (lcd && lcd.scanlineResult) {
-        _rig_link(lcd.scanlineResult.scanlineLayer.property("Transform").property("Opacity"), remote, rigNullName, "PNL Scanline Amount");
-    }
-    if (lcd && lcd.tintLayer) {
-        try {
-            lcd.tintLayer.property("ADBE Effect Parade").property("ADBE Photo Filter").property("ADBE Photo Filter-0003").expression = _rig_ref(remote, rigNullName, "BKL Tint Amount");
-        } catch (_) {}
-    }
-    if (lcd && lcd.bleedResult) {
-        var bl = lcd.bleedResult.bleedLayers;
-        for (var b = 0; b < bl.length; b++) {
-            _rig_link(bl[b].property("Transform").property("Opacity"), remote, rigNullName, "BKL Bleed Amount");
-        }
-        if (lcd.bleedResult.muraLayer) {
-            _rig_link(lcd.bleedResult.muraLayer.property("Transform").property("Opacity"), remote, rigNullName, "BKL Mura");
-        }
-    }
-    if (lcd && lcd.viewingAngleResult && lcd.viewingAngleResult.falloffLayer) {
-        try {
-            lcd.viewingAngleResult.falloffLayer.property("ADBE Effect Parade").property("ADBE Tint").property("ADBE Tint-0003").expression = _rig_ref(remote, rigNullName, "BKL View Angle Falloff");
-        } catch (_) {}
-    }
-    if (lcd && lcd.glassResult && lcd.glassResult.sweepEffect) {
-        _rig_link(lcd.glassResult.sweepEffect.property("CC Light Sweep-0005"), remote, rigNullName, "GLS Reflection");
-    }
-
-    // Body — lives inside the LCD_Screen comp
-    if (refs.screen && refs.screen.spillLayer) {
-        _rig_link(refs.screen.spillLayer.property("Transform").property("Opacity"), remote, rigNullName, "BDY Ambient Spill");
-    }
+function findLcdControlsNull(masterComp, nullName) {
+    if (!masterComp) return null;
+    try { return masterComp.layer(nullName || "LCD CONTROLS"); } catch (_) { return null; }
 }

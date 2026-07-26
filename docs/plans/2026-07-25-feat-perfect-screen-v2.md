@@ -14,7 +14,7 @@ A first attempt exists at `examples/lcd-screen/`. An independent review judged i
 
 - [x] Baseline working tree committed
 - [x] M0 — Infra & safety
-- [ ] M1 — Core macro image + live camera + live auto zoom
+- [x] M1 — Core macro image + live camera + live auto zoom
 - [ ] M2 — Lens realism
 - [ ] M3 — Exposure, Auto Exposure, tint
 - [ ] M4 — Animate Movements under auto zoom

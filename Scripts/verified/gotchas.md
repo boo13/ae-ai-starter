@@ -374,3 +374,28 @@ The same scope trap applies to any "bake every expression before render" pass: a
 walk over `comp.numLayers` only reaches the master comp. Recurse into
 `layer.source` when it is a `CompItem` (with a visited set) or the nested-comp
 expressions are left live.
+
+## Cross-Comp toComp() Works in Expressions
+
+An expression can resolve a layer in another comp and call `toComp()` on it:
+
+```javascript
+comp("LCD_Scene").layer("LCD PANEL 3D").toComp([0, 0, 0])[0]
+```
+
+Verified in After Effects 26.3 on 2026-07-26. The LCD v2 probe returned the
+expected scene-center X value of `1440` with no expression error. This does not
+change the scripting limitation above; `.jsx` code still needs an expression
+bridge.
+
+## Channel Mixer and Exposure2 Property IDs
+
+Verified in After Effects 26.3 on 2026-07-26:
+
+- Channel Mixer is `ADBE CHANNEL MIXER`; RGB gains are `-0001` through `-0012`
+  in Red, Green, Blue output groups of four, and Monochrome is `-0013`.
+- Exposure is `ADBE Exposure2`; master Exposure is `ADBE Exposure2-0003`,
+  Offset is `-0004`, and Gamma Correction is `-0005`.
+
+Only write the numeric properties. The intervening Master/Red/Green/Blue entries
+are non-value group headers.

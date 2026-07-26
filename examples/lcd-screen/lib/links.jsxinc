@@ -1,0 +1,245 @@
+// LCD Screen - Table-Driven Live Expression Linker
+
+function _lcdLinkControlRef(masterName, controlName) {
+    var escapedMaster = String(masterName).replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
+    var escapedControl = String(controlName).replace(/\\/g, "\\\\").replace(/"/g, "\\\"");
+    return "comp(\"" + escapedMaster + "\").layer(\"LCD CONTROLS\").effect(\"" + escapedControl + "\")(1)";
+}
+
+function _lcdLinkApply(prop, expression) {
+    if (!prop) return false;
+    var enabled = setExpression(prop, { expression: expression });
+    if (!enabled) {
+        var expressionError = "";
+        try { expressionError = prop.expressionError || ""; } catch (_) {}
+        throw new Error(
+            "LCD link expression failed on " + prop.name +
+            (expressionError ? ": " + expressionError : ".")
+        );
+    }
+    return true;
+}
+
+function linkAllControls(masterComp, refs, cfg) {
+    if (!masterComp || !refs) {
+        throw new Error("linkAllControls: masterComp and refs are required.");
+    }
+
+    var masterName = masterComp.name;
+    var controlPrefix =
+        "var controls = comp(\"" +
+        String(masterName).replace(/\\/g, "\\\\").replace(/"/g, "\\\"") +
+        "\").layer(\"LCD CONTROLS\");\n";
+
+    var links = [
+        {
+            getProp: function (r) { return r.camera.transform.property("ADBE Position"); },
+            control: null,
+            subProp: null,
+            mapExpr: function () {
+                return controlPrefix +
+                    "var d = controls.effect(\"CAM Distance\")(1);\n" +
+                    "var orbit = degreesToRadians(controls.effect(\"CAM Orbit\")(1));\n" +
+                    "var tilt = degreesToRadians(controls.effect(\"CAM Tilt\")(1));\n" +
+                    "var tx = thisComp.width / 2 + controls.effect(\"TGT Target X\")(1);\n" +
+                    "var ty = thisComp.height / 2 + controls.effect(\"TGT Target Y\")(1);\n" +
+                    "var amount = controls.effect(\"MOT Target Amount\")(1);\n" +
+                    "var speed = controls.effect(\"MOT Target Speed\")(1);\n" +
+                    "var seed = controls.effect(\"MOT Seed\")(1);\n" +
+                    "seedRandom(seed * 13, true);\n" +
+                    "var jitter = (wiggle(speed, 1) - value) * amount;\n" +
+                    "[tx + jitter[0] + Math.sin(orbit) * d,\n" +
+                    " ty + jitter[1] - Math.sin(tilt) * d,\n" +
+                    " jitter[2] - Math.cos(orbit) * Math.cos(tilt) * d];";
+            }
+        },
+        {
+            getProp: function (r) { return r.camera.transform.property("ADBE Anchor Point"); },
+            control: null,
+            subProp: null,
+            mapExpr: function () {
+                return controlPrefix +
+                    "var tx = thisComp.width / 2 + controls.effect(\"TGT Target X\")(1);\n" +
+                    "var ty = thisComp.height / 2 + controls.effect(\"TGT Target Y\")(1);\n" +
+                    "var amount = controls.effect(\"MOT Target Amount\")(1);\n" +
+                    "var speed = controls.effect(\"MOT Target Speed\")(1);\n" +
+                    "var seed = controls.effect(\"MOT Seed\")(1);\n" +
+                    "seedRandom(seed * 13, true);\n" +
+                    "var jitter = (wiggle(speed, 1) - value) * amount;\n" +
+                    "[tx + jitter[0], ty + jitter[1], jitter[2]];";
+            }
+        },
+        {
+            getProp: function (r) { return r.camera.transform.property("ADBE Orientation"); },
+            control: null,
+            subProp: null,
+            mapExpr: function () {
+                return controlPrefix +
+                    "var amount = controls.effect(\"MOT Angle Amount\")(1);\n" +
+                    "var speed = controls.effect(\"MOT Angle Speed\")(1);\n" +
+                    "var seed = controls.effect(\"MOT Seed\")(1);\n" +
+                    "seedRandom(seed * 29, true);\n" +
+                    "value + (wiggle(speed, 1) - value) * amount;";
+            }
+        },
+        {
+            getProp: function (r) { return r.camera.transform.property("ADBE Rotate Z"); },
+            control: "CAM Roll",
+            subProp: "Angle",
+            mapExpr: function (ref) { return ref; }
+        },
+        {
+            getProp: function (r) { return r.camera.camOpts.property("ADBE Camera Zoom"); },
+            control: "CAM Zoom",
+            subProp: "Slider",
+            mapExpr: function (ref) { return ref; }
+        },
+        {
+            getProp: function (r) { return r.camera.camOpts.property("ADBE Camera Depth of Field"); },
+            control: "FOC Depth Of Field",
+            subProp: "Checkbox",
+            mapExpr: function (ref) { return ref; }
+        },
+        {
+            getProp: function (r) { return r.camera.camOpts.property("ADBE Camera Aperture"); },
+            control: "FOC Aperture",
+            subProp: "Slider",
+            mapExpr: function (ref) { return ref; }
+        },
+        {
+            getProp: function (r) { return r.camera.camOpts.property("ADBE Camera Focus Distance"); },
+            control: null,
+            subProp: null,
+            mapExpr: function () {
+                return controlPrefix +
+                    "var base = length(transform.position, transform.pointOfInterest) + controls.effect(\"FOC Focus Offset\")(1);\n" +
+                    "var amount = controls.effect(\"MOT Focus Amount\")(1);\n" +
+                    "var speed = controls.effect(\"MOT Focus Speed\")(1);\n" +
+                    "var seed = controls.effect(\"MOT Seed\")(1);\n" +
+                    "seedRandom(seed * 7, true);\n" +
+                    "base + (wiggle(speed, 1) - value) * amount;";
+            }
+        },
+        {
+            getProp: function (r) { return r.master.sceneLayer.property("Transform").property("Scale"); },
+            control: null,
+            subProp: null,
+            mapExpr: function () {
+                return buildLiveAutoZoomExpression(
+                    masterComp.name,
+                    refs.scene.comp.name,
+                    refs.scene.panelLayer.name,
+                    refs.master.baseFit
+                );
+            }
+        },
+        {
+            getProp: function (r) { return r.panel.mosaicEffect.property("ADBE Mosaic-0001"); },
+            control: "PIX Pixel Density",
+            subProp: "Slider",
+            mapExpr: function (ref) {
+                return "var s = Math.max(3, 3 * Math.round(" + ref + " / 3));\nMath.max(1, Math.round(thisComp.width / s));";
+            }
+        },
+        {
+            getProp: function (r) { return r.panel.mosaicEffect.property("ADBE Mosaic-0002"); },
+            control: "PIX Pixel Density",
+            subProp: "Slider",
+            mapExpr: function (ref) {
+                return "var s = Math.max(3, 3 * Math.round(" + ref + " / 3));\nMath.max(1, Math.round(thisComp.height / s));";
+            }
+        },
+        {
+            getProp: function (r) { return r.panel.glowEffect.property("ADBE Glo2-0004"); },
+            control: "PIX Glow",
+            subProp: "Slider",
+            mapExpr: function (ref) { return ref + " / 100"; }
+        },
+        {
+            getProp: function (r) { return r.panel.glowEffect.property("ADBE Glo2-0002"); },
+            control: "PIX Glow Threshold",
+            subProp: "Slider",
+            mapExpr: function (ref) { return ref + " * 2.55"; }
+        },
+        {
+            getProp: function (r) { return r.panel.tintEffect.property("ADBE Photo Filter-0002"); },
+            control: "COL Tint Color",
+            subProp: "Color",
+            mapExpr: function (ref) { return ref; }
+        },
+        {
+            getProp: function (r) { return r.panel.tintEffect.property("ADBE Photo Filter-0003"); },
+            control: "COL Tint Amount",
+            subProp: "Slider",
+            mapExpr: function (ref) { return ref; }
+        },
+        {
+            getProp: function (r) { return r.lens.distortion.property("ADBE Optics Compensation-0001"); },
+            control: "LEN Distortion",
+            subProp: "Slider",
+            mapExpr: function (ref) { return ref; }
+        },
+        {
+            getProp: function (r) { return r.lens.exposure.property("ADBE Exposure2-0003"); },
+            control: "COL Exposure",
+            subProp: "Slider",
+            mapExpr: function (ref) { return ref; }
+        }
+    ];
+
+    for (var p = 0; p < refs.panel.patternLayers.length; p++) {
+        links.push({
+            getProp: (function (index) {
+                return function (r) {
+                    return r.panel.patternLayers[index].property("Transform").property("Scale");
+                };
+            })(p),
+            control: "PIX Pixel Density",
+            subProp: "Slider",
+            mapExpr: function (ref) {
+                return "var s = Math.max(3, 3 * Math.round(" + ref + " / 3));\n[s / 12 * 100, 100];";
+            }
+        });
+        links.push({
+            getProp: (function (index) {
+                return function (r) {
+                    return r.panel.patternLayers[index].property("Transform").property("Position");
+                };
+            })(p),
+            control: "PIX Pixel Density",
+            subProp: "Slider",
+            tileIndex: p,
+            mapExpr: function (ref, link) {
+                return "var s = Math.max(3, 3 * Math.round(" + ref + " / 3));\n" +
+                    "var tileWidth = thisLayer.width * s / 12;\n" +
+                    "[thisComp.width / 2 + (" + link.tileIndex + " - 1.5) * tileWidth, thisComp.height / 2];";
+            }
+        });
+        links.push({
+            getProp: (function (index) {
+                return function (r) {
+                    return r.panel.patternLayers[index].property("Transform").property("Opacity");
+                };
+            })(p),
+            control: "PIX Pixel Amount",
+            subProp: "Slider",
+            mapExpr: function (ref) { return ref; }
+        });
+    }
+
+    var linked = 0;
+    for (var i = 0; i < links.length; i++) {
+        var link = links[i];
+        var prop = link.getProp(refs);
+        var ref = link.control ? _lcdLinkControlRef(masterName, link.control) : null;
+        var expression = link.mapExpr(ref, link);
+        setStep("link " + (link.control || prop.name));
+        if (_lcdLinkApply(prop, expression)) linked++;
+    }
+
+    setResultData("lcdLinks", {
+        linkedCount: linked,
+        expectedCount: links.length
+    });
+    return linked;
+}

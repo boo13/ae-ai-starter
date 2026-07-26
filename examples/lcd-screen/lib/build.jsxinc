@@ -1,45 +1,78 @@
-// LCD Screen — Build Orchestrator
-// The full pipeline in one function, shared by setup.jsx (headless) and
-// lcd_screen_panel.jsx's Build button, so both entry points stay in sync.
+// LCD Screen - Perfect Screen v2 Build Orchestrator
 
 function buildLcdScreen(source, rawCfg) {
     if (!source) {
         throw new Error("buildLcdScreen: source footage item is required.");
     }
 
-    setStep("clean existing comps");
-    var removedCount = cleanLcdScreen(app.project, rawCfg);
-
     setStep("apply preset");
     var cfg = mergePreset(rawCfg);
+
+    setStep("clean tagged v2 comps");
+    var cleanup = cleanLcdScreen(app.project, cfg);
+
+    var sceneWidth = Math.max(1, Math.round(cfg.WIDTH * cfg.SCENE_OVERSAMPLE));
+    var sceneHeight = Math.max(1, Math.round(cfg.HEIGHT * cfg.SCENE_OVERSAMPLE));
 
     setStep("build content comp");
     var content = buildContentComp(source, cfg);
 
-    setStep("build panel comp");
-    var panel = buildPanelComp(content, cfg);
+    setStep("build macro panel");
+    var panel = buildPanelComp(content, cfg, sceneWidth, sceneHeight);
 
-    setStep("build screen comp");
-    var screen = buildScreenComp(panel, cfg);
+    setStep("build oversampled scene");
+    var scene = buildSceneComp(panel, cfg);
 
-    setStep("build master comp");
-    var master = buildMasterComp(screen, cfg);
+    setStep("build live camera");
+    var camera = buildCameraRig(scene.comp, scene.panelLayer, cfg);
 
-    setStep("build camera rig");
-    var camera = buildCameraRig(master.comp, master.layer, cfg);
+    setStep("build master");
+    var master = buildMasterComp(scene, cfg);
 
-    setStep("build lens stack");
+    setStep("build lens pass");
     var lens = buildLensStack(master.comp, cfg);
 
-    setStep("build control rig");
+    setStep("build controls");
     var rig = buildControlRig(master.comp, cfg);
 
-    setStep("link control rig");
-    linkAllControls(master.comp, "LCD CONTROLS", { camera: camera, lens: lens, panel: panel, screen: screen }, cfg);
+    var refs = {
+        content: content,
+        panel: panel,
+        scene: scene,
+        camera: camera,
+        master: master,
+        lens: lens,
+        rig: rig
+    };
+
+    setStep("link live controls");
+    var linkedCount = linkAllControls(master.comp, refs, cfg);
+    setResultData("lcdBuild", {
+        version: 2,
+        marker: "ae:lcd-screen:v2",
+        removedCount: cleanup.removedCount,
+        compNames: [
+            content.comp.name,
+            panel.comp.name,
+            panel.pattern.comp.name,
+            scene.comp.name,
+            master.comp.name
+        ],
+        linkedCount: linkedCount
+    });
 
     return {
-        removedCount: removedCount, cfg: cfg, content: content, panel: panel,
-        screen: screen, master: master, camera: camera, lens: lens, rig: rig
+        removedCount: cleanup.removedCount,
+        cleanup: cleanup,
+        cfg: cfg,
+        content: content,
+        panel: panel,
+        scene: scene,
+        master: master,
+        camera: camera,
+        lens: lens,
+        rig: rig,
+        refs: refs
     };
 }
 
@@ -49,17 +82,13 @@ function buildLcdScreen(source, rawCfg) {
 function findLcdMasterComp(compName) {
     for (var i = 1; i <= app.project.numItems; i++) {
         var item = app.project.item(i);
-        if (item instanceof CompItem && item.name === compName) return item;
+        if (item instanceof CompItem &&
+            item.name === compName &&
+            item.comment === "ae:lcd-screen:v2") {
+            return item;
+        }
     }
     return null;
-}
-
-/**
- * Finds the "LCD CONTROLS" null layer inside a previously-built master comp.
- */
-function findLcdControlsNull(masterComp, nullName) {
-    if (!masterComp) return null;
-    try { return masterComp.layer(nullName || "LCD CONTROLS"); } catch (_) { return null; }
 }
 
 /**

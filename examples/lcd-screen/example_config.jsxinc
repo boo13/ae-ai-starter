@@ -1,85 +1,84 @@
-// LCD Screen — Configuration
-// Copy this file, rename it, and adjust settings to taste.
-// Then update setup.jsx to #include your copy instead of this one.
+// LCD Screen - Perfect Screen v2 Configuration
 
 var LcdScreenConfig = {
-    // --- Source ---
-    SOURCE_ITEM_NAME: null,          // Project item name to use as screen content.
-                                      // null = use the selected footage item in the Project panel,
-                                      // else the first footage item found.
-    MASTER_COMP_NAME: "LCD Screen Master",
+    SOURCE_ITEM_NAME: null,
+    MASTER_COMP_NAME: "LCD Master",
     WIDTH: 1920,
     HEIGHT: 1080,
     DURATION: 10,
     FRAME_RATE: 30,
+    SCENE_OVERSAMPLE: 1.5,
 
-    // --- Preset ---
-    PRESET: "Static Default",        // Key into LcdScreenPresets (presets.jsxinc). "" = use the raw values below.
+    PRESET: "Static Default",
 
-    // --- Panel: subpixel + scanlines ---
-    SUBPIXEL_MODE: "stripe",         // "stripe" | "grille" | "dot"
-    SUBPIXEL_PIXEL_SIZE: 6,          // px per LCD cell
-    SUBPIXEL_AMOUNT: 55,             // 0-100
-    SCANLINE_PITCH: 4,               // px between lines
-    SCANLINE_AMOUNT: 30,             // 0-100
-    SCANLINE_ROLL_BAR: false,
-
-    // --- Panel: backlight ---
-    BACKLIGHT_TINT_PRESET: "none",   // "warm" | "cool" | "green" | "none"
-    BACKLIGHT_TINT_DENSITY: 25,      // 0-100
-    BACKLIGHT_BLEED_CORNERS: ["topLeft", "bottomRight"],
-    BACKLIGHT_BLEED_INTENSITY: 20,   // 0-100
-    BACKLIGHT_MURA: 4,               // 0-100
-
-    // --- Panel: viewing angle + glow ---
-    VIEWING_ANGLE_AXIS: "horizontal",
-    VIEWING_ANGLE_AMOUNT: 35,        // 0-100
-    GLOW_THRESHOLD_PERCENT: 60,      // 0-100 (converted internally to Glow's 0-255 scripting range)
-    GLOW_RADIUS: 15,
-    GLOW_INTENSITY: 0.8,             // 0-4
-
-    // --- Glass ---
-    GLASS_DUST: 25,                  // 0-100
-    GLASS_SMUDGE: 15,                // 0-100
-    GLASS_SHEEN: 20,                 // 0-100
-    GLASS_SWEEP: true,
-    GLASS_SWEEP_SPEED: 6,            // seconds per pass
-
-    // --- Vignette ---
-    VIGNETTE_AMOUNT: 35,             // 0-100
-
-    // --- Body ---
-    BEZEL_ENABLED: true,
-    BEZEL_WIDTH: 36,                 // px
-    BEZEL_CORNER_RADIUS: 20,         // px
-    BEZEL_COLOR: [0.07, 0.07, 0.08],
-    AMBIENT_SPILL_ENABLED: true,
-    AMBIENT_SPILL_OPACITY: 25,       // 0-100
-
-    // --- Camera / lens (live — rig-linked, tweakable from the panel after build) ---
-    CAMERA_DISTANCE: 1400,           // px
-    CAMERA_ORBIT_DEG: 12,            // degrees, left/right around the screen
-    CAMERA_TILT_DEG: 6,              // degrees, up/down around the screen
-    CAMERA_ZOOM: 1800,               // px (camera focal length proxy)
+    CAMERA_DISTANCE: 950,
+    CAMERA_ORBIT_DEG: 12,
+    CAMERA_TILT_DEG: 6,
+    CAMERA_ROLL_DEG: 0,
+    CAMERA_ZOOM: 2200,
+    TARGET_X: 0,
+    TARGET_Y: 0,
+    FOCUS_OFFSET: 0,
     DEPTH_OF_FIELD: true,
-    APERTURE: 40,
-    AUTO_ZOOM: true,                 // baked at build time; re-run the panel's "Bake Auto Zoom" after changing camera controls
-    AUTO_ZOOM_PADDING_PERCENT: 2,    // extra coverage beyond the frame edge, in percent
+    APERTURE: 90,
 
-    // --- Procedural motion (keyframe-free, seeded wiggle — config-time only, rebuild to change) ---
-    MOTION_TARGET_AMOUNT: 0,         // px, camera Point of Interest jitter
-    MOTION_TARGET_SPEED: 0.15,       // Hz
-    MOTION_ANGLE_AMOUNT: 0,          // degrees, camera Orientation jitter
+    AUTO_ZOOM: true,
+    AUTO_ZOOM_PADDING_PERCENT: 3,
+
+    BASE_BLUR: 0,
+    RADIAL_BLUR: 0,
+
+    PIXEL_DENSITY: 3,
+    PIXEL_AMOUNT: 10,
+    GLOW_INTENSITY: 0.45,
+    GLOW_THRESHOLD_PERCENT: 58,
+    GLOW_RADIUS: 12,
+
+    LENS_DISTORTION_AMOUNT: 10,
+    LENS_CA_AMOUNT: 18,
+    VIGNETTE_AMOUNT: 30,
+    LENS_GRAIN_AMOUNT: 4,
+    DUST_STRENGTH: 12,
+    DUST_DENSITY: 35,
+
+    TINT_COLOR: [1, 0.78, 0.55],
+    TINT_AMOUNT: 8,
+    EXPOSURE: 1,
+    AUTO_EXPOSURE: false,
+
+    MOTION_TARGET_AMOUNT: 0,
+    MOTION_TARGET_SPEED: 0.15,
+    MOTION_ANGLE_AMOUNT: 0,
     MOTION_ANGLE_SPEED: 0.1,
-    MOTION_FOCUS_AMOUNT: 0,          // px, focus distance jitter
+    MOTION_FOCUS_AMOUNT: 0,
     MOTION_FOCUS_SPEED: 0.2,
     MOTION_SEED: 1,
 
-    // --- Lens: final camera-pass stack (live — rig-linked) ---
-    LENS_DISTORTION_AMOUNT: 12,      // -100 to 100
-    LENS_CA_MODE: "subtle",          // "subtle" only here — the lens stack is an adjustment layer,
-                                      // and "lens" mode duplicates its target, which would re-apply
-                                      // distortion and grain to the whole composite once per copy.
-    LENS_CA_AMOUNT: 25,              // 0-100
-    LENS_GRAIN_AMOUNT: 6             // 0-100 (ADBE Noise amount, via addGrain)
+    QUALITY_LEVEL: 2,
+
+    EXTRAS_ENABLED: false,
+    BEZEL_ENABLED: false,
+    AMBIENT_SPILL_ENABLED: false,
+    GLASS_ENABLED: false,
+    BACKLIGHT_BLEED_ENABLED: false,
+    VIEWING_ANGLE_ENABLED: false,
+    SCANLINES_ENABLED: false,
+
+    BEZEL_WIDTH: 36,
+    BEZEL_CORNER_RADIUS: 20,
+    BEZEL_COLOR: [0.07, 0.07, 0.08],
+    AMBIENT_SPILL_OPACITY: 25,
+    GLASS_DUST: 25,
+    GLASS_SMUDGE: 15,
+    GLASS_SHEEN: 20,
+    GLASS_SWEEP: false,
+    GLASS_SWEEP_SPEED: 6,
+    BACKLIGHT_BLEED_CORNERS: ["topLeft", "bottomRight"],
+    BACKLIGHT_BLEED_INTENSITY: 20,
+    BACKLIGHT_MURA: 4,
+    VIEWING_ANGLE_AXIS: "horizontal",
+    VIEWING_ANGLE_AMOUNT: 35,
+    SCANLINE_PITCH: 4,
+    SCANLINE_AMOUNT: 0,
+    SCANLINE_ROLL_BAR: false
 };

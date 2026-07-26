@@ -1,21 +1,20 @@
-// LCD Screen — Content Comp Builder
-// Wraps the raw screen-recording footage in its own comp (LCD_Content), sized to the
-// footage's native dimensions. Kept separate from the panel treatment so the subpixel
-// grid's pixel-pitch math (Scripts/lib/actions/effects/subpixel_grid.jsxinc) is always
-// computed from the real source resolution, not from a padded/bezeled comp size.
+// LCD Screen - Source Content Comp
 
 function buildContentComp(sourceItem, cfg) {
     if (!sourceItem) {
         throw new Error("buildContentComp: sourceItem is required.");
     }
+
     var w = sourceItem.width || cfg.WIDTH;
     var h = sourceItem.height || cfg.HEIGHT;
-
-    var contentComp = app.project.items.addComp("LCD_Content", w, h, 1, cfg.DURATION, cfg.FRAME_RATE);
+    var contentComp = markLcdComp(
+        app.project.items.addComp("LCD_Content", w, h, 1, cfg.DURATION, cfg.FRAME_RATE)
+    );
     try { contentComp.bgColor = [0, 0, 0]; } catch (_) {}
 
     var layer = contentComp.layers.add(sourceItem);
     layer.name = "Source";
+    try { layer.property("Transform").property("Anchor Point").setValue([w / 2, h / 2]); } catch (_) {}
     try { layer.property("Transform").property("Position").setValue([w / 2, h / 2]); } catch (_) {}
 
     return { comp: contentComp, layer: layer, width: w, height: h };

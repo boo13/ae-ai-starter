@@ -24,6 +24,7 @@
 #include "../../Scripts/lib/actions/layer/null_object.jsxinc"
 #include "../../Scripts/lib/actions/layer/set_parent.jsxinc"
 #include "../../Scripts/lib/actions/property/expression_control.jsxinc"
+#include "../../Scripts/lib/actions/property/set_expression.jsxinc"
 #include "../../Scripts/lib/actions/presets/expression_rig.jsxinc"
 
 #include "../../Scripts/lib/actions/effects/subpixel_grid.jsxinc"
@@ -49,6 +50,9 @@
 #include "lib/camera-rig.jsxinc"
 #include "lib/lens-stack.jsxinc"
 #include "lib/rig.jsxinc"
+#include "lib/links.jsxinc"
+#include "lib/states.jsxinc"
+#include "lib/probes.jsxinc"
 #include "lib/build.jsxinc"
 
 /**
@@ -77,17 +81,40 @@ function _lcd_resolveSource(cfg) {
 
 (function () {
     var step = "init";
+    var entryFile = new File($.fileName);
+    beginScript("setup.jsx", null);
+
     var source = _lcd_resolveSource(LcdScreenConfig);
     if (!source) {
-        alert("LCD Screen: no source footage found.\n\nImport a screen recording, select it in the Project panel, or set SOURCE_ITEM_NAME in example_config.jsxinc, then re-run.");
+        var sourceError = new Error("No source footage found. Import and select a screen recording, or set SOURCE_ITEM_NAME.");
+        writeResult("error", "resolve source", sourceError, null);
+        alert("LCD Screen: " + sourceError.message);
         return;
     }
 
-    beginScript("setup.jsx", null);
     app.beginUndoGroup("LCD Screen Setup");
     try {
         step = "build";
         var result = buildLcdScreen(source, LcdScreenConfig);
+
+        step = "run M1 probes";
+        runLcdM1Probes({
+            masterComp: result.master.comp,
+            rigNull: result.rig["null"],
+            scenePanelLayer: result.scene.panelLayer,
+            masterSceneLayer: result.master.sceneLayer,
+            exposureEffect: result.lens.exposure
+        });
+
+        step = "render M1 acceptance states";
+        var previewDir = getLcdPreviewFolder(entryFile);
+        var stateReport = renderLcdStates(
+            result.master.comp,
+            result.rig["null"],
+            "m1",
+            getLcdStateSet("m1"),
+            previewDir
+        );
 
         step = "open master comp";
         try { result.master.comp.openInViewer(); } catch (_) {}
@@ -99,11 +126,11 @@ function _lcd_resolveSource(cfg) {
             "Preset: " + (result.cfg.PRESET || "(none)") + "\n" +
             "Source: " + source.name + "\n" +
             (result.removedCount > 0 ? "Cleaned " + result.removedCount + " previous comp(s).\n" : "") +
-            "\nOpen \"" + result.cfg.MASTER_COMP_NAME + "\" and press spacebar to preview.\n" +
-            "Tweak the LCD CONTROLS null's Effect Controls for live camera/panel adjustments."
+            "Rendered " + stateReport.stateCount + " M1 acceptance frames.\n\n" +
+            "Open \"" + result.cfg.MASTER_COMP_NAME + "\" and tweak LCD CONTROLS for live camera, focus, framing, pixel, and lens adjustments."
         );
     } catch (e) {
-        app.endUndoGroup();
+        try { app.endUndoGroup(); } catch (_) {}
         writeResult("error", step, e, null);
         alert("Error at step [" + step + "]: " + e.message + (e.line ? ("\nLine: " + e.line) : ""));
     }

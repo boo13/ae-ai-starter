@@ -12,7 +12,7 @@ var LcdScreenStateSets = {
                 "CAM Tilt": 0,
                 "CAM Roll": 0,
                 "CAM Zoom": 2400,
-                "PIX Pixel Density": 6
+                "PIX Pixel Density": 3
             }
         },
         {

@@ -1,103 +1,94 @@
-// LCD Screen — Master Comp + Camera Rig
-// Places the finished LCD_Screen comp as a 3D layer in the master comp, adds a real AE
-// camera (true perspective + optical Depth of Field — no corner-pin math needed), an
-// AUTO ZOOM parent null baked via autozoom.jsxinc, and optional seeded-wiggle procedural
-// motion on the camera (the native equivalent of Perfect Screen's keyframe-free
-// "Animate Movements": Moving Target, Animate Angle, Moving Focus Point).
+// LCD Screen - Oversampled 3D Scene and Live Camera
 
-function buildMasterComp(screen, cfg) {
-    var masterComp = app.project.items.addComp(cfg.MASTER_COMP_NAME, cfg.WIDTH, cfg.HEIGHT, 1, cfg.DURATION, cfg.FRAME_RATE);
+function buildSceneComp(panel, cfg) {
+    var sceneComp = markLcdComp(
+        app.project.items.addComp(
+            "LCD_Scene",
+            panel.width,
+            panel.height,
+            1,
+            cfg.DURATION,
+            cfg.FRAME_RATE
+        )
+    );
+    try { sceneComp.bgColor = [0, 0, 0]; } catch (_) {}
+
+    var panelLayer = sceneComp.layers.add(panel.comp);
+    panelLayer.name = "LCD PANEL 3D";
+    panelLayer.threeDLayer = true;
+    panelLayer.property("Transform").property("Position")
+        .setValue([sceneComp.width / 2, sceneComp.height / 2, 0]);
+
+    return {
+        comp: sceneComp,
+        panelLayer: panelLayer,
+        width: sceneComp.width,
+        height: sceneComp.height
+    };
+}
+
+function buildCameraRig(sceneComp, panelLayer, cfg) {
+    if (!sceneComp || !panelLayer) {
+        throw new Error("buildCameraRig: sceneComp and panelLayer are required.");
+    }
+
+    setStep("create live camera");
+    var camera = addCamera(sceneComp, {
+        name: "LCD Camera",
+        zoom: cfg.CAMERA_ZOOM,
+        depthOfField: cfg.DEPTH_OF_FIELD
+    });
+    var transform = camera.property("ADBE Transform Group");
+    var cameraOptions = camera.property("ADBE Camera Options Group");
+    var cx = sceneComp.width / 2 + cfg.TARGET_X;
+    var cy = sceneComp.height / 2 + cfg.TARGET_Y;
+    var orbitRad = cfg.CAMERA_ORBIT_DEG * Math.PI / 180;
+    var tiltRad = cfg.CAMERA_TILT_DEG * Math.PI / 180;
+    var distance = cfg.CAMERA_DISTANCE;
+
+    transform.property("ADBE Position").setValue([
+        cx + Math.sin(orbitRad) * distance,
+        cy - Math.sin(tiltRad) * distance,
+        -Math.cos(orbitRad) * Math.cos(tiltRad) * distance
+    ]);
+    transform.property("ADBE Anchor Point").setValue([cx, cy, 0]);
+    try { transform.property("ADBE Rotate Z").setValue(cfg.CAMERA_ROLL_DEG); } catch (_) {}
+
+    cameraOptions.property("ADBE Camera Focus Distance").setValue(distance + cfg.FOCUS_OFFSET);
+    cameraOptions.property("ADBE Camera Aperture").setValue(cfg.APERTURE);
+    cameraOptions.property("ADBE Camera Blur Level").setValue(100);
+
+    return {
+        camera: camera,
+        transform: transform,
+        camOpts: cameraOptions,
+        panelLayer: panelLayer
+    };
+}
+
+function buildMasterComp(scene, cfg) {
+    var masterComp = markLcdComp(
+        app.project.items.addComp(
+            cfg.MASTER_COMP_NAME,
+            cfg.WIDTH,
+            cfg.HEIGHT,
+            1,
+            cfg.DURATION,
+            cfg.FRAME_RATE
+        )
+    );
     try { masterComp.bgColor = [0, 0, 0]; } catch (_) {}
 
-    var layer = masterComp.layers.add(screen.comp);
-    layer.name = "LCD Screen";
+    var sceneLayer = masterComp.layers.add(scene.comp);
+    sceneLayer.name = "CA GREEN";
+    sceneLayer.property("Transform").property("Position")
+        .setValue([masterComp.width / 2, masterComp.height / 2]);
+    var baseFit = Math.min(masterComp.width / scene.width, masterComp.height / scene.height) * 100;
+    sceneLayer.property("Transform").property("Scale").setValue([baseFit, baseFit]);
 
-    return { comp: masterComp, layer: layer };
-}
-
-function buildCameraRig(masterComp, panelLayer, cfg) {
-    setStep("make screen layer 3D");
-    panelLayer.threeDLayer = true;
-    var cx = masterComp.width / 2;
-    var cy = masterComp.height / 2;
-    try { panelLayer.property("Transform").property("Position").setValue([cx, cy, 0]); } catch (_) {}
-
-    setStep("create auto zoom null");
-    var zoomNull = addNull(masterComp, { name: "AUTO ZOOM", is3D: true, position: [cx, cy] });
-    try { zoomNull.property("Transform").property("Position").setValue([cx, cy, 0]); } catch (_) {}
-    setLayerParent(masterComp, { child: panelLayer.index, parent: zoomNull.index });
-
-    setStep("create auto zoom ghost reference");
-    // Unparented duplicate at the screen's base (pre-zoom) position — used only to sample
-    // toComp() projections for the bake pass. See autozoom.jsxinc header for why this can't
-    // be a live expression on zoomNull itself.
-    var ghost = panelLayer.duplicate();
-    ghost.name = "AUTO ZOOM GHOST (do not delete)";
-    try { ghost.parent = null; } catch (_) {}
-    try { ghost.property("Transform").property("Position").setValue([cx, cy, 0]); } catch (_) {}
-    try { ghost.enabled = false; } catch (_) {}
-    try { ghost.guideLayer = true; } catch (_) {}
-
-    setStep("create camera");
-    var camera = addCamera(masterComp, { name: "LCD Camera", zoom: cfg.CAMERA_ZOOM, depthOfField: cfg.DEPTH_OF_FIELD });
-    var orbitRad = (cfg.CAMERA_ORBIT_DEG || 0) * Math.PI / 180;
-    var tiltRad = (cfg.CAMERA_TILT_DEG || 0) * Math.PI / 180;
-    var dist = cfg.CAMERA_DISTANCE || 1400;
-    var camX = cx + Math.sin(orbitRad) * dist;
-    var camY = cy - Math.sin(tiltRad) * dist;
-    var camZ = -Math.cos(orbitRad) * Math.cos(tiltRad) * dist;
-    try { camera.property("Transform").property("Position").setValue([camX, camY, camZ]); } catch (_) {}
-    try { camera.property("Transform").property("Point of Interest").setValue([cx, cy, 0]); } catch (_) {}
-
-    var camOpts = null;
-    try { camOpts = camera.property("ADBE Camera Options Group"); } catch (_) {}
-    if (cfg.DEPTH_OF_FIELD && camOpts) {
-        try { camOpts.property("ADBE Camera Aperture").setValue(cfg.APERTURE); } catch (_) {}
-        try { camOpts.property("ADBE Camera Focus Distance").setValue(dist); } catch (_) {}
-    }
-
-    setStep("add procedural motion");
-    addProceduralMotion(camera, camOpts, cfg);
-
-    var autoZoom = null;
-    if (cfg.AUTO_ZOOM) {
-        setStep("bake auto zoom");
-        autoZoom = bakeAutoZoom(masterComp, ghost, zoomNull, { paddingPercent: cfg.AUTO_ZOOM_PADDING_PERCENT });
-    }
-
-    return { camera: camera, camOpts: camOpts, zoomNull: zoomNull, ghost: ghost, dist: dist, autoZoom: autoZoom };
-}
-
-/**
- * Seeded, keyframe-free camera motion — the equivalent of Perfect Screen's "Animate
- * Movements" (Moving Target / Animate Angle / Moving Focus Point). Each wiggle() call
- * jitters the property around whatever static value was already set above, per the
- * pattern already used by Scripts/lib/actions/effects/flicker.jsxinc.
- */
-function addProceduralMotion(camera, camOpts, cfg) {
-    var seed = cfg.MOTION_SEED || 1;
-
-    if (cfg.MOTION_TARGET_AMOUNT > 0) {
-        try {
-            camera.property("Transform").property("Point of Interest").expression =
-                "seedRandom(" + (seed * 13) + ", true);\n" +
-                "wiggle(" + cfg.MOTION_TARGET_SPEED + ", " + cfg.MOTION_TARGET_AMOUNT + ")";
-        } catch (_) {}
-    }
-
-    if (cfg.MOTION_ANGLE_AMOUNT > 0) {
-        try {
-            camera.property("Transform").property("Orientation").expression =
-                "seedRandom(" + (seed * 29) + ", true);\n" +
-                "wiggle(" + cfg.MOTION_ANGLE_SPEED + ", " + cfg.MOTION_ANGLE_AMOUNT + ")";
-        } catch (_) {}
-    }
-
-    if (cfg.MOTION_FOCUS_AMOUNT > 0 && camOpts) {
-        try {
-            camOpts.property("ADBE Camera Focus Distance").expression =
-                "seedRandom(" + (seed * 7) + ", true);\n" +
-                "wiggle(" + cfg.MOTION_FOCUS_SPEED + ", " + cfg.MOTION_FOCUS_AMOUNT + ")";
-        } catch (_) {}
-    }
+    return {
+        comp: masterComp,
+        sceneLayer: sceneLayer,
+        baseFit: baseFit
+    };
 }

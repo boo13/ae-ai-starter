@@ -80,7 +80,7 @@ Execute `docs/plans/2026-07-25-feat-perfect-screen-v2.md` milestone by milestone
 
 - [x] Baseline working tree committed before rebuild work
 - [x] M0 infrastructure and safety complete
-- [ ] M1 macro core, live camera, and live auto zoom accepted
+- [x] M1 macro core, live camera, and live auto zoom accepted
 - [ ] M2 lens realism accepted
 - [ ] M3 exposure, auto exposure, and tint accepted
 - [ ] M4 animated movement under live auto zoom accepted
@@ -119,6 +119,86 @@ Execute `docs/plans/2026-07-25-feat-perfect-screen-v2.md` milestone by milestone
 **Learnings:**
 - The generated index was indented but used carriage-return line endings, making it appear as one line to Unix tooling.
 - Cross-comp `toComp()` and the exact Channel Mixer/Exposure schemas remain gated on the first M1 After Effects run.
+
+### 2026-07-25 - M1 Ready for After Effects Validation
+
+**By:** Codex
+
+**Actions:**
+- Rebuilt the comp chain as Content, macro Panel, oversampled 3D Scene, and outer Master.
+- Added a live camera with distance, orbit, tilt, roll, zoom, target, focus, aperture, and seeded motion controls.
+- Added table-driven expressions for camera, focus, Mosaic density, RGB pattern pitch, glow, tint, distortion, exposure, and live auto zoom.
+- Added automatic M1 probes and six named acceptance-frame renders to `setup.jsx`.
+- Ran static syntax, control-name consistency, expression-parser, and auto-zoom math checks.
+
+**Learnings:**
+- The vetted expression catalog supplied the established `toComp`, seeded `wiggle`, and auto-scale patterns; the cross-comp ray-exit solver remains project-specific.
+- M1 must remain uncommitted until `last_run.json`, the six flushed PNGs, and the user’s visual confirmation pass the milestone criteria.
+
+### 2026-07-26 - M1 First After Effects Run
+
+**By:** Codex
+
+**Actions:**
+- Inspected `Scripts/runs/last_run.json` after the user ran the headless M1 builder.
+- Traced the failure at `create live camera` to the camera Point of Interest lookup.
+- Replaced the invalid `ADBE Point of Interest` lookup with the verified camera match name `ADBE Anchor Point` in both camera setup and live linking.
+
+**Learnings:**
+- In After Effects, a two-node camera displays this property as Point of Interest while exposing it to scripting under the `ADBE Anchor Point` match name.
+- The dockable ScriptUI panel is intentionally scheduled for M5; `setup.jsx` is the staged builder and visual-validation entry point.
+
+### 2026-07-26 - M1 Technical Validation Passed
+
+**By:** Codex
+
+**Actions:**
+- Verified the rerun completed successfully with all 29 expected live links.
+- Confirmed the cross-comp `toComp()` probe returned the expected value and captured the Channel Mixer and Exposure2 schemas.
+- Inspected all six acceptance PNGs at full resolution and checked their alpha channels.
+- Recorded the verified AE behavior in `Scripts/verified/gotchas.md`.
+
+**Learnings:**
+- RGB stripe triplets resolve at the frame center, density 3 and 12 produce visibly different pitch, and the orbit state shows perspective convergence with far-edge softness.
+- Every M1 preview is fully opaque; the rendered alpha minimum and maximum are both 1.
+
+### 2026-07-26 - M1 Visual Retune
+
+**By:** Codex
+
+**Actions:**
+- Reopened M1 after the user found the previews too dark, unreadable, and dominated by vertical stripes.
+- Reduced the live RGB pattern amount from 72% to 32%.
+- Muted the pure-primary Multiply pattern, raised default exposure by 0.45 stops, and reduced glow intensity.
+
+**Learnings:**
+- Pure RGB in Multiply mode at 72% suppresses two channels on each stripe strongly enough to obscure the source image.
+- M1 remains unaccepted pending a rerender and user review of the retuned six-state set.
+
+### 2026-07-26 - M1 Visual Retune 2
+
+**By:** Codex
+
+**Actions:**
+- Verified the first retune was present in the successful rerun, but treated the repeated user feedback as a design failure.
+- Replaced the RGB pattern's Multiply blend with luminance-preserving Color blend.
+- Reduced pixel amount to 10%, changed the readable default density to 3px, raised exposure to +1 stop, and reduced glow further.
+
+**Learnings:**
+- Opacity reduction alone cannot make a Multiply-based subpixel overlay preserve source legibility.
+- Pixel structure should primarily alter chroma while leaving source luminance intact.
+
+### 2026-07-26 - M1 Accepted
+
+**By:** Codex
+
+**Actions:**
+- Verified the final rerun succeeded with all 29 live links and six fully opaque acceptance frames.
+- Inspected the final front-close frame after the luminance-preserving pixel treatment.
+- Recorded the user's visual approval and closed the M1 gate.
+
+**Learnings:**
+- The accepted baseline uses a 3px density, 10% Color-blended RGB structure, +1 stop exposure, and reduced glow.
 
 ## Notes
 

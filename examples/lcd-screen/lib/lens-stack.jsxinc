@@ -1,59 +1,25 @@
-// LCD Screen — Lens Stack
-// A single 2D adjustment layer at the top of the master comp receives the fully
-// camera-rendered composite — AE adjustment layers process the flattened frame below
-// them regardless of any 3D layers/camera in the comp — so this is where the "camera
-// simulator" half of Perfect Screen's feature set (distortion, chromatic aberration,
-// grain) lands. Depth of field is handled separately by the real camera's native DoF
-// (see camera-rig.jsxinc) rather than this stack, for true optical blur.
-//
-// CA mode note: chromatic_aberration's "lens" mode duplicates its target three times.
-// On an adjustment layer that stacks four adjustment layers, so lens distortion and grain
-// would each be applied four times to the composite. The block itself now rejects that
-// combination; here we downgrade to "subtle" (Channel Blur) and report it to the caller.
+// LCD Screen - Master Lens Stack
 
 function buildLensStack(masterComp, cfg) {
-    setStep("create lens adjustment layer");
+    setStep("create lens adjustment");
     var lens = addSolid(masterComp, { name: "LENS", isAdjustment: true });
 
-    setStep("apply lens distortion");
-    addLensDistortion(lens, { amount: cfg.LENS_DISTORTION_AMOUNT });
+    setStep("apply optics compensation");
+    addLensDistortion(lens, {
+        amount: cfg.LENS_DISTORTION_AMOUNT,
+        autoResize: true,
+        reverse: true
+    });
 
-    setStep("apply chromatic aberration");
-    var caMode = cfg.LENS_CA_MODE;
-    var caDowngraded = false;
-    if (String(caMode).toLowerCase() === "lens") {
-        caMode = "subtle";
-        caDowngraded = true;
-    }
-    var ca = addChromaticAberration(masterComp, { targetLayer: lens, mode: caMode, amount: cfg.LENS_CA_AMOUNT });
+    setStep("apply exposure");
+    var exposure = lens.property("ADBE Effect Parade").addProperty("ADBE Exposure2");
+    exposure.property("ADBE Exposure2-0001").setValue(1);
+    exposure.property("ADBE Exposure2-0003").setValue(cfg.EXPOSURE);
 
-    var addedGrain = false;
-    if (cfg.LENS_GRAIN_AMOUNT > 0) {
-        setStep("apply sensor grain");
-        var grainFx = lens.property("ADBE Effect Parade").addProperty("ADBE Noise");
-        try { grainFx.property("ADBE Noise-0001").setValue(cfg.LENS_GRAIN_AMOUNT); } catch (_) {}
-        addedGrain = true;
-    }
-
-    // Every addProperty() above invalidates references handed out by earlier ones on the
-    // same effect parade (Scripts/verified/gotchas.md). Re-fetch by match name at the end.
-    setStep("re-resolve lens effect references");
     var parade = lens.property("ADBE Effect Parade");
-    var distortion = null, grain = null;
-    try { distortion = parade.property("ADBE Optics Compensation"); } catch (_) {}
-    if (addedGrain) {
-        try { grain = parade.property("ADBE Noise"); } catch (_) {}
-    }
-    if (ca && ca.channelBlur) {
-        try { ca.channelBlur = parade.property("ADBE Channel Blur"); } catch (_) {}
-    }
-
     return {
         lensLayer: lens,
-        distortion: distortion,
-        chromaticAberration: ca,
-        grain: grain,
-        caMode: caMode,
-        caDowngraded: caDowngraded
+        distortion: parade.property("ADBE Optics Compensation"),
+        exposure: parade.property("ADBE Exposure2")
     };
 }

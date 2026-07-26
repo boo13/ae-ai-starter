@@ -17,6 +17,7 @@
 #include "../../Scripts/lib/actions/layer/null_object.jsxinc"
 #include "../../Scripts/lib/actions/layer/set_parent.jsxinc"
 #include "../../Scripts/lib/actions/property/expression_control.jsxinc"
+#include "../../Scripts/lib/actions/property/set_expression.jsxinc"
 #include "../../Scripts/lib/actions/presets/expression_rig.jsxinc"
 
 #include "../../Scripts/lib/actions/effects/subpixel_grid.jsxinc"
@@ -42,6 +43,7 @@
 #include "lib/camera-rig.jsxinc"
 #include "lib/lens-stack.jsxinc"
 #include "lib/rig.jsxinc"
+#include "lib/links.jsxinc"
 #include "lib/build.jsxinc"
 
 (function (thisObj) {
