@@ -374,6 +374,64 @@ var LcdScreenStateSets = {
             motionDiagnostics: true,
             overrides: _lcdM4MotionOverrides()
         }
+    ],
+    m5: [
+        {
+            name: "static-default",
+            preset: "Static Default",
+            quality: "Full",
+            time: 0,
+            overrides: {}
+        },
+        {
+            name: "reading-front",
+            preset: "Reading Front",
+            quality: "Full",
+            time: 0,
+            overrides: {}
+        },
+        {
+            name: "macro-extreme",
+            preset: "Macro Extreme",
+            quality: "Full",
+            time: 0,
+            overrides: {}
+        },
+        {
+            name: "sideways",
+            preset: "Sideways",
+            quality: "Full",
+            time: 0,
+            overrides: {}
+        },
+        {
+            name: "dutch-roll",
+            preset: "Dutch Roll",
+            quality: "Full",
+            time: 0,
+            overrides: {}
+        },
+        {
+            name: "handheld-drift",
+            preset: "Handheld Drift",
+            quality: "Full",
+            time: 5,
+            overrides: {}
+        },
+        {
+            name: "cool-night",
+            preset: "Cool Night",
+            quality: "Full",
+            time: 0,
+            overrides: {}
+        },
+        {
+            name: "dusty-lens",
+            preset: "Dusty Lens",
+            quality: "Full",
+            time: 0,
+            overrides: {}
+        }
     ]
 };
 
@@ -567,7 +625,9 @@ function renderLcdStates(masterComp, rigNull, milestone, states, previewDir) {
     var originals = {};
     var touched = {};
     var rendered = [];
+    var presetApplications = [];
     var milestoneName = _lcdStateSafeName(String(milestone || "preview").toLowerCase());
+    var originalQuality = null;
     var s;
     var key;
 
@@ -579,7 +639,17 @@ function renderLcdStates(masterComp, rigNull, milestone, states, previewDir) {
             originals[key] = scanProp.value;
             touched[key] = true;
         }
+        if (states[s].preset) {
+            var presetValues = getLcdPresetValues(states[s].preset);
+            for (key in presetValues) {
+                if (!presetValues.hasOwnProperty(key) || touched[key]) continue;
+                var presetProp = _lcdStateControlProperty(rigNull, key);
+                originals[key] = presetProp.value;
+                touched[key] = true;
+            }
+        }
     }
+    try { originalQuality = _lcdStateControlProperty(rigNull, "QUAL Level").value; } catch (_) {}
 
     try {
         for (s = 0; s < states.length; s++) {
@@ -589,6 +659,16 @@ function renderLcdStates(masterComp, rigNull, milestone, states, previewDir) {
             for (key in originals) {
                 if (!originals.hasOwnProperty(key)) continue;
                 _lcdStateControlProperty(rigNull, key).setValue(originals[key]);
+            }
+            var presetReport = null;
+            if (state.preset) {
+                setStep("apply preset " + state.preset);
+                presetReport = applyPreset(state.preset, rigNull);
+                presetApplications.push(presetReport);
+            }
+            if (state.quality && typeof applyLcdQuality === "function") {
+                setStep("apply quality " + state.quality);
+                applyLcdQuality(masterComp, state.quality);
             }
             for (key in overrides) {
                 if (!overrides.hasOwnProperty(key)) continue;
@@ -619,15 +699,21 @@ function renderLcdStates(masterComp, rigNull, milestone, states, previewDir) {
             var renderedState = {
                 name: state.name,
                 time: renderTime,
+                preset: state.preset || null,
+                intent: state.preset ? LcdScreenPresetIntents[state.preset] : null,
                 overrides: overrides,
                 output: outFile.fsName
             };
+            if (presetReport) renderedState.presetApplication = presetReport;
             if (state.motionDiagnostics) {
                 renderedState.motion = _lcdStateMotionDiagnostics(masterComp, renderTime);
             }
             rendered.push(renderedState);
         }
     } finally {
+        if (originalQuality !== null && typeof applyLcdQuality === "function") {
+            try { applyLcdQuality(masterComp, originalQuality); } catch (_) {}
+        }
         for (key in originals) {
             if (!originals.hasOwnProperty(key)) continue;
             try { _lcdStateControlProperty(rigNull, key).setValue(originals[key]); } catch (_) {}
@@ -640,6 +726,17 @@ function renderLcdStates(masterComp, rigNull, milestone, states, previewDir) {
         stateCount: rendered.length,
         states: rendered
     };
+    if (presetApplications.length) {
+        var createdCompCount = 0;
+        for (var p = 0; p < presetApplications.length; p++) {
+            createdCompCount += presetApplications[p].createdCompCount;
+        }
+        report.presetApplications = {
+            count: presetApplications.length,
+            createdCompCount: createdCompCount
+        };
+        setResultData("lcdPresetApplications", report.presetApplications);
+    }
     setResultData("lcdStates", report);
     return report;
 }

@@ -1,108 +1,374 @@
-// LCD Screen — Presets
-// Partial overrides merged over LcdScreenConfig by mergePreset(). The first 11 match
-// ProductionCrate Perfect Screen's own named presets (the only 11 of its 20 that are
-// publicly documented); the last 5 are original presets that exercise the physical-panel
-// half of the feature set Perfect Screen doesn't attempt.
+// LCD Screen - Live Slider-Space Presets
 
-var LcdScreenPresets = {
-    "Static Default": {},
+var LcdScreenPresetOrder = [
+    "Reading Front",
+    "Reading Move",
+    "Reading Angle",
+    "Reading Tilted",
+    "Warm Reading",
+    "Macro Extreme",
+    "Close Up Low",
+    "Pixel Peep",
+    "Sideways",
+    "Steep Side",
+    "Pan Down",
+    "Dutch Roll",
+    "Side Focus Pull",
+    "Handheld Drift",
+    "Slow Push",
+    "Focus Hunt",
+    "Orbit Wide",
+    "Cool Night",
+    "Dusty Lens",
+    "Static Default"
+];
 
-    "Static Tinted": {
-        BACKLIGHT_TINT_PRESET: "warm",
-        BACKLIGHT_TINT_DENSITY: 35
-    },
-
-    "Reading Front": {
-        CAMERA_ORBIT_DEG: 0, CAMERA_TILT_DEG: 0, CAMERA_DISTANCE: 1200, APERTURE: 20,
-        MOTION_TARGET_AMOUNT: 40, MOTION_TARGET_SPEED: 0.08
-    },
-
-    "Reading Move": {
-        CAMERA_ORBIT_DEG: 4,
-        MOTION_TARGET_AMOUNT: 80, MOTION_TARGET_SPEED: 0.06,
-        MOTION_FOCUS_AMOUNT: 20, MOTION_FOCUS_SPEED: 0.1
-    },
-
-    "Reading Angle": {
-        CAMERA_ORBIT_DEG: 18, CAMERA_TILT_DEG: 10,
-        MOTION_TARGET_AMOUNT: 50, MOTION_TARGET_SPEED: 0.07
-    },
-
-    "Reading Tilted": {
-        CAMERA_ORBIT_DEG: 22, CAMERA_TILT_DEG: 16,
-        VIEWING_ANGLE_AMOUNT: 55, MOTION_TARGET_AMOUNT: 40
-    },
-
-    "Side Focus Pull": {
-        CAMERA_ORBIT_DEG: 30, APERTURE: 60,
-        MOTION_FOCUS_AMOUNT: 120, MOTION_FOCUS_SPEED: 0.05
-    },
-
-    "Close Up Low": {
-        CAMERA_DISTANCE: 700, CAMERA_TILT_DEG: -8, APERTURE: 70,
-        SUBPIXEL_AMOUNT: 75, SUBPIXEL_PIXEL_SIZE: 10
-    },
-
-    "Sideways": {
-        CAMERA_ORBIT_DEG: 45,
-        VIEWING_ANGLE_AMOUNT: 65, LENS_CA_AMOUNT: 40
-    },
-
-    "Pan Down": {
-        CAMERA_TILT_DEG: -20,
-        MOTION_ANGLE_AMOUNT: 6, MOTION_ANGLE_SPEED: 0.05
-    },
-
-    "Orbit Wides": {
-        CAMERA_DISTANCE: 2200, CAMERA_ORBIT_DEG: 20, CAMERA_ZOOM: 1400,
-        MOTION_ANGLE_AMOUNT: 10, MOTION_ANGLE_SPEED: 0.04,
-        AMBIENT_SPILL_OPACITY: 40
-    },
-
-    // --- Originals: exercise the physical-panel half Perfect Screen doesn't attempt ---
-
-    "Retro LCD": {
-        SUBPIXEL_MODE: "stripe", SUBPIXEL_PIXEL_SIZE: 9,
-        SCANLINE_AMOUNT: 55, SCANLINE_ROLL_BAR: true,
-        BACKLIGHT_TINT_PRESET: "green", GLOW_INTENSITY: 1.4
-    },
-
-    "OLED Night": {
-        BACKLIGHT_TINT_PRESET: "cool",
-        BACKLIGHT_BLEED_INTENSITY: 0, BACKLIGHT_MURA: 0,
-        VIGNETTE_AMOUNT: 55, GLOW_INTENSITY: 1.6, GLOW_THRESHOLD_PERCENT: 45
-    },
-
-    "Desk Setup": {
-        BEZEL_WIDTH: 50, BEZEL_CORNER_RADIUS: 12,
-        AMBIENT_SPILL_ENABLED: true, AMBIENT_SPILL_OPACITY: 45,
-        CAMERA_TILT_DEG: 10, GLASS_DUST: 35, GLASS_SMUDGE: 25
-    },
-
-    "Kiosk": {
-        CAMERA_DISTANCE: 1000, CAMERA_ORBIT_DEG: 0, CAMERA_TILT_DEG: 0,
-        GLASS_SMUDGE: 45, GLASS_DUST: 40, VIGNETTE_AMOUNT: 20
-    },
-
-    "Screen Off": {
-        GLOW_INTENSITY: 0, SUBPIXEL_AMOUNT: 10, SCANLINE_AMOUNT: 10,
-        BACKLIGHT_BLEED_INTENSITY: 0, BACKLIGHT_MURA: 0,
-        GLASS_SHEEN: 40, VIGNETTE_AMOUNT: 45
-    }
+var LcdScreenPresetIntents = {
+    "Reading Front": "Straight-on, restrained, and optimized for readable text.",
+    "Reading Move": "A gentle reading angle with slow positional and focus drift.",
+    "Reading Angle": "Readable three-quarter view with a thin photographic focus plane.",
+    "Reading Tilted": "Elevated perspective with a modest roll and stronger depth falloff.",
+    "Warm Reading": "Front reading view with a warm monitor white point.",
+    "Macro Extreme": "Tight pixel-level macro with visible RGB structure and shallow focus.",
+    "Close Up Low": "Low-angle close-up with a soft far edge.",
+    "Pixel Peep": "Front-on magnification that prioritizes the LCD pixel matrix.",
+    "Sideways": "Strong horizontal perspective with restrained edge fringing.",
+    "Steep Side": "The most oblique photographic angle with aggressive depth falloff.",
+    "Pan Down": "Lower target framing that reads like a downward camera pan.",
+    "Dutch Roll": "A clean macro view with a pronounced diagonal horizon.",
+    "Side Focus Pull": "Side view with slow, visible focus travel.",
+    "Handheld Drift": "Subtle seeded target, angle, and focus movement.",
+    "Slow Push": "Very low-frequency Z drift that feels like a careful camera push.",
+    "Focus Hunt": "Static framing with deliberate shallow-focus searching.",
+    "Orbit Wide": "Wider environmental view with a slow angular float.",
+    "Cool Night": "Cool white balance, darker exposure, and deeper vignette.",
+    "Dusty Lens": "Visible but photographic dust, grain, and edge falloff.",
+    "Static Default": "Balanced macro photograph with no animated movement."
 };
 
-/**
- * Returns a shallow-copied config with the named preset's overrides merged in.
- * baseCfg.PRESET selects the preset; "" or an unknown name leaves baseCfg untouched.
- */
+var LcdScreenPresetBase = {
+    "CAM Distance": 950,
+    "CAM Orbit": 12,
+    "CAM Tilt": 6,
+    "CAM Roll": 0,
+    "CAM Zoom": 2200,
+    "TGT Target X": 0,
+    "TGT Target Y": 0,
+    "FOC Focus Offset": 0,
+    "FOC Depth Of Field": 1,
+    "FOC Aperture": 90,
+    "FRM Auto Zoom": 1,
+    "FRM Padding": 3,
+    "BLR Base Blur": 0,
+    "BLR Radial Blur": 0,
+    "PIX Pixel Density": 3,
+    "PIX Pixel Amount": 10,
+    "PIX Glow": 45,
+    "PIX Glow Threshold": 58,
+    "LEN Distortion": 10,
+    "LEN Chromatic Aberration": 18,
+    "LEN Vignette": 30,
+    "LEN Grain": 4,
+    "LEN Dust Strength": 12,
+    "LEN Dust Density": 35,
+    "COL Tint Color": [1, 0.78, 0.55, 1],
+    "COL Tint Amount": 8,
+    "COL Exposure": 1,
+    "COL Auto Exposure": 0,
+    "MOT Target Amount": 0,
+    "MOT Target Speed": 0.15,
+    "MOT Angle Amount": 0,
+    "MOT Angle Speed": 0.1,
+    "MOT Focus Amount": 0,
+    "MOT Focus Speed": 0.2,
+    "MOT Seed": 1,
+    "QUAL Level": 2
+};
+
+var LcdScreenPresets = {
+    "Reading Front": {
+        "CAM Distance": 1100,
+        "CAM Orbit": 0,
+        "CAM Tilt": 0,
+        "CAM Zoom": 2200,
+        "FOC Aperture": 45,
+        "PIX Pixel Amount": 7,
+        "LEN Vignette": 15,
+        "LEN Grain": 2,
+        "LEN Dust Strength": 5,
+        "COL Tint Amount": 0
+    },
+    "Reading Move": {
+        "CAM Distance": 1100,
+        "CAM Orbit": 4,
+        "CAM Tilt": 2,
+        "FOC Aperture": 70,
+        "MOT Target Amount": 12,
+        "MOT Target Speed": 0.1,
+        "MOT Focus Amount": 40,
+        "MOT Focus Speed": 0.08,
+        "MOT Seed": 7
+    },
+    "Reading Angle": {
+        "CAM Distance": 1150,
+        "CAM Orbit": 20,
+        "CAM Tilt": 7,
+        "FOC Aperture": 90,
+        "FRM Padding": 4,
+        "PIX Pixel Amount": 8
+    },
+    "Reading Tilted": {
+        "CAM Distance": 1200,
+        "CAM Orbit": 18,
+        "CAM Tilt": 15,
+        "CAM Roll": 4,
+        "FOC Aperture": 110,
+        "FRM Padding": 5
+    },
+    "Warm Reading": {
+        "CAM Distance": 1050,
+        "CAM Orbit": 2,
+        "CAM Tilt": 1,
+        "FOC Aperture": 55,
+        "LEN Vignette": 20,
+        "COL Tint Color": [1, 0.71, 0.30, 1],
+        "COL Tint Amount": 25
+    },
+    "Macro Extreme": {
+        "CAM Distance": 620,
+        "CAM Orbit": 3,
+        "CAM Tilt": 2,
+        "CAM Zoom": 2600,
+        "FOC Aperture": 160,
+        "FRM Padding": 5,
+        "PIX Pixel Amount": 18,
+        "PIX Glow": 55,
+        "LEN Distortion": 5,
+        "LEN Chromatic Aberration": 25,
+        "LEN Dust Strength": 5
+    },
+    "Close Up Low": {
+        "CAM Distance": 720,
+        "CAM Orbit": 8,
+        "CAM Tilt": -10,
+        "CAM Zoom": 2400,
+        "FOC Focus Offset": -40,
+        "FOC Aperture": 150,
+        "FRM Padding": 5,
+        "PIX Pixel Amount": 14
+    },
+    "Pixel Peep": {
+        "CAM Distance": 560,
+        "CAM Orbit": 0,
+        "CAM Tilt": 0,
+        "CAM Zoom": 2900,
+        "FOC Aperture": 80,
+        "FRM Padding": 5,
+        "PIX Pixel Density": 6,
+        "PIX Pixel Amount": 20,
+        "PIX Glow": 30,
+        "LEN Distortion": 0,
+        "LEN Chromatic Aberration": 0
+    },
+    "Sideways": {
+        "CAM Distance": 1200,
+        "CAM Orbit": 45,
+        "CAM Tilt": 4,
+        "CAM Zoom": 2100,
+        "FOC Aperture": 140,
+        "FRM Padding": 7,
+        "LEN Chromatic Aberration": 30
+    },
+    "Steep Side": {
+        "CAM Distance": 1450,
+        "CAM Orbit": 55,
+        "CAM Tilt": 18,
+        "CAM Zoom": 1900,
+        "FOC Aperture": 170,
+        "FRM Padding": 8,
+        "LEN Chromatic Aberration": 35
+    },
+    "Pan Down": {
+        "CAM Distance": 1100,
+        "CAM Orbit": 8,
+        "CAM Tilt": -20,
+        "CAM Zoom": 2100,
+        "TGT Target Y": 180,
+        "FOC Aperture": 100,
+        "FRM Padding": 6
+    },
+    "Dutch Roll": {
+        "CAM Distance": 1000,
+        "CAM Orbit": 12,
+        "CAM Tilt": 6,
+        "CAM Roll": 18,
+        "CAM Zoom": 2200,
+        "FOC Aperture": 110,
+        "FRM Padding": 6
+    },
+    "Side Focus Pull": {
+        "CAM Distance": 1250,
+        "CAM Orbit": 32,
+        "CAM Tilt": 6,
+        "FOC Aperture": 180,
+        "FRM Padding": 6,
+        "MOT Focus Amount": 220,
+        "MOT Focus Speed": 0.12,
+        "MOT Seed": 11
+    },
+    "Handheld Drift": {
+        "CAM Distance": 1050,
+        "CAM Orbit": 15,
+        "CAM Tilt": 6,
+        "FOC Aperture": 130,
+        "FRM Padding": 5,
+        "MOT Target Amount": 20,
+        "MOT Target Speed": 0.16,
+        "MOT Angle Amount": 0.45,
+        "MOT Angle Speed": 0.12,
+        "MOT Focus Amount": 70,
+        "MOT Focus Speed": 0.14,
+        "MOT Seed": 37
+    },
+    "Slow Push": {
+        "CAM Distance": 1250,
+        "CAM Orbit": 8,
+        "CAM Tilt": 3,
+        "FOC Aperture": 100,
+        "FRM Padding": 6,
+        "MOT Target Amount": 35,
+        "MOT Target Speed": 0.06,
+        "MOT Angle Amount": 0.15,
+        "MOT Angle Speed": 0.05,
+        "MOT Focus Amount": 35,
+        "MOT Focus Speed": 0.06,
+        "MOT Seed": 23
+    },
+    "Focus Hunt": {
+        "CAM Distance": 950,
+        "CAM Orbit": 18,
+        "CAM Tilt": 7,
+        "FOC Aperture": 200,
+        "FRM Padding": 5,
+        "MOT Focus Amount": 250,
+        "MOT Focus Speed": 0.35,
+        "MOT Seed": 53
+    },
+    "Orbit Wide": {
+        "CAM Distance": 2200,
+        "CAM Orbit": 25,
+        "CAM Tilt": 8,
+        "CAM Zoom": 1400,
+        "FOC Aperture": 75,
+        "FRM Padding": 7,
+        "MOT Angle Amount": 0.3,
+        "MOT Angle Speed": 0.06,
+        "MOT Seed": 71
+    },
+    "Cool Night": {
+        "CAM Distance": 1100,
+        "CAM Orbit": 16,
+        "CAM Tilt": 7,
+        "FOC Aperture": 120,
+        "LEN Vignette": 45,
+        "LEN Grain": 3,
+        "LEN Dust Strength": 6,
+        "COL Tint Color": [0.42, 0.65, 1, 1],
+        "COL Tint Amount": 30,
+        "COL Exposure": 0.5
+    },
+    "Dusty Lens": {
+        "CAM Distance": 1000,
+        "CAM Orbit": 14,
+        "CAM Tilt": 6,
+        "FOC Aperture": 110,
+        "LEN Vignette": 42,
+        "LEN Grain": 5,
+        "LEN Dust Strength": 22,
+        "LEN Dust Density": 45,
+        "COL Tint Amount": 10
+    },
+    "Static Default": {}
+};
+
+function getLcdPresetNames() {
+    var names = [];
+    for (var i = 0; i < LcdScreenPresetOrder.length; i++) {
+        names.push(LcdScreenPresetOrder[i]);
+    }
+    return names;
+}
+
+function getLcdPresetValues(presetName) {
+    if (!LcdScreenPresets.hasOwnProperty(presetName)) {
+        throw new Error("Unknown LCD preset: " + presetName);
+    }
+    var values = {};
+    var key;
+    for (key in LcdScreenPresetBase) {
+        if (LcdScreenPresetBase.hasOwnProperty(key)) values[key] = LcdScreenPresetBase[key];
+    }
+    var overrides = LcdScreenPresets[presetName];
+    for (key in overrides) {
+        if (overrides.hasOwnProperty(key)) values[key] = overrides[key];
+    }
+    return values;
+}
+
+function _lcdPresetControlProperty(rigNull, controlName) {
+    var effect = rigNull.property("ADBE Effect Parade").property(controlName);
+    if (!effect) throw new Error("LCD preset control not found: " + controlName);
+    var prop = effect.property(1);
+    if (!prop || prop.propertyType !== PropertyType.PROPERTY) {
+        throw new Error("LCD preset control has no value property: " + controlName);
+    }
+    return prop;
+}
+
+function _lcdPresetCompCount() {
+    var count = 0;
+    if (!app.project) return count;
+    for (var i = 1; i <= app.project.numItems; i++) {
+        if (app.project.item(i) instanceof CompItem) count++;
+    }
+    return count;
+}
+
+function applyPreset(presetName, rigNull) {
+    var targetRig = rigNull;
+    if (!targetRig) {
+        var master = findLcdMasterComp(LcdScreenConfig.MASTER_COMP_NAME);
+        if (!master) throw new Error("Build the LCD Screen before applying a preset.");
+        targetRig = findLcdControlsNull(master);
+    }
+    if (!targetRig) throw new Error("LCD CONTROLS null was not found.");
+
+    var values = getLcdPresetValues(presetName);
+    var beforeCount = _lcdPresetCompCount();
+    var applied = 0;
+    for (var key in values) {
+        if (!values.hasOwnProperty(key)) continue;
+        _lcdPresetControlProperty(targetRig, key).setValue(values[key]);
+        applied++;
+    }
+    var afterCount = _lcdPresetCompCount();
+    var report = {
+        name: presetName,
+        intent: LcdScreenPresetIntents[presetName],
+        appliedControlCount: applied,
+        compCountBefore: beforeCount,
+        compCountAfter: afterCount,
+        createdCompCount: afterCount - beforeCount,
+        values: values
+    };
+    setResultData("lcdPreset", report);
+    return report;
+}
+
 function mergePreset(baseCfg) {
     var merged = {};
-    for (var k in baseCfg) { if (baseCfg.hasOwnProperty(k)) merged[k] = baseCfg[k]; }
-
-    var presetName = baseCfg.PRESET;
-    if (presetName && LcdScreenPresets.hasOwnProperty(presetName)) {
-        var overrides = LcdScreenPresets[presetName];
-        for (var k2 in overrides) { if (overrides.hasOwnProperty(k2)) merged[k2] = overrides[k2]; }
+    for (var key in baseCfg) {
+        if (baseCfg.hasOwnProperty(key)) merged[key] = baseCfg[key];
     }
     return merged;
 }

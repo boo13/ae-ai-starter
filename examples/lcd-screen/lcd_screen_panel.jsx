@@ -1,8 +1,8 @@
 /**
- * lcd_screen_panel.jsx
+ * LCD Screen v2
  *
- * Dockable ScriptUI panel for the LCD Screen example. Install by symlinking this file
- * into AE's ScriptUI Panels folder, or run once via File > Scripts > Run Script File.
+ * Dockable ScriptUI panel. Install this file in After Effects' ScriptUI Panels
+ * folder, then open it from Window > LCD Screen v2.
  */
 
 #include "../../Scripts/lib/helpers.jsxinc"
@@ -44,10 +44,14 @@
 #include "lib/lens-stack.jsxinc"
 #include "lib/rig.jsxinc"
 #include "lib/links.jsxinc"
+#include "lib/quality.jsxinc"
+#include "lib/states.jsxinc"
 #include "lib/build.jsxinc"
 
 (function (thisObj) {
-    var PANEL_TITLE = "LCD Screen";
+    var PANEL_TITLE = "LCD Screen v2";
+    var controlRows = {};
+    var controlDefinitions = getLcdControlDefinitions(LcdScreenConfig);
 
     function nowStamp() {
         var d = new Date();
@@ -55,46 +59,96 @@
         return pad(d.getHours()) + ":" + pad(d.getMinutes()) + ":" + pad(d.getSeconds());
     }
 
+    function cloneConfig() {
+        var cfg = {};
+        for (var key in LcdScreenConfig) {
+            if (LcdScreenConfig.hasOwnProperty(key)) cfg[key] = LcdScreenConfig[key];
+        }
+        return cfg;
+    }
+
+    function findMaster() {
+        return findLcdMasterComp(LcdScreenConfig.MASTER_COMP_NAME);
+    }
+
+    function requireMaster() {
+        var master = findMaster();
+        if (!master) throw new Error("Build the LCD Screen first.");
+        return master;
+    }
+
+    function requireRig(master) {
+        var rigNull = findLcdControlsNull(master);
+        if (!rigNull) throw new Error("LCD CONTROLS null was not found.");
+        return rigNull;
+    }
+
+    function controlProperty(rigNull, name) {
+        var effect = rigNull.property("ADBE Effect Parade").property(name);
+        if (!effect) throw new Error("Control not found: " + name);
+        return effect.property(1);
+    }
+
+    function clampNumber(value, minValue, maxValue) {
+        return Math.max(minValue, Math.min(maxValue, value));
+    }
+
+    function formatNumber(value) {
+        var rounded = Math.round(Number(value) * 100) / 100;
+        return String(rounded);
+    }
+
     var win;
     try {
-        win = (thisObj instanceof Panel) ? thisObj :
-            new Window("palette", PANEL_TITLE, undefined, { resizeable: true });
+        win = (thisObj instanceof Panel)
+            ? thisObj
+            : new Window("palette", PANEL_TITLE, undefined, { resizeable: true });
     } catch (_) {
         win = new Window("palette", PANEL_TITLE, undefined, { resizeable: true });
     }
     win.orientation = "column";
     win.alignChildren = ["fill", "top"];
-    win.spacing = 8;
-    win.margins = 12;
+    win.spacing = 7;
+    win.margins = 10;
 
-    var header = win.add("panel", undefined, PANEL_TITLE);
-    header.orientation = "column";
-    header.alignChildren = ["fill", "top"];
-    header.margins = 10;
-    header.add("statictext", undefined, "Builds a physical LCD-monitor mockup from a screen recording.");
-    header.add("statictext", undefined, "Build once below, then use Live Controls to tweak without rebuilding.");
+    var titleRow = win.add("group");
+    titleRow.orientation = "column";
+    titleRow.alignChildren = ["fill", "top"];
+    titleRow.add("statictext", undefined, "Physical LCD macro camera");
+    var statusText = titleRow.add("statictext", undefined, "Ready");
 
-    var statusText = win.add("statictext", undefined, "Ready");
-    statusText.alignment = ["fill", "top"];
+    var logPanel = null;
+    var logList = null;
 
-    function setStatus(msg, color) {
-        statusText.text = msg;
+    function setStatus(message, color) {
+        statusText.text = message;
         try {
             var graphics = statusText.graphics;
-            var pen = graphics.newPen(graphics.PenType.SOLID_COLOR, color || [0.9, 0.9, 0.9], 1);
-            graphics.foregroundColor = pen;
+            graphics.foregroundColor = graphics.newPen(
+                graphics.PenType.SOLID_COLOR,
+                color || [0.9, 0.9, 0.9],
+                1
+            );
         } catch (_) {}
+    }
+
+    function pushLog(message) {
+        if (!logList) return;
+        var item = logList.add("item", nowStamp() + "  " + message);
+        if (logList.items.length > 30) logList.remove(logList.items[0]);
+        try { logList.selection = item; } catch (_) {}
     }
 
     function runAction(label, fn) {
         var step = label;
         var compBefore = null;
         try {
-            compBefore = (app.project && app.project.activeItem instanceof CompItem) ? app.project.activeItem : null;
+            compBefore = (app.project && app.project.activeItem instanceof CompItem)
+                ? app.project.activeItem
+                : null;
         } catch (_) {}
 
         beginScript(label, compBefore);
-
         try {
             app.beginUndoGroup(label);
             var result = fn();
@@ -102,9 +156,12 @@
 
             var compAfter = null;
             try {
-                compAfter = (app.project && app.project.activeItem instanceof CompItem) ? app.project.activeItem : compBefore;
-            } catch (_) { compAfter = compBefore; }
-
+                compAfter = (app.project && app.project.activeItem instanceof CompItem)
+                    ? app.project.activeItem
+                    : compBefore;
+            } catch (_) {
+                compAfter = compBefore;
+            }
             writeResult("success", step, null, compAfter);
             setStatus(label + " complete", [0.2, 0.75, 0.35]);
             pushLog(label + " complete");
@@ -112,305 +169,353 @@
         } catch (e) {
             try { app.endUndoGroup(); } catch (_) {}
             writeResult("error", step, e, compBefore);
-            setStatus(label + " failed: " + e.toString(), [0.85, 0.2, 0.2]);
-            pushLog(label + " failed");
+            setStatus(label + " failed", [0.85, 0.2, 0.2]);
+            pushLog(label + " failed: " + e.message);
             alert(label + " failed.\n\n" + e.toString());
             return null;
         }
     }
 
-    // --- Build ---
-    var buildPanel = win.add("panel", undefined, "Build");
-    buildPanel.orientation = "column";
-    buildPanel.alignChildren = ["fill", "top"];
-    buildPanel.margins = 10;
+    var actionsPanel = win.add("panel", undefined, "Actions");
+    actionsPanel.orientation = "column";
+    actionsPanel.alignChildren = ["fill", "top"];
+    actionsPanel.margins = 8;
 
-    var sourceRow = buildPanel.add("group");
+    var sourceRow = actionsPanel.add("group");
     sourceRow.add("statictext", undefined, "Source");
     var sourceDropdown = sourceRow.add("dropdownlist", undefined, []);
-    sourceDropdown.preferredSize.width = 200;
-    var refreshBtn = sourceRow.add("button", undefined, "Refresh");
+    sourceDropdown.preferredSize.width = 210;
+    var refreshSourceBtn = sourceRow.add("button", undefined, "Refresh");
 
     function refreshSourceList() {
+        var selectedName = sourceDropdown.selection ? sourceDropdown.selection.text : "";
         sourceDropdown.removeAll();
+        var selectedIndex = -1;
         var count = 0;
-        for (var i = 1; i <= app.project.numItems; i++) {
-            var item = app.project.item(i);
-            if (item instanceof FootageItem) { sourceDropdown.add("item", item.name); count++; }
+        if (app.project) {
+            for (var i = 1; i <= app.project.numItems; i++) {
+                var item = app.project.item(i);
+                if (!(item instanceof FootageItem)) continue;
+                sourceDropdown.add("item", item.name);
+                if (item.name === selectedName) selectedIndex = count;
+                count++;
+            }
         }
-        if (count > 0) sourceDropdown.selection = 0;
+        if (count > 0) sourceDropdown.selection = selectedIndex >= 0 ? selectedIndex : 0;
     }
-    refreshBtn.onClick = function () { refreshSourceList(); };
-    refreshSourceList();
 
-    var presetRow = buildPanel.add("group");
-    presetRow.add("statictext", undefined, "Preset");
-    var presetDropdown = presetRow.add("dropdownlist", undefined, []);
-    for (var pName in LcdScreenPresets) {
-        if (LcdScreenPresets.hasOwnProperty(pName)) presetDropdown.add("item", pName);
-    }
-    presetDropdown.selection = 0;
-
-    var buildBtn = buildPanel.add("button", undefined, "Build / Rebuild");
-
-    function resolveSelectedSource() {
+    function resolveSource() {
         if (!sourceDropdown.selection) return null;
-        var name = sourceDropdown.selection.text;
+        var selectedName = sourceDropdown.selection.text;
         for (var i = 1; i <= app.project.numItems; i++) {
             var item = app.project.item(i);
-            if (item instanceof FootageItem && item.name === name) return item;
+            if (item instanceof FootageItem && item.name === selectedName) return item;
         }
         return null;
     }
 
-    function cloneConfig() {
-        var cfg = {};
-        for (var k in LcdScreenConfig) { if (LcdScreenConfig.hasOwnProperty(k)) cfg[k] = LcdScreenConfig[k]; }
-        return cfg;
+    var buildRow = actionsPanel.add("group");
+    var buildBtn = buildRow.add("button", undefined, "Build");
+    var rebuildBtn = buildRow.add("button", undefined, "Rebuild Structure");
+    var renderBtn = buildRow.add("button", undefined, "Render Previews");
+
+    var presetRow = actionsPanel.add("group");
+    presetRow.add("statictext", undefined, "Preset");
+    var presetDropdown = presetRow.add("dropdownlist", undefined, getLcdPresetNames());
+    presetDropdown.preferredSize.width = 180;
+    presetDropdown.selection = LcdScreenPresetOrder.length - 1;
+    var applyPresetBtn = presetRow.add("button", undefined, "Apply");
+
+    var qualityRow = actionsPanel.add("group");
+    qualityRow.add("statictext", undefined, "Quality");
+    var qualityDropdown = qualityRow.add("dropdownlist", undefined, ["Draft", "Normal", "Full"]);
+    qualityDropdown.selection = 2;
+    var applyQualityBtn = qualityRow.add("button", undefined, "Apply");
+    var loadCurrentBtn = qualityRow.add("button", undefined, "Load Current");
+
+    function buildFromPanel(rebuild) {
+        var existing = findMaster();
+        if (existing && !rebuild) {
+            throw new Error("LCD Screen already exists. Use Rebuild Structure to replace managed comps.");
+        }
+        var source = resolveSource();
+        if (!source) throw new Error("Import and select a footage item first.");
+        var cfg = cloneConfig();
+        cfg.PRESET = presetDropdown.selection
+            ? presetDropdown.selection.text
+            : "Static Default";
+        var result = buildLcdScreen(source, cfg);
+        applyLcdQuality(
+            result.master.comp,
+            qualityDropdown.selection ? qualityDropdown.selection.text : "Full"
+        );
+        try { result.master.comp.openInViewer(); } catch (_) {}
+        refreshControlUi();
+        pushLog("Built " + result.master.comp.name + " with " + cfg.PRESET);
+        return result;
     }
 
+    refreshSourceBtn.onClick = function () { refreshSourceList(); };
     buildBtn.onClick = function () {
-        runAction("Build LCD Screen", function () {
-            var source = resolveSelectedSource();
-            if (!source) throw new Error("Select a source footage item first (or import one and click Refresh).");
-            var cfg = cloneConfig();
-            cfg.PRESET = presetDropdown.selection ? presetDropdown.selection.text : LcdScreenConfig.PRESET;
-            var result = buildLcdScreen(source, cfg);
-            try { result.master.comp.openInViewer(); } catch (_) {}
-            pushLog("Built " + result.cfg.MASTER_COMP_NAME + " (" + result.cfg.PRESET + ")");
-            if (result.lens && result.lens.caDowngraded) {
-                pushLog("Chromatic aberration: \"lens\" mode downgraded to \"subtle\" on the LENS adjustment layer");
+        runAction("Build LCD Screen", function () { return buildFromPanel(false); });
+    };
+    rebuildBtn.onClick = function () {
+        runAction("Rebuild LCD Structure", function () { return buildFromPanel(true); });
+    };
+    applyPresetBtn.onClick = function () {
+        runAction("Apply LCD Preset", function () {
+            var master = requireMaster();
+            var rigNull = requireRig(master);
+            var name = presetDropdown.selection
+                ? presetDropdown.selection.text
+                : "Static Default";
+            var report = applyPreset(name, rigNull);
+            if (report.createdCompCount !== 0) {
+                throw new Error("Preset unexpectedly created a composition.");
             }
-            if (result.camera && result.camera.autoZoom) {
-                pushLog(result.camera.autoZoom.staticScale !== null
-                    ? "Auto zoom: static " + Math.round(result.camera.autoZoom.staticScale) + "%"
-                    : "Auto zoom: " + result.camera.autoZoom.keyframes + " keyframes");
-            }
+            refreshControlUi();
+            pushLog(name + ": " + report.intent);
+            return report;
+        });
+    };
+    applyQualityBtn.onClick = function () {
+        runAction("Apply LCD Quality", function () {
+            var report = applyLcdQuality(
+                requireMaster(),
+                qualityDropdown.selection ? qualityDropdown.selection.text : "Full"
+            );
+            refreshControlUi();
+            return report;
+        });
+    };
+    renderBtn.onClick = function () {
+        runAction("Render LCD Preset Previews", function () {
+            var master = requireMaster();
+            var rigNull = requireRig(master);
+            var entryFile = new File($.fileName);
+            var report = renderLcdStates(
+                master,
+                rigNull,
+                "m5",
+                getLcdStateSet("m5"),
+                getLcdPreviewFolder(entryFile)
+            );
+            pushLog("Rendered " + report.stateCount + " preset previews");
+            return report;
         });
     };
 
-    // --- Camera ---
-    var cameraPanel = win.add("panel", undefined, "Camera");
-    cameraPanel.orientation = "column";
-    cameraPanel.alignChildren = ["fill", "top"];
-    cameraPanel.margins = 10;
-
-    var camRow1 = cameraPanel.add("group");
-    camRow1.add("statictext", undefined, "Distance");
-    var distInput = camRow1.add("edittext", undefined, String(LcdScreenConfig.CAMERA_DISTANCE));
-    distInput.characters = 6;
-    camRow1.add("statictext", undefined, "Zoom");
-    var zoomInput = camRow1.add("edittext", undefined, String(LcdScreenConfig.CAMERA_ZOOM));
-    zoomInput.characters = 6;
-
-    var camRow2 = cameraPanel.add("group");
-    camRow2.add("statictext", undefined, "Orbit");
-    var orbitInput = camRow2.add("edittext", undefined, String(LcdScreenConfig.CAMERA_ORBIT_DEG));
-    orbitInput.characters = 5;
-    camRow2.add("statictext", undefined, "Tilt");
-    var tiltInput = camRow2.add("edittext", undefined, String(LcdScreenConfig.CAMERA_TILT_DEG));
-    tiltInput.characters = 5;
-
-    var camRow3 = cameraPanel.add("group");
-    var autoZoomCheck = camRow3.add("checkbox", undefined, "Auto Zoom");
-    autoZoomCheck.value = !!LcdScreenConfig.AUTO_ZOOM;
-
-    var camButtons = cameraPanel.add("group");
-    var rebuildCameraBtn = camButtons.add("button", undefined, "Rebuild Camera");
-    var bakeAutoZoomBtn = camButtons.add("button", undefined, "Bake Auto Zoom");
-
-    var CAMERA_RIG_LAYER_NAMES = ["LCD Camera", "AUTO ZOOM", "AUTO ZOOM GHOST (do not delete)"];
-
-    rebuildCameraBtn.onClick = function () {
-        runAction("Rebuild camera", function () {
-            var master = findLcdMasterComp(LcdScreenConfig.MASTER_COMP_NAME);
-            if (!master) throw new Error("Build the LCD Screen first.");
-            var screenLayer = null;
-            try { screenLayer = master.layer("LCD Screen"); } catch (_) {}
-            if (!screenLayer) throw new Error("Could not find the \"LCD Screen\" layer -- rebuild from scratch.");
-
-            for (var i = master.numLayers; i >= 1; i--) {
-                var nm = master.layer(i).name;
-                for (var r = 0; r < CAMERA_RIG_LAYER_NAMES.length; r++) {
-                    if (nm === CAMERA_RIG_LAYER_NAMES[r]) { master.layer(i).remove(); break; }
-                }
-            }
-            try { screenLayer.parent = null; } catch (_) {}
-
-            var cfg = cloneConfig();
-            cfg.CAMERA_DISTANCE = Number(distInput.text) || cfg.CAMERA_DISTANCE;
-            cfg.CAMERA_ZOOM = Number(zoomInput.text) || cfg.CAMERA_ZOOM;
-            cfg.CAMERA_ORBIT_DEG = Number(orbitInput.text) || 0;
-            cfg.CAMERA_TILT_DEG = Number(tiltInput.text) || 0;
-            cfg.AUTO_ZOOM = autoZoomCheck.value;
-
-            var camera = buildCameraRig(master, screenLayer, cfg);
-
-            // Rebuilding deletes the old camera, taking its Depth of Field / Aperture
-            // expressions with it. Re-link them or those two live controls go dead.
-            linkCameraControls(master, "LCD CONTROLS", camera);
-
-            pushLog("Camera rebuilt: distance=" + cfg.CAMERA_DISTANCE + " orbit=" + cfg.CAMERA_ORBIT_DEG + " tilt=" + cfg.CAMERA_TILT_DEG);
-            if (camera.autoZoom) {
-                pushLog(camera.autoZoom.staticScale !== null
-                    ? "Auto zoom: static " + Math.round(camera.autoZoom.staticScale) + "%"
-                    : "Auto zoom: " + camera.autoZoom.keyframes + " keyframes");
-            }
-        });
-    };
-
-    bakeAutoZoomBtn.onClick = function () {
-        runAction("Bake auto zoom", function () {
-            var master = findLcdMasterComp(LcdScreenConfig.MASTER_COMP_NAME);
-            if (!master) throw new Error("Build the LCD Screen first.");
-            var zoomNull = null, ghost = null;
-            try { zoomNull = master.layer("AUTO ZOOM"); } catch (_) {}
-            try { ghost = master.layer("AUTO ZOOM GHOST (do not delete)"); } catch (_) {}
-            if (!zoomNull || !ghost) throw new Error("Auto zoom rig not found -- click Rebuild Camera first.");
-            var az = bakeAutoZoom(master, ghost, zoomNull, { paddingPercent: LcdScreenConfig.AUTO_ZOOM_PADDING_PERCENT });
-            pushLog(az.staticScale !== null
-                ? "Baked auto zoom: static " + Math.round(az.staticScale) + "% (camera is not moving)"
-                : "Baked " + az.keyframes + " auto-zoom keyframes");
-        });
-    };
-
-    // --- Live Controls ---
-    var livePanel = win.add("panel", undefined, "Live Controls");
-    livePanel.orientation = "column";
-    livePanel.alignChildren = ["fill", "top"];
-    livePanel.margins = 10;
-    livePanel.add("statictext", undefined, "Edits the LCD CONTROLS null directly -- no rebuild needed.");
-
-    var liveControls = [
-        { label: "Lens Distortion", name: "LEN Distortion" },
-        { label: "Chromatic Aberration", name: "LEN Chromatic Aberration" },
-        { label: "Vignette", name: "LEN Vignette" },
-        { label: "Bloom", name: "LEN Bloom" },
-        { label: "Bloom Threshold", name: "LEN Bloom Threshold" },
-        { label: "Grain", name: "LEN Grain" },
-        { label: "Subpixel Amount", name: "PNL Subpixel Amount" },
-        { label: "Scanline Amount", name: "PNL Scanline Amount" },
-        { label: "Backlight Tint", name: "BKL Tint Amount" },
-        { label: "Backlight Bleed", name: "BKL Bleed Amount" },
-        { label: "Panel Mura", name: "BKL Mura" },
-        { label: "Viewing Angle Falloff", name: "BKL View Angle Falloff" },
-        { label: "Glass Reflection", name: "GLS Reflection" },
-        { label: "Ambient Spill", name: "BDY Ambient Spill" },
-        { label: "Aperture (DoF)", name: "FOC Aperture" }
+    var tabs = win.add("tabbedpanel");
+    tabs.alignChildren = ["fill", "fill"];
+    tabs.preferredSize = [480, 540];
+    var tabSpecs = [
+        { title: "Camera", groups: ["Camera", "Target"] },
+        { title: "Focus", groups: ["Focus", "Framing", "Blur"] },
+        { title: "Pixels", groups: ["Pixels", "Lens"] },
+        { title: "Color", groups: ["Color"] },
+        { title: "Motion", groups: ["Motion"] }
     ];
+    var groupParents = {};
 
-    var liveInputs = {};
-    for (var ci = 0; ci < liveControls.length; ci++) {
-        var c = liveControls[ci];
-        var row = livePanel.add("group");
-        var lbl = row.add("statictext", undefined, c.label);
-        lbl.preferredSize.width = 140;
-        var input = row.add("edittext", undefined, "");
-        input.characters = 6;
-        liveInputs[c.name] = input;
+    for (var ts = 0; ts < tabSpecs.length; ts++) {
+        var tab = tabs.add("tab", undefined, tabSpecs[ts].title);
+        tab.orientation = "column";
+        tab.alignChildren = ["fill", "top"];
+        tab.margins = 8;
+        for (var tg = 0; tg < tabSpecs[ts].groups.length; tg++) {
+            var groupName = tabSpecs[ts].groups[tg];
+            var groupPanel = tab.add("panel", undefined, groupName);
+            groupPanel.orientation = "column";
+            groupPanel.alignChildren = ["fill", "top"];
+            groupPanel.margins = 7;
+            groupParents[groupName] = groupPanel;
+        }
+    }
+    tabs.selection = 0;
+
+    function writeControl(definition, value) {
+        runAction("Set " + definition.name, function () {
+            var master = requireMaster();
+            var rigNull = requireRig(master);
+            controlProperty(rigNull, definition.name).setValue(value);
+            setResultData("lcdControlChange", {
+                name: definition.name,
+                value: value
+            });
+        });
     }
 
-    var liveButtons = livePanel.add("group");
-    var loadLiveBtn = liveButtons.add("button", undefined, "Load Current");
-    var applyLiveBtn = liveButtons.add("button", undefined, "Apply");
+    function addNumericControl(parent, definition) {
+        var row = parent.add("group");
+        row.alignChildren = ["left", "center"];
+        var label = row.add("statictext", undefined, definition.name.substring(4));
+        label.preferredSize.width = 125;
+        var slider = row.add(
+            "slider",
+            undefined,
+            Number(definition.value),
+            Number(definition.min),
+            Number(definition.max)
+        );
+        slider.preferredSize.width = 210;
+        var input = row.add("edittext", undefined, formatNumber(definition.value));
+        input.characters = 7;
+        controlRows[definition.name] = {
+            definition: definition,
+            slider: slider,
+            input: input
+        };
 
-    loadLiveBtn.onClick = function () {
-        runAction("Load live control values", function () {
-            var master = findLcdMasterComp(LcdScreenConfig.MASTER_COMP_NAME);
-            if (!master) throw new Error("Build the LCD Screen first.");
-            var rigNull = findLcdControlsNull(master);
-            if (!rigNull) throw new Error("LCD CONTROLS null not found.");
-            for (var name in liveInputs) {
-                if (!liveInputs.hasOwnProperty(name)) continue;
-                try {
-                    var subProp = (name === "FOC Depth Of Field") ? "Checkbox" : "Slider";
-                    var val = rigNull.effect(name).property(subProp).value;
-                    liveInputs[name].text = String(val);
-                } catch (_) {}
-            }
-            pushLog("Loaded current live control values");
+        slider.onChanging = function () {
+            input.text = formatNumber(slider.value);
+        };
+        slider.onChange = function () {
+            var value = clampNumber(
+                Number(slider.value),
+                Number(definition.min),
+                Number(definition.max)
+            );
+            input.text = formatNumber(value);
+            writeControl(definition, value);
+        };
+        input.onChange = function () {
+            var value = Number(input.text);
+            if (isNaN(value)) value = Number(definition.value);
+            value = clampNumber(value, Number(definition.min), Number(definition.max));
+            input.text = formatNumber(value);
+            slider.value = value;
+            writeControl(definition, value);
+        };
+    }
+
+    function addCheckboxControl(parent, definition) {
+        var check = parent.add("checkbox", undefined, definition.name.substring(4));
+        check.value = !!definition.value;
+        controlRows[definition.name] = {
+            definition: definition,
+            checkbox: check
+        };
+        check.onClick = function () {
+            writeControl(definition, check.value ? 1 : 0);
+        };
+    }
+
+    function addColorControl(parent, definition) {
+        var row = parent.add("group");
+        row.alignChildren = ["left", "center"];
+        var label = row.add("statictext", undefined, definition.name.substring(4));
+        label.preferredSize.width = 125;
+        var red = row.add("edittext", undefined, formatNumber(definition.value[0]));
+        var green = row.add("edittext", undefined, formatNumber(definition.value[1]));
+        var blue = row.add("edittext", undefined, formatNumber(definition.value[2]));
+        red.characters = green.characters = blue.characters = 4;
+        var pick = row.add("button", undefined, "Pick");
+        var colorRow = {
+            definition: definition,
+            red: red,
+            green: green,
+            blue: blue,
+            pick: pick
+        };
+        controlRows[definition.name] = colorRow;
+
+        function currentColor() {
+            return [
+                clampNumber(Number(red.text) || 0, 0, 1),
+                clampNumber(Number(green.text) || 0, 0, 1),
+                clampNumber(Number(blue.text) || 0, 0, 1),
+                1
+            ];
+        }
+        function applyColor() {
+            var color = currentColor();
+            red.text = formatNumber(color[0]);
+            green.text = formatNumber(color[1]);
+            blue.text = formatNumber(color[2]);
+            writeControl(definition, color);
+        }
+        red.onChange = green.onChange = blue.onChange = applyColor;
+        pick.onClick = function () {
+            var picked = $.colorPicker();
+            if (picked < 0) return;
+            red.text = formatNumber(((picked >> 16) & 255) / 255);
+            green.text = formatNumber(((picked >> 8) & 255) / 255);
+            blue.text = formatNumber((picked & 255) / 255);
+            applyColor();
+        };
+    }
+
+    for (var cd = 0; cd < controlDefinitions.length; cd++) {
+        var definition = controlDefinitions[cd];
+        if (definition.group === "Quality") continue;
+        var parent = groupParents[definition.group];
+        if (!parent) continue;
+        if (definition.type === "checkbox") {
+            addCheckboxControl(parent, definition);
+        } else if (definition.type === "color") {
+            addColorControl(parent, definition);
+        } else {
+            addNumericControl(parent, definition);
+        }
+    }
+
+    function setRowValue(row, value) {
+        if (row.checkbox) {
+            row.checkbox.value = Number(value) >= 0.5;
+        } else if (row.red) {
+            row.red.text = formatNumber(value[0]);
+            row.green.text = formatNumber(value[1]);
+            row.blue.text = formatNumber(value[2]);
+        } else {
+            row.slider.value = Number(value);
+            row.input.text = formatNumber(value);
+        }
+    }
+
+    function refreshControlUi() {
+        var master = findMaster();
+        if (!master) return false;
+        var rigNull = findLcdControlsNull(master);
+        if (!rigNull) return false;
+        for (var name in controlRows) {
+            if (!controlRows.hasOwnProperty(name)) continue;
+            try {
+                setRowValue(controlRows[name], controlProperty(rigNull, name).value);
+            } catch (_) {}
+        }
+        try {
+            qualityDropdown.selection = getLcdQualityLevel(
+                controlProperty(rigNull, "QUAL Level").value
+            );
+        } catch (_) {}
+        return true;
+    }
+
+    loadCurrentBtn.onClick = function () {
+        runAction("Load LCD Controls", function () {
+            if (!refreshControlUi()) throw new Error("Build the LCD Screen first.");
         });
     };
 
-    applyLiveBtn.onClick = function () {
-        runAction("Apply live controls", function () {
-            var master = findLcdMasterComp(LcdScreenConfig.MASTER_COMP_NAME);
-            if (!master) throw new Error("Build the LCD Screen first.");
-            var rigNull = findLcdControlsNull(master);
-            if (!rigNull) throw new Error("LCD CONTROLS null not found.");
-            var applied = 0;
-            for (var name in liveInputs) {
-                if (!liveInputs.hasOwnProperty(name)) continue;
-                var text = liveInputs[name].text;
-                if (text === "") continue;
-                var num = Number(text);
-                if (isNaN(num)) continue;
-                try {
-                    rigNull.effect(name).property("Slider").setValue(num);
-                    applied++;
-                } catch (_) {}
-            }
-            pushLog("Applied " + applied + " live control value(s)");
-        });
-    };
-
-    // --- Render ---
-    var renderPanel = win.add("panel", undefined, "Render");
-    renderPanel.orientation = "column";
-    renderPanel.alignChildren = ["fill", "top"];
-    renderPanel.margins = 10;
-    var renderButtons = renderPanel.add("group");
-    var bakeExprBtn = renderButtons.add("button", undefined, "Bake Expressions");
-    var previewBtn = renderButtons.add("button", undefined, "Render Preview Frames");
-
-    bakeExprBtn.onClick = function () {
-        runAction("Bake expressions", function () {
-            var master = findLcdMasterComp(LcdScreenConfig.MASTER_COMP_NAME);
-            if (!master) throw new Error("Build the LCD Screen first.");
-            var count = bakeAllExpressions(master);
-            pushLog("Baked " + count + " expression(s) to static values");
-        });
-    };
-
-    previewBtn.onClick = function () {
-        runAction("Render preview frames", function () {
-            var master = findLcdMasterComp(LcdScreenConfig.MASTER_COMP_NAME);
-            if (!master) throw new Error("Build the LCD Screen first.");
-            var scriptFile = new File($.fileName);
-            var repoRoot = scriptFile.parent.parent.parent; // examples/lcd-screen/ -> examples/ -> repo root
-            var previewDir = new Folder(String(repoRoot.fsName) + "/Scripts/runs/preview");
-            if (!previewDir.exists) previewDir.create();
-            var frameCount = 5;
-            for (var f = 0; f < frameCount; f++) {
-                var t = (master.duration / (frameCount - 1)) * f;
-                if (t >= master.duration) t = master.duration - master.frameDuration;
-                var outFile = new File(previewDir.fsName + "/frame_" + ("000" + f).slice(-4) + ".png");
-                master.saveFrameToPng(t, outFile);
-            }
-            pushLog("Wrote " + frameCount + " preview frames to " + previewDir.fsName);
-        });
-    };
-
-    // --- Activity log ---
-    var logPanel = win.add("panel", undefined, "Activity");
+    logPanel = win.add("panel", undefined, "Activity");
     logPanel.orientation = "column";
     logPanel.alignChildren = ["fill", "fill"];
-    logPanel.margins = 10;
-    logPanel.preferredSize.height = 140;
-    var logList = logPanel.add("listbox", undefined, [], { multiselect: false });
-    logList.preferredSize.height = 100;
+    logPanel.margins = 7;
+    logPanel.preferredSize.height = 90;
+    logList = logPanel.add("listbox", undefined, [], { multiselect: false });
+    logList.preferredSize.height = 60;
 
-    function pushLog(message) {
-        var item = logList.add("item", nowStamp() + "  " + message);
-        if (logList.items.length > 30) logList.remove(logList.items[0]);
-        try { logList.selection = item; } catch (_) {}
-    }
-
-    win.onResizing = win.onResize = function () { this.layout.resize(); };
-
-    setStatus("Ready", [0.9, 0.9, 0.9]);
+    refreshSourceList();
+    refreshControlUi();
     pushLog("Panel loaded");
 
-    if (win instanceof Window) { win.center(); win.show(); }
-    else { win.layout.layout(true); }
+    win.onResizing = win.onResize = function () {
+        this.layout.resize();
+    };
+    if (win instanceof Window) {
+        win.center();
+        win.show();
+    } else {
+        win.layout.layout(true);
+    }
 })(this);

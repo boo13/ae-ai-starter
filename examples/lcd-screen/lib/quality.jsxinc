@@ -1,0 +1,64 @@
+// LCD Screen - Script-Applied Quality Modes
+
+function getLcdQualityLevel(value) {
+    if (typeof value === "number") {
+        return Math.max(0, Math.min(2, Math.round(value)));
+    }
+    var name = String(value || "Full").toLowerCase();
+    if (name === "draft") return 0;
+    if (name === "normal") return 1;
+    return 2;
+}
+
+function getLcdQualityName(level) {
+    var value = getLcdQualityLevel(level);
+    if (value === 0) return "Draft";
+    if (value === 1) return "Normal";
+    return "Full";
+}
+
+function applyLcdQuality(masterComp, quality) {
+    if (!masterComp || !(masterComp instanceof CompItem)) {
+        throw new Error("applyLcdQuality: masterComp must be a CompItem.");
+    }
+
+    var level = getLcdQualityLevel(quality);
+    var name = getLcdQualityName(level);
+    var rigNull = findLcdControlsNull(masterComp);
+    if (!rigNull) throw new Error("LCD CONTROLS null was not found.");
+
+    var factor = level === 0 ? 4 : (level === 1 ? 2 : 1);
+    masterComp.resolutionFactor = [factor, factor];
+    rigNull.property("ADBE Effect Parade").property("QUAL Level").property(1).setValue(level);
+    rigNull.property("ADBE Effect Parade").property("FOC Depth Of Field").property(1)
+        .setValue(level === 0 ? 0 : 1);
+
+    var sceneLayer = masterComp.layer("CA GREEN");
+    var sceneComp = sceneLayer.source;
+    var panelComp = sceneComp.layer("LCD PANEL 3D").source;
+    var contentLayer = panelComp.layer("SCREEN CONTENT");
+    var glow = contentLayer.property("ADBE Effect Parade").property("ADBE Glo2");
+    if (glow) glow.enabled = level >= 1;
+
+    var lensLayer = masterComp.layer("LENS");
+    var lensEffects = lensLayer.property("ADBE Effect Parade");
+    var baseBlur = lensEffects.property("ADBE Box Blur2");
+    var radialBlur = lensEffects.property("CC Radial Fast Blur");
+    var grain = lensEffects.property("ADBE Noise");
+    if (baseBlur) baseBlur.enabled = level >= 1;
+    if (radialBlur) radialBlur.enabled = level >= 1;
+    if (grain) grain.enabled = level >= 2;
+
+    var report = {
+        name: name,
+        level: level,
+        resolutionFactor: [factor, factor],
+        depthOfField: level >= 1,
+        glow: level >= 1,
+        blurs: level >= 1,
+        grain: level >= 2,
+        chromaticAberration: level >= 1
+    };
+    setResultData("lcdQuality", report);
+    return report;
+}

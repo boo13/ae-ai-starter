@@ -47,6 +47,14 @@ function buildLcdScreen(source, rawCfg) {
 
     setStep("link live controls");
     var linkedCount = linkAllControls(master.comp, refs, cfg);
+
+    setStep("apply live preset");
+    var presetName = cfg.PRESET;
+    if (!presetName || !LcdScreenPresets.hasOwnProperty(presetName)) {
+        presetName = "Static Default";
+    }
+    var presetReport = applyPreset(presetName, rig["null"]);
+
     setResultData("lcdBuild", {
         version: 2,
         marker: "ae:lcd-screen:v2",
@@ -58,7 +66,8 @@ function buildLcdScreen(source, rawCfg) {
             scene.comp.name,
             master.comp.name
         ],
-        linkedCount: linkedCount
+        linkedCount: linkedCount,
+        preset: presetReport.name
     });
 
     return {

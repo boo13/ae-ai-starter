@@ -51,6 +51,7 @@
 #include "lib/lens-stack.jsxinc"
 #include "lib/rig.jsxinc"
 #include "lib/links.jsxinc"
+#include "lib/quality.jsxinc"
 #include "lib/states.jsxinc"
 #include "lib/probes.jsxinc"
 #include "lib/build.jsxinc"
@@ -106,13 +107,13 @@ function _lcd_resolveSource(cfg) {
             exposureEffect: result.lens.exposure
         });
 
-        step = "render M4 acceptance states";
+        step = "render M5 acceptance states";
         var previewDir = getLcdPreviewFolder(entryFile);
         var stateReport = renderLcdStates(
             result.master.comp,
             result.rig["null"],
-            "m4",
-            getLcdStateSet("m4"),
+            "m5",
+            getLcdStateSet("m5"),
             previewDir
         );
 
@@ -126,7 +127,7 @@ function _lcd_resolveSource(cfg) {
             "Preset: " + (result.cfg.PRESET || "(none)") + "\n" +
             "Source: " + source.name + "\n" +
             (result.removedCount > 0 ? "Cleaned " + result.removedCount + " previous comp(s).\n" : "") +
-            "Rendered " + stateReport.stateCount + " M4 acceptance frames.\n\n" +
+            "Rendered " + stateReport.stateCount + " M5 acceptance frames.\n\n" +
             "Open \"" + result.cfg.MASTER_COMP_NAME + "\" and tweak LCD CONTROLS for live camera, focus, framing, pixel, and lens adjustments."
         );
     } catch (e) {

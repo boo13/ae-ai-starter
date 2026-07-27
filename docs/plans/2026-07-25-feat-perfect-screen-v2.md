@@ -18,7 +18,7 @@ A first attempt exists at `examples/lcd-screen/`. An independent review judged i
 - [x] M2 — Lens realism
 - [x] M3 — Exposure, Auto Exposure, tint
 - [x] M4 — Animate Movements under auto zoom
-- [ ] M5 — 20 live presets + panel v2
+- [x] M5 — 20 live presets + panel v2
 - [ ] M6 — Quality dropdown, opt-in extras path, docs, contact sheet
 
 ## The feedback loop (read this before writing any code)

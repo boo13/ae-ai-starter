@@ -252,6 +252,45 @@ function linkAllControls(masterComp, refs, cfg) {
         });
     }
 
+    links.push({
+        getProp: function (r) {
+            return r.master.caLayers[0].layer.property("Transform").property("Opacity");
+        },
+        control: "QUAL Level",
+        subProp: "Slider",
+        mapExpr: function (ref) { return ref + " < 0.5 ? 0 : 100;"; }
+    });
+    links.push({
+        getProp: function (r) {
+            return r.master.caLayers[2].layer.property("Transform").property("Opacity");
+        },
+        control: "QUAL Level",
+        subProp: "Slider",
+        mapExpr: function (ref) { return ref + " < 0.5 ? 0 : 100;"; }
+    });
+    links.push({
+        getProp: function (r) {
+            return r.master.caLayers[1].layer
+                .property("ADBE Effect Parade")
+                .property("ADBE CHANNEL MIXER")
+                .property("ADBE CHANNEL MIXER-0001");
+        },
+        control: "QUAL Level",
+        subProp: "Slider",
+        mapExpr: function (ref) { return ref + " < 0.5 ? 100 : 0;"; }
+    });
+    links.push({
+        getProp: function (r) {
+            return r.master.caLayers[1].layer
+                .property("ADBE Effect Parade")
+                .property("ADBE CHANNEL MIXER")
+                .property("ADBE CHANNEL MIXER-0011");
+        },
+        control: "QUAL Level",
+        subProp: "Slider",
+        mapExpr: function (ref) { return ref + " < 0.5 ? 100 : 0;"; }
+    });
+
     for (var p = 0; p < refs.panel.patternLayers.length; p++) {
         links.push({
             getProp: (function (index) {

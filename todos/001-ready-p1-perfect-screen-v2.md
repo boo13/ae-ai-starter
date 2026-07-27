@@ -84,7 +84,7 @@ Execute `docs/plans/2026-07-25-feat-perfect-screen-v2.md` milestone by milestone
 - [x] M2 lens realism accepted
 - [x] M3 exposure, auto exposure, and tint accepted
 - [x] M4 animated movement under live auto zoom accepted
-- [ ] M5 twenty live presets and panel v2 accepted
+- [x] M5 twenty live presets and panel v2 accepted
 - [ ] M6 quality modes, optional extras, docs, and contact sheet accepted
 - [ ] Static checks and After Effects validation pass
 - [ ] All plan checkboxes are complete
@@ -371,6 +371,46 @@ Execute `docs/plans/2026-07-25-feat-perfect-screen-v2.md` milestone by milestone
 **Learnings:**
 - The stress state proves the outer Scale expression follows nested camera motion live rather than reusing a baked value.
 - Four percent framing padding covers the tested 25-pixel target motion and 0.6-degree angle motion without visible edge exposure.
+
+### 2026-07-27 - M5 Ready for After Effects Validation
+
+**By:** Codex
+
+**Actions:**
+- Added 20 slider-space presets with one-line intents and zero structural configuration keys.
+- Added eight representative preset acceptance states and comp-count reporting around every preset application.
+- Rebuilt the ScriptUI panel around live control groups, paired sliders and numeric inputs, preset application, structural rebuild, quality selection, and preview rendering.
+- Installed the panel symlink for After Effects 2026 as `Window > LCD Screen v2`.
+- Passed JavaScript syntax, ES3 compatibility, whitespace, preset count, control completeness, range, and structural-key checks.
+
+**Learnings:**
+- The prior completion report was stale: it predated the M5 setup file and still identified milestone M4 with 37 links.
+- After Effects must load the current setup file for the 41-link quality-aware rig and eight M5 frames to exist.
+
+### 2026-07-27 - M5 Dust Preset Retuned
+
+**By:** Codex
+
+**Actions:**
+- Verified a successful eight-state M5 run with all 41 links and zero compositions created by preset application.
+- Accepted the Static Default, Reading Front, Macro Extreme, Sideways, Dutch Roll, Handheld Drift, and Cool Night frames against their intents.
+- Rejected Dusty Lens because the dense, bright specks read as snow or stars rather than lens contamination.
+- Reduced Dusty Lens strength from 35 to 22, density from 60 to 45, grain from 6 to 5, and vignette from 45 to 42.
+
+**Learnings:**
+- A deliberately named effect preset still needs photographic restraint; stronger differentiation from the default is not useful when the artifact stops reading as optical.
+
+### 2026-07-27 - M5 Accepted
+
+**By:** Codex
+
+**Actions:**
+- Verified the retuned eight-state run completed successfully with all 41 live links and valid PNG trailers.
+- Confirmed all eight representative frames match their documented intent after the Dusty Lens correction.
+- Confirmed all eight preset applications created zero compositions.
+
+**Learnings:**
+- Dust strength 22 and density 45 preserve a clearly dusty variant without obscuring the source or producing a synthetic particle field.
 
 ## Notes
 
