@@ -159,6 +159,157 @@ var LcdScreenStateSets = {
                 "LEN Dust Strength": 0
             }
         }
+    ],
+    m3: [
+        {
+            name: "exposure-minus-2",
+            time: 0,
+            overrides: {
+                "CAM Distance": 850,
+                "CAM Orbit": 0,
+                "CAM Tilt": 0,
+                "CAM Roll": 0,
+                "CAM Zoom": 2400,
+                "PIX Pixel Density": 3,
+                "LEN Chromatic Aberration": 0,
+                "BLR Base Blur": 0,
+                "BLR Radial Blur": 0,
+                "LEN Vignette": 0,
+                "LEN Grain": 0,
+                "LEN Dust Strength": 0,
+                "COL Tint Amount": 0,
+                "COL Exposure": -2,
+                "COL Auto Exposure": 0
+            }
+        },
+        {
+            name: "exposure-0",
+            time: 0,
+            overrides: {
+                "CAM Distance": 850,
+                "CAM Orbit": 0,
+                "CAM Tilt": 0,
+                "CAM Roll": 0,
+                "CAM Zoom": 2400,
+                "PIX Pixel Density": 3,
+                "LEN Chromatic Aberration": 0,
+                "BLR Base Blur": 0,
+                "BLR Radial Blur": 0,
+                "LEN Vignette": 0,
+                "LEN Grain": 0,
+                "LEN Dust Strength": 0,
+                "COL Tint Amount": 0,
+                "COL Exposure": 0,
+                "COL Auto Exposure": 0
+            }
+        },
+        {
+            name: "exposure-plus-2",
+            time: 0,
+            overrides: {
+                "CAM Distance": 850,
+                "CAM Orbit": 0,
+                "CAM Tilt": 0,
+                "CAM Roll": 0,
+                "CAM Zoom": 2400,
+                "PIX Pixel Density": 3,
+                "LEN Chromatic Aberration": 0,
+                "BLR Base Blur": 0,
+                "BLR Radial Blur": 0,
+                "LEN Vignette": 0,
+                "LEN Grain": 0,
+                "LEN Dust Strength": 0,
+                "COL Tint Amount": 0,
+                "COL Exposure": 2,
+                "COL Auto Exposure": 0
+            }
+        },
+        {
+            name: "auto-dark",
+            time: 0,
+            overrides: {
+                "CAM Distance": 850,
+                "CAM Orbit": 0,
+                "CAM Tilt": 0,
+                "CAM Roll": 0,
+                "CAM Zoom": 2400,
+                "PIX Pixel Density": 3,
+                "LEN Chromatic Aberration": 0,
+                "BLR Base Blur": 0,
+                "BLR Radial Blur": 0,
+                "LEN Vignette": 0,
+                "LEN Grain": 0,
+                "LEN Dust Strength": 0,
+                "COL Tint Amount": 0,
+                "COL Exposure": 0,
+                "COL Auto Exposure": 1
+            }
+        },
+        {
+            name: "auto-bright",
+            time: 0,
+            overrides: {
+                "CAM Distance": 850,
+                "CAM Orbit": 0,
+                "CAM Tilt": 0,
+                "CAM Roll": 0,
+                "CAM Zoom": 2400,
+                "PIX Pixel Density": 3,
+                "LEN Chromatic Aberration": 0,
+                "BLR Base Blur": 0,
+                "BLR Radial Blur": 0,
+                "LEN Vignette": 0,
+                "LEN Grain": 0,
+                "LEN Dust Strength": 0,
+                "COL Tint Amount": 0,
+                "COL Exposure": 0,
+                "COL Auto Exposure": 1
+            }
+        },
+        {
+            name: "tint-warm-60",
+            time: 0,
+            overrides: {
+                "CAM Distance": 850,
+                "CAM Orbit": 0,
+                "CAM Tilt": 0,
+                "CAM Roll": 0,
+                "CAM Zoom": 2400,
+                "PIX Pixel Density": 3,
+                "LEN Chromatic Aberration": 0,
+                "BLR Base Blur": 0,
+                "BLR Radial Blur": 0,
+                "LEN Vignette": 0,
+                "LEN Grain": 0,
+                "LEN Dust Strength": 0,
+                "COL Tint Color": [1, 0.71, 0.30, 1],
+                "COL Tint Amount": 60,
+                "COL Exposure": 1,
+                "COL Auto Exposure": 0
+            }
+        },
+        {
+            name: "tint-cool-60",
+            time: 0,
+            overrides: {
+                "CAM Distance": 850,
+                "CAM Orbit": 0,
+                "CAM Tilt": 0,
+                "CAM Roll": 0,
+                "CAM Zoom": 2400,
+                "PIX Pixel Density": 3,
+                "LEN Chromatic Aberration": 0,
+                "BLR Base Blur": 0,
+                "BLR Radial Blur": 0,
+                "LEN Vignette": 0,
+                "LEN Grain": 0,
+                "LEN Dust Strength": 0,
+                "COL Tint Color": [0.42, 0.65, 1, 1],
+                "COL Tint Amount": 60,
+                "COL Exposure": 1,
+                "COL Auto Exposure": 0
+            }
+        }
     ]
 };
 
@@ -195,6 +346,91 @@ function _lcdStateControlProperty(rigNull, controlName) {
         throw new Error("LCD state control has no value property: " + controlName);
     }
     return prop;
+}
+
+function findLcdAutoExposureExtremes(masterComp, rigNull, exposureEffect) {
+    if (!masterComp || !(masterComp instanceof CompItem)) {
+        throw new Error("findLcdAutoExposureExtremes: masterComp must be a CompItem.");
+    }
+    if (!rigNull || !exposureEffect) {
+        throw new Error("findLcdAutoExposureExtremes: rigNull and exposureEffect are required.");
+    }
+
+    var manualProp = _lcdStateControlProperty(rigNull, "COL Exposure");
+    var autoProp = _lcdStateControlProperty(rigNull, "COL Auto Exposure");
+    var exposureProp = exposureEffect.property("ADBE Exposure2-0003");
+    var originalManual = manualProp.value;
+    var originalAuto = autoProp.value;
+    var targetLuminance = 0.18;
+    var darkest = null;
+    var brightest = null;
+    var samples = [];
+    var lastTime = Math.max(0, masterComp.duration - masterComp.frameDuration);
+    var interval = 0.5;
+
+    try {
+        manualProp.setValue(0);
+        autoProp.setValue(1);
+
+        var t = 0;
+        while (t <= lastTime + 0.0001) {
+            var correction = Number(exposureProp.valueAtTime(t, false));
+            if (!isFinite(correction)) {
+                throw new Error("Auto Exposure returned a non-finite value at " + t + " seconds.");
+            }
+            var sample = {
+                time: t,
+                correctionStops: correction,
+                estimatedLuminance: targetLuminance / Math.pow(2, correction)
+            };
+            samples.push(sample);
+            if (!darkest || correction > darkest.correctionStops) darkest = sample;
+            if (!brightest || correction < brightest.correctionStops) brightest = sample;
+            t += interval;
+        }
+
+        if (samples.length && samples[samples.length - 1].time < lastTime - 0.0001) {
+            var lastCorrection = Number(exposureProp.valueAtTime(lastTime, false));
+            if (!isFinite(lastCorrection)) {
+                throw new Error("Auto Exposure returned a non-finite value at the final frame.");
+            }
+            var lastSample = {
+                time: lastTime,
+                correctionStops: lastCorrection,
+                estimatedLuminance: targetLuminance / Math.pow(2, lastCorrection)
+            };
+            samples.push(lastSample);
+            if (!darkest || lastCorrection > darkest.correctionStops) darkest = lastSample;
+            if (!brightest || lastCorrection < brightest.correctionStops) brightest = lastSample;
+        }
+    } finally {
+        try { manualProp.setValue(originalManual); } catch (_) {}
+        try { autoProp.setValue(originalAuto); } catch (_) {}
+    }
+
+    var report = {
+        targetLuminance: targetLuminance,
+        sampleInterval: interval,
+        sampleCount: samples.length,
+        darkest: darkest,
+        brightest: brightest,
+        compensationRange: darkest && brightest
+            ? darkest.correctionStops - brightest.correctionStops
+            : 0
+    };
+    setResultData("lcdAutoExposureProbe", report);
+    return report;
+}
+
+function setLcdAutoExposureStateTimes(states, extremes) {
+    if (!states || !extremes || !extremes.darkest || !extremes.brightest) {
+        throw new Error("setLcdAutoExposureStateTimes: states and exposure extremes are required.");
+    }
+    for (var i = 0; i < states.length; i++) {
+        if (states[i].name === "auto-dark") states[i].time = extremes.darkest.time;
+        if (states[i].name === "auto-bright") states[i].time = extremes.brightest.time;
+    }
+    return states;
 }
 
 function _lcdStateSafeName(name) {

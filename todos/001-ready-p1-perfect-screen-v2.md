@@ -82,7 +82,7 @@ Execute `docs/plans/2026-07-25-feat-perfect-screen-v2.md` milestone by milestone
 - [x] M0 infrastructure and safety complete
 - [x] M1 macro core, live camera, and live auto zoom accepted
 - [x] M2 lens realism accepted
-- [ ] M3 exposure, auto exposure, and tint accepted
+- [x] M3 exposure, auto exposure, and tint accepted
 - [ ] M4 animated movement under live auto zoom accepted
 - [ ] M5 twenty live presets and panel v2 accepted
 - [ ] M6 quality modes, optional extras, docs, and contact sheet accepted
@@ -300,6 +300,34 @@ Execute `docs/plans/2026-07-25-feat-perfect-screen-v2.md` milestone by milestone
 
 **Learnings:**
 - The accepted CA coefficient is 0.00006 per slider point, radial stress is 4 with 0.35px base blur, and dust density maps only across Threshold 0.85-0.93.
+
+### 2026-07-26 - M3 Ready for After Effects Validation
+
+**By:** Codex
+
+**Actions:**
+- Added a live Auto Exposure expression that samples the ungraded CA GREEN scene and targets 18% middle gray with a three-stop clamp.
+- Added a source scan that identifies the darkest and brightest frames from post-expression compensation values.
+- Added seven M3 acceptance states covering the -2/0/+2 stop sweep, both auto-exposure extremes, and warm/cool Photo Filter tint at 60%.
+- Passed ES3 syntax, expression parsing, state/control consistency, extrema selection, and whitespace checks.
+
+**Learnings:**
+- Sampling CA GREEN before its Channel Mixer effect avoids measuring an isolated green channel while also avoiding feedback through the outer Exposure adjustment.
+- The darkest and brightest acceptance times can be selected from the actual imported source instead of hard-coding arbitrary timestamps.
+
+### 2026-07-27 - M3 Accepted
+
+**By:** Codex
+
+**Actions:**
+- Verified a successful seven-state run with all 37 live links and seven complete PNG trailers.
+- Inspected the full exposure sweep and warm/cool tint states at full resolution.
+- Confirmed the auto-exposure pair selected the source extrema at 0 and 2 seconds and rendered at comparable mid brightness.
+- Measured tint-state dark pixels to verify that Photo Filter shifts white balance without lifting true blacks into a color wash.
+
+**Learnings:**
+- This source varies by only 0.077 stops over the 10-second sample, so the auto-exposure compensation is intentionally subtle.
+- The auto pair measured 0.164 versus 0.149 mean luminance; warm and cool frames measured 0.216 versus 0.218 while black pixels stayed near zero.
 
 ## Notes
 

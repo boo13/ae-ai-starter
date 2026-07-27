@@ -168,9 +168,27 @@ function linkAllControls(masterComp, refs, cfg) {
         },
         {
             getProp: function (r) { return r.lens.exposure.property("ADBE Exposure2-0003"); },
-            control: "COL Exposure",
-            subProp: "Slider",
-            mapExpr: function (ref) { return ref; }
+            control: null,
+            subProp: null,
+            mapExpr: function () {
+                return controlPrefix +
+                    "var manual = controls.effect(\"COL Exposure\")(1);\n" +
+                    "var enabled = controls.effect(\"COL Auto Exposure\")(1);\n" +
+                    "if (enabled < 0.5) {\n" +
+                    "    manual;\n" +
+                    "} else {\n" +
+                    "    var source = thisComp.layer(\"CA GREEN\");\n" +
+                    "    var rgba = source.sampleImage(\n" +
+                    "        [source.width / 2, source.height / 2],\n" +
+                    "        [source.width / 4, source.height / 4],\n" +
+                    "        false,\n" +
+                    "        time\n" +
+                    "    );\n" +
+                    "    var lum = Math.max(0.001,\n" +
+                    "        rgba[0] * 0.2126 + rgba[1] * 0.7152 + rgba[2] * 0.0722);\n" +
+                    "    manual + clamp(Math.log(0.18 / lum) / Math.log(2), -3, 3);\n" +
+                    "}";
+            }
         },
         {
             getProp: function (r) { return r.lens.baseBlur.property("ADBE Box Blur2-0001"); },

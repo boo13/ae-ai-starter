@@ -16,7 +16,7 @@ A first attempt exists at `examples/lcd-screen/`. An independent review judged i
 - [x] M0 — Infra & safety
 - [x] M1 — Core macro image + live camera + live auto zoom
 - [x] M2 — Lens realism
-- [ ] M3 — Exposure, Auto Exposure, tint
+- [x] M3 — Exposure, Auto Exposure, tint
 - [ ] M4 — Animate Movements under auto zoom
 - [ ] M5 — 20 live presets + panel v2
 - [ ] M6 — Quality dropdown, opt-in extras path, docs, contact sheet

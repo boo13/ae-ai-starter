@@ -106,13 +106,22 @@ function _lcd_resolveSource(cfg) {
             exposureEffect: result.lens.exposure
         });
 
-        step = "render M2 acceptance states";
+        step = "find M3 auto exposure extremes";
+        var m3States = getLcdStateSet("m3");
+        var exposureExtremes = findLcdAutoExposureExtremes(
+            result.master.comp,
+            result.rig["null"],
+            result.lens.exposure
+        );
+        setLcdAutoExposureStateTimes(m3States, exposureExtremes);
+
+        step = "render M3 acceptance states";
         var previewDir = getLcdPreviewFolder(entryFile);
         var stateReport = renderLcdStates(
             result.master.comp,
             result.rig["null"],
-            "m2",
-            getLcdStateSet("m2"),
+            "m3",
+            m3States,
             previewDir
         );
 
@@ -126,7 +135,7 @@ function _lcd_resolveSource(cfg) {
             "Preset: " + (result.cfg.PRESET || "(none)") + "\n" +
             "Source: " + source.name + "\n" +
             (result.removedCount > 0 ? "Cleaned " + result.removedCount + " previous comp(s).\n" : "") +
-            "Rendered " + stateReport.stateCount + " M2 acceptance frames.\n\n" +
+            "Rendered " + stateReport.stateCount + " M3 acceptance frames.\n\n" +
             "Open \"" + result.cfg.MASTER_COMP_NAME + "\" and tweak LCD CONTROLS for live camera, focus, framing, pixel, and lens adjustments."
         );
     } catch (e) {
