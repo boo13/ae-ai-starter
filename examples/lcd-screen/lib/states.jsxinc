@@ -1,6 +1,38 @@
 // LCD Screen - Acceptance State Renderer
 // Applies temporary control overrides, renders named PNGs, then restores every value.
 
+function _lcdM4MotionOverrides() {
+    return {
+        "CAM Distance": 1900,
+        "CAM Orbit": 18,
+        "CAM Tilt": 7,
+        "CAM Roll": 2,
+        "CAM Zoom": 1500,
+        "FOC Depth Of Field": 1,
+        "FOC Aperture": 180,
+        "FRM Auto Zoom": 1,
+        "FRM Padding": 4,
+        "PIX Pixel Density": 3,
+        "LEN Distortion": 0,
+        "LEN Chromatic Aberration": 0,
+        "BLR Base Blur": 0,
+        "BLR Radial Blur": 0,
+        "LEN Vignette": 0,
+        "LEN Grain": 0,
+        "LEN Dust Strength": 0,
+        "COL Tint Amount": 0,
+        "COL Exposure": 1,
+        "COL Auto Exposure": 0,
+        "MOT Target Amount": 25,
+        "MOT Target Speed": 0.18,
+        "MOT Angle Amount": 0.6,
+        "MOT Angle Speed": 0.12,
+        "MOT Focus Amount": 220,
+        "MOT Focus Speed": 0.15,
+        "MOT Seed": 37
+    };
+}
+
 var LcdScreenStateSets = {
     m1: [
         {
@@ -310,6 +342,38 @@ var LcdScreenStateSets = {
                 "COL Auto Exposure": 0
             }
         }
+    ],
+    m4: [
+        {
+            name: "motion-t0",
+            time: 0,
+            motionDiagnostics: true,
+            overrides: _lcdM4MotionOverrides()
+        },
+        {
+            name: "motion-t2-5",
+            time: 2.5,
+            motionDiagnostics: true,
+            overrides: _lcdM4MotionOverrides()
+        },
+        {
+            name: "motion-t5",
+            time: 5,
+            motionDiagnostics: true,
+            overrides: _lcdM4MotionOverrides()
+        },
+        {
+            name: "motion-t7-5",
+            time: 7.5,
+            motionDiagnostics: true,
+            overrides: _lcdM4MotionOverrides()
+        },
+        {
+            name: "motion-t10",
+            time: 10,
+            motionDiagnostics: true,
+            overrides: _lcdM4MotionOverrides()
+        }
     ]
 };
 
@@ -471,6 +535,21 @@ function _lcdStateWaitForPng(file, timeoutMs) {
     return false;
 }
 
+function _lcdStateMotionDiagnostics(masterComp, time) {
+    var sceneLayer = masterComp.layer("CA GREEN");
+    var sceneComp = sceneLayer.source;
+    var camera = sceneComp.layer("LCD Camera");
+    var transform = camera.property("ADBE Transform Group");
+    var cameraOptions = camera.property("ADBE Camera Options Group");
+    return {
+        cameraPosition: transform.property("ADBE Position").valueAtTime(time, false),
+        pointOfInterest: transform.property("ADBE Anchor Point").valueAtTime(time, false),
+        orientation: transform.property("ADBE Orientation").valueAtTime(time, false),
+        focusDistance: cameraOptions.property("ADBE Camera Focus Distance").valueAtTime(time, false),
+        sceneScale: sceneLayer.property("Transform").property("Scale").valueAtTime(time, false)
+    };
+}
+
 function renderLcdStates(masterComp, rigNull, milestone, states, previewDir) {
     if (!masterComp || !(masterComp instanceof CompItem)) {
         throw new Error("renderLcdStates: masterComp must be a CompItem.");
@@ -537,12 +616,16 @@ function renderLcdStates(masterComp, rigNull, milestone, states, previewDir) {
                 );
             }
 
-            rendered.push({
+            var renderedState = {
                 name: state.name,
                 time: renderTime,
                 overrides: overrides,
                 output: outFile.fsName
-            });
+            };
+            if (state.motionDiagnostics) {
+                renderedState.motion = _lcdStateMotionDiagnostics(masterComp, renderTime);
+            }
+            rendered.push(renderedState);
         }
     } finally {
         for (key in originals) {

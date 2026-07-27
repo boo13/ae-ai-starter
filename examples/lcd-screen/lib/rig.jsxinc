@@ -38,12 +38,12 @@ function getLcdControlDefinitions(cfg) {
         { group: "Color", name: "COL Exposure", type: "slider", value: cfg.EXPOSURE, min: -5, max: 5 },
         { group: "Color", name: "COL Auto Exposure", type: "checkbox", value: cfg.AUTO_EXPOSURE },
 
-        { group: "Motion", name: "MOT Target Amount", type: "slider", value: cfg.MOTION_TARGET_AMOUNT, min: 0, max: 300 },
-        { group: "Motion", name: "MOT Target Speed", type: "slider", value: cfg.MOTION_TARGET_SPEED, min: 0, max: 3 },
-        { group: "Motion", name: "MOT Angle Amount", type: "slider", value: cfg.MOTION_ANGLE_AMOUNT, min: 0, max: 20 },
-        { group: "Motion", name: "MOT Angle Speed", type: "slider", value: cfg.MOTION_ANGLE_SPEED, min: 0, max: 3 },
-        { group: "Motion", name: "MOT Focus Amount", type: "slider", value: cfg.MOTION_FOCUS_AMOUNT, min: 0, max: 500 },
-        { group: "Motion", name: "MOT Focus Speed", type: "slider", value: cfg.MOTION_FOCUS_SPEED, min: 0, max: 3 },
+        { group: "Motion", name: "MOT Target Amount", type: "slider", value: cfg.MOTION_TARGET_AMOUNT, min: 0, max: 60 },
+        { group: "Motion", name: "MOT Target Speed", type: "slider", value: cfg.MOTION_TARGET_SPEED, min: 0, max: 1.5 },
+        { group: "Motion", name: "MOT Angle Amount", type: "slider", value: cfg.MOTION_ANGLE_AMOUNT, min: 0, max: 3 },
+        { group: "Motion", name: "MOT Angle Speed", type: "slider", value: cfg.MOTION_ANGLE_SPEED, min: 0, max: 1.5 },
+        { group: "Motion", name: "MOT Focus Amount", type: "slider", value: cfg.MOTION_FOCUS_AMOUNT, min: 0, max: 250 },
+        { group: "Motion", name: "MOT Focus Speed", type: "slider", value: cfg.MOTION_FOCUS_SPEED, min: 0, max: 1.5 },
         { group: "Motion", name: "MOT Seed", type: "slider", value: cfg.MOTION_SEED, min: 1, max: 10000 },
 
         { group: "Quality", name: "QUAL Level", type: "slider", value: cfg.QUALITY_LEVEL, min: 0, max: 2 }

@@ -83,7 +83,7 @@ Execute `docs/plans/2026-07-25-feat-perfect-screen-v2.md` milestone by milestone
 - [x] M1 macro core, live camera, and live auto zoom accepted
 - [x] M2 lens realism accepted
 - [x] M3 exposure, auto exposure, and tint accepted
-- [ ] M4 animated movement under live auto zoom accepted
+- [x] M4 animated movement under live auto zoom accepted
 - [ ] M5 twenty live presets and panel v2 accepted
 - [ ] M6 quality modes, optional extras, docs, and contact sheet accepted
 - [ ] Static checks and After Effects validation pass
@@ -328,6 +328,49 @@ Execute `docs/plans/2026-07-25-feat-perfect-screen-v2.md` milestone by milestone
 **Learnings:**
 - This source varies by only 0.077 stops over the 10-second sample, so the auto-exposure compensation is intentionally subtle.
 - The auto pair measured 0.164 versus 0.149 mean luminance; warm and cool frames measured 0.216 versus 0.218 while black pixels stayed near zero.
+
+### 2026-07-27 - M4 Ready for After Effects Validation
+
+**By:** Codex
+
+**Actions:**
+- Tuned the motion-control ranges for subtle handheld movement instead of destructive extremes.
+- Added five M4 states at 0, 2.5, 5, 7.5, and 10 seconds with live target, angle, and focus motion under Auto Zoom.
+- Added per-state diagnostics for camera position, point of interest, orientation, focus distance, and solved scene scale.
+- Disabled unrelated lens artifacts in the acceptance states so framing drift and focus breathing remain legible.
+- Passed ES3 syntax, all-expression parsing, state/control consistency, and whitespace checks.
+
+**Learnings:**
+- The seeded low-frequency wiggle expressions already provide a smooth handheld basis; the important change is constraining the exposed amount and speed ranges to photographic values.
+- Capturing the solved scene scale alongside camera and focus values will distinguish a live Auto Zoom pass from five coincidentally covered frames.
+
+### 2026-07-27 - M4 Stress Test Retuned
+
+**By:** Codex
+
+**Actions:**
+- Verified the first five-state run completed with changing camera, orientation, and focus values and fully opaque output.
+- Rejected the pass as an Auto Zoom acceptance test because every frame remained at the 66.67% base fit.
+- Widened the camera from 2200/1000 zoom-distance to 1500/1900 so screen coverage requires a live scale solve.
+- Disabled lens distortion and increased the still-photographic motion/focus amounts so scale response and focus breathing can be judged directly.
+
+**Learnings:**
+- The dark surround in the first contact sheet is opaque content from the source canvas, not a transparent render gap.
+- A valid live Auto Zoom acceptance state must force the solver above base fit; otherwise full alpha coverage does not prove the solver is responding to animated geometry.
+
+### 2026-07-27 - M4 Accepted
+
+**By:** Codex
+
+**Actions:**
+- Verified the wider-camera rerun completed all five states with valid PNG trailers and all 37 live links.
+- Confirmed Auto Zoom solved independently from 119.04% to 123.37% as the animated camera geometry changed.
+- Confirmed focus distance ranged from 1771 to 2092 pixels and produced visible breathing across the contact sheet.
+- Inspected all frames for natural drift and measured full alpha coverage at every sampled time.
+
+**Learnings:**
+- The stress state proves the outer Scale expression follows nested camera motion live rather than reusing a baked value.
+- Four percent framing padding covers the tested 25-pixel target motion and 0.6-degree angle motion without visible edge exposure.
 
 ## Notes
 
