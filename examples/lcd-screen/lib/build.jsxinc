@@ -20,8 +20,16 @@ function buildLcdScreen(source, rawCfg) {
     setStep("build macro panel");
     var panel = buildPanelComp(content, cfg, sceneWidth, sceneHeight);
 
+    var screen = null;
+    var sceneSource = panel;
+    if (cfg.EXTRAS_ENABLED && (cfg.BEZEL_ENABLED || cfg.AMBIENT_SPILL_ENABLED)) {
+        setStep("build optional screen wrapper");
+        screen = buildScreenComp(panel, cfg);
+        sceneSource = screen;
+    }
+
     setStep("build oversampled scene");
-    var scene = buildSceneComp(panel, cfg);
+    var scene = buildSceneComp(sceneSource, cfg);
 
     setStep("build live camera");
     var camera = buildCameraRig(scene.comp, scene.panelLayer, cfg);
@@ -38,6 +46,7 @@ function buildLcdScreen(source, rawCfg) {
     var refs = {
         content: content,
         panel: panel,
+        screen: screen,
         scene: scene,
         camera: camera,
         master: master,
@@ -55,19 +64,32 @@ function buildLcdScreen(source, rawCfg) {
     }
     var presetReport = applyPreset(presetName, rig["null"]);
 
+    var compNames = [
+        content.comp.name,
+        panel.comp.name,
+        panel.pattern.comp.name,
+        scene.comp.name,
+        master.comp.name
+    ];
+    if (screen) compNames.splice(3, 0, screen.comp.name);
+
     setResultData("lcdBuild", {
         version: 2,
         marker: "ae:lcd-screen:v2",
         removedCount: cleanup.removedCount,
-        compNames: [
-            content.comp.name,
-            panel.comp.name,
-            panel.pattern.comp.name,
-            scene.comp.name,
-            master.comp.name
-        ],
+        compNames: compNames,
         linkedCount: linkedCount,
-        preset: presetReport.name
+        preset: presetReport.name,
+        extras: {
+            enabled: !!cfg.EXTRAS_ENABLED,
+            screenWrapper: !!screen,
+            bezel: !!(screen && screen.bezel),
+            ambientSpill: !!(screen && screen.spillLayer),
+            glass: !!panel.extras.glass,
+            backlightBleed: !!panel.extras.backlightBleed,
+            viewingAngle: !!panel.extras.viewingAngle,
+            scanlines: !!panel.extras.scanlines
+        }
     });
 
     return {
@@ -76,6 +98,7 @@ function buildLcdScreen(source, rawCfg) {
         cfg: cfg,
         content: content,
         panel: panel,
+        screen: screen,
         scene: scene,
         master: master,
         camera: camera,

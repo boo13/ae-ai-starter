@@ -296,11 +296,11 @@
             var report = renderLcdStates(
                 master,
                 rigNull,
-                "m5",
-                getLcdStateSet("m5"),
+                "m6",
+                getLcdStateSet("m6"),
                 getLcdPreviewFolder(entryFile)
             );
-            pushLog("Rendered " + report.stateCount + " preset previews");
+            pushLog("Rendered " + report.stateCount + " quality and preset previews");
             return report;
         });
     };

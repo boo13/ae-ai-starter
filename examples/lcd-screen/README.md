@@ -1,173 +1,199 @@
-# LCD Screen
+# LCD Screen v2
 
-Turns a flat screen recording into a photoreal shot of a physical LCD monitor — a
-native-AE, ExtendScript-only alternative to
-[ProductionCrate Perfect Screen](https://www.productioncrate.com/plugins/perfect-screen).
+Turns a flat screen recording into a macro photograph of a physical LCD using only
+native After Effects layers, effects, a 3D camera, and expressions.
 
-## Why this isn't just a clone
+This is a dockable **ScriptUI panel**, not a compiled `.aex` plug-in. After installation
+it opens from **Window → LCD Screen v2**. The panel builds and controls an ordinary,
+editable After Effects composition rig.
 
-Perfect Screen is a compiled GPU plugin that simulates a **camera looking at a flat
-panel**: 3D framing, depth of field with focus pull, lens distortion, chromatic
-aberration, vignette, surface dust, backlight tinting, Auto Zoom, Auto Exposure, and
-keyframe-free "Animate Movements." It has **no bezel, no monitor body, no glass
-reflections, no scanlines, no backlight bleed, no viewing-angle falloff, and no
-screen-off state** — those live in ProductionCrate's separate CRT Factory product, or
-aren't attempted at all.
+## Requirements
 
-This example builds a superset: everything Perfect Screen does (via a real AE 3D camera
-+ native effects), plus the physical-monitor layer it skips.
+- After Effects 2026 or another version with the bundled Cycore effects
+- An open project
+- A screen recording or still image imported as footage
+- **Allow Scripts to Write Files and Access Network** enabled in AE preferences
 
-| Perfect Screen feature | This example |
-|---|---|
-| 3D camera + look-at target | Real AE camera, Point of Interest |
-| Depth of field + focus pull | Camera's native Aperture/Focus Distance |
-| Optic distortion (glass bulge) | `Scripts/lib/actions/effects/lens_distortion.jsxinc` (Optics Compensation) |
-| Chromatic aberration | `chromatic_aberration.jsxinc` ("subtle" mode here — see Known limitations) |
-| Vignette | `vignette.jsxinc` (native, no third-party dependency) |
-| Auto Zoom | `lib/autozoom.jsxinc` (script-side bake, see below) |
-| Auto Exposure | **Not implemented** — would need a `sampleImage()` pass per frame |
-| Keyframe-free motion | Seeded `wiggle()` on camera Point of Interest / Orientation / Focus Distance |
-| — (not in Perfect Screen) | RGB subpixel grid, scanlines, monitor bezel + rounded corners, glass reflections/dust/smudges, backlight bleed + tint, viewing-angle falloff, ambient light spill |
+No npm install, package build, or third-party effect is required.
 
-## Prerequisites
+## Install the panel
 
-- After Effects with a project open
-- A screen-recording footage item imported into the project (any video or image)
+Symlink the checked-in panel into the running AE version's ScriptUI Panels folder:
 
-## Setup
+```bash
+ln -sf "$PWD/examples/lcd-screen/lcd_screen_panel.jsx" \
+  "/Applications/Adobe After Effects 2026/Scripts/ScriptUI Panels/LCD Screen v2.jsx"
+```
 
-1. Import your screen recording into the AE project.
-2. Open `example_config.jsxinc` and adjust `SOURCE_ITEM_NAME` (or leave `null` to use
-   the item selected in the Project panel), plus `PRESET` if you want to start from one
-   of the 16 in `presets.jsxinc`.
-3. Run `setup.jsx` via **File → Scripts → Run Script File**.
-4. Open the built comp (name from `MASTER_COMP_NAME`, default `"LCD Screen Master"`) and
-   press spacebar to preview.
+Restart After Effects, then open **Window → LCD Screen v2**. During development the
+symlink keeps the installed panel pointed at the repository, but AE still needs a restart
+to reload panel code changed after launch.
 
-For interactive tweaking instead of editing the config file, install the dockable panel
-(`lcd_screen_panel.jsx`) — ask Claude to "install example lcd-screen" for guided setup,
-or symlink it manually the same way as `Scripts/panel/*.jsx`.
+The one-off builder remains available at `setup.jsx` through
+**File → Scripts → Run Script File…**.
+
+## Quick start
+
+1. Import a screen recording and select it in the Project panel.
+2. Open **Window → LCD Screen v2**.
+3. Select the footage under **Source** and click **Build**.
+4. Choose a preset and click **Apply**.
+5. Adjust the live Camera, Focus, Pixels, Color, and Motion controls.
+
+Use **Rebuild Structure** only after changing config-time extras or switching the source.
+Camera framing, focus, pixels, lens treatment, exposure, and presets do not require a
+rebuild.
 
 ## What gets built
 
+The default build creates five marker-owned comps:
+
+```text
+LCD_Content
+  └─ isolated source footage
+LCD_Panel
+  ├─ live Mosaic pixel pitch
+  ├─ RGB subpixel pattern
+  ├─ glow
+  └─ tint
+LCD_SubpixelPattern
+  └─ hidden reference-pitch RGB pattern
+LCD_Scene
+  ├─ LCD_Panel as a 3D layer
+  └─ expression-driven camera
+LCD Master
+  ├─ isolated red, green, and blue LCD_Scene layers
+  ├─ lens-space dust
+  ├─ distortion, blur, exposure, and grain
+  ├─ vignette
+  └─ LCD CONTROLS
 ```
-LCD_Content   raw footage, isolated so subpixel pitch math is computed from the real
-              source resolution
-LCD_Panel     content + full physical-panel treatment (addLcdScreen compound):
-              glow, subpixel grid, scanlines, viewing-angle falloff, backlight tint,
-              backlight bleed + mura, glass surface (dust/smudge/sheen/sweep), vignette
-LCD_Screen    LCD_Panel as one layer (so the rounded-corner mask clips everything in a
-              single pass) + bezel frame + ambient light spill onto "surroundings"
-<Master>      LCD_Screen as a 3D layer + real AE camera (orbit/tilt/distance/zoom,
-              native Depth of Field) + LENS adjustment layer (distortion, chromatic
-              aberration, grain) + the LCD CONTROLS expression rig
-```
 
-## Live vs. config-time controls
+When bezel or ambient spill is enabled, a sixth `LCD_Screen` wrapper sits between
+`LCD_Panel` and `LCD_Scene`. Auto Zoom solves against that wrapper, so the physical frame
+remains covered during camera motion.
 
-The **LCD CONTROLS** null (on the master comp) carries ~20 expression-linked
-controls — tweak these directly in the Effect Controls panel, or via the panel's
-**Live Controls** section, and the render updates immediately, no rebuild:
+Every managed comp carries the marker `ae:lcd-screen:v2`. Rebuilds delete only marked
+items with exact managed names; an unrelated comp that happens to share a name is reported
+as a conflict and left untouched.
 
-Lens Distortion, Chromatic Aberration, Vignette, Bloom, Bloom Threshold, Grain,
-Subpixel Amount, Scanline Amount, Backlight Tint, Backlight Bleed, Panel Mura,
-Viewing Angle Falloff, Glass Reflection, Ambient Spill, Aperture (DoF).
+## Live controls
 
-**Config-time only** (edit `example_config.jsxinc`, re-run `setup.jsx` or the panel's
-Build button): subpixel mode/pixel size, scanline pitch/roll-bar, bezel geometry/color,
-dust/smudge amounts, backlight tint color preset, procedural motion amounts, and camera
-framing (distance/orbit/tilt/zoom — see below).
+`LCD CONTROLS` is the single source of truth for 36 values:
 
-Camera framing has its own **Rebuild Camera** button rather than a live expression link,
-because its 3D position math feeds the Auto Zoom bake — see `lib/autozoom.jsxinc` for
-why a live expression there would be self-referential.
+| Group | Controls |
+|---|---|
+| Camera | Distance, Orbit, Tilt, Roll, Zoom |
+| Target | Target X, Target Y |
+| Focus | Focus Offset, Depth of Field, Aperture |
+| Framing | Auto Zoom, Padding |
+| Blur | Base Blur, Radial Blur |
+| Pixels | Pixel Density, Pixel Amount, Glow, Glow Threshold |
+| Lens | Distortion, Chromatic Aberration, Vignette, Grain, Dust Strength, Dust Density |
+| Color | Tint Color, Tint Amount, Exposure, Auto Exposure |
+| Motion | Target, angle, and focus amount/speed plus Seed |
 
-## Auto Zoom
+The panel binds sliders and numeric fields directly to this null. Live Auto Zoom runs on
+the three outer scene layers, so it follows camera and handheld expressions without a
+bake or self-reference cycle.
 
-Perfect Screen's Auto Zoom solves, per frame, the minimum scale that keeps the tilted
-panel filling the frame with no transparent edges. This example computes the same thing
-but as a **script-side bake**, not a live expression: an invisible "ghost" duplicate of
-the screen layer (unparented, so it isn't affected by the very scale being computed)
-gets projected through the camera, and the result is written onto an `AUTO ZOOM` parent
-null. Re-run the panel's **Bake Auto Zoom** button after changing camera framing.
+## Quality modes
 
-Two details are easy to get wrong here:
+Quality is applied by the panel because AE does not allow expressions to drive an
+effect's enabled state or a comp's `resolutionFactor`.
 
-- **`toComp()` is expression-only.** `AVLayer` has no `toComp` scripting method, so the
-  projection is read through temporary Point3D Controls carrying a `toComp()` expression,
-  sampled with `valueAtTime()` — the same bridge
-  `Scripts/lib/actions/utility/calculate_distance_between_layers.jsxinc` uses.
-- **A bounding box isn't enough.** Under perspective the projected panel is a trapezoid,
-  so its axis-aligned bbox can cover the frame while a slanted edge still cuts a
-  transparent wedge out of a corner. The solver tests each frame corner against the
-  quad's actual edges instead, iterating because the projected expansion isn't linear in
-  the layer's scale.
+| Mode | Resolution | Treatment |
+|---|---:|---|
+| Draft | Quarter | Single reconstructed color pass; DoF, glow, blurs, grain, and CA disabled |
+| Normal | Half | DoF, glow, blurs, and CA enabled; grain disabled |
+| Full | Full | Complete treatment |
 
-When the camera doesn't move, the required scale is constant, so a single static value is
-written rather than one keyframe per frame.
+Changing quality affects fidelity and speed, not framing or the underlying preset.
 
 ## Presets
 
-16 in `presets.jsxinc`. The first 11 match Perfect Screen's own named presets (the only
-11 of its 20 that are publicly documented): Static Default, Static Tinted, Reading
-Front, Reading Move, Reading Angle, Reading Tilted, Side Focus Pull, Close Up Low,
-Sideways, Pan Down, Orbit Wides. The last 5 are original presets exercising the panel
-half Perfect Screen doesn't have: Retro LCD, OLED Night, Desk Setup, Kiosk, Screen Off.
+All 20 presets are maps of the 35 live visual control values. Applying one never creates,
+removes, or rebuilds a composition, and it preserves the selected quality mode.
 
-## Re-running
+- Reading: Reading Front, Reading Move, Reading Angle, Reading Tilted, Warm Reading
+- Close-up: Macro Extreme, Close Up Low, Pixel Peep
+- Angles: Sideways, Steep Side, Pan Down, Dutch Roll
+- Motion: Side Focus Pull, Handheld Drift, Slow Push, Focus Hunt
+- Stylized: Orbit Wide, Cool Night, Dusty Lens, Static Default
 
-`setup.jsx` (and the panel's Build button) call `cleanLcdScreen()` first, which removes
-every `LCD_*` comp by exact name — safe to re-run after changing the config or picking a
-different preset.
+Each application resets all 35 visual controls to the shared baseline before applying the
+named overrides, so preset order does not cause drift.
 
-## New reusable actions
+## Optional physical-screen extras
 
-This example promoted its building blocks into the shared action library rather than
-keeping them example-local — any project in this repo can use them. See
-`Scripts/lib/actions/index.json` (categories `effect` and `scene`) for the full list:
-`subpixel_grid`, `scanlines`, `backlight_tint`, `backlight_bleed`,
-`viewing_angle_falloff`, `vignette`, `screen_glow`, `bezel`, `glass_surface`,
-`ambient_spill`, `lens_distortion`, `chromatic_aberration`, `depth_of_field_rake`, and
-the `presets/lcd_screen.jsxinc` compound that composes the panel-tier ones.
+Perfect Screen-style camera and lens behavior is the default. The older physical-monitor
+features remain available as an explicit config-time path in `example_config.jsxinc`:
 
-## File structure
-
+```javascript
+EXTRAS_ENABLED: true,
+BEZEL_ENABLED: true,
+AMBIENT_SPILL_ENABLED: true,
+GLASS_ENABLED: true
 ```
+
+Backlight bleed, viewing-angle falloff, and scanlines have their own flags. Extras are
+off by default because bezel, reflections, scanlines, and panel bleed are different
+creative choices from a pure macro-camera treatment.
+
+After changing these flags, use **Rebuild Structure**.
+
+## Validation
+
+`verify_m6.jsx` is the final acceptance harness. It:
+
+- renders a Full/Draft comparison;
+- renders all 20 presets at Draft resolution;
+- applies five presets in sequence and proves they create zero comps;
+- rebuilds with all optional defaults off;
+- builds a portrait source through the bezel/glass/ambient-spill path;
+- verifies Auto Zoom on the six-comp wrapper;
+- restores the normal five-comp default build.
+
+Run it through **File → Scripts → Run Script File…**. Reports go to
+`Scripts/runs/last_run.json`; PNGs go to `Scripts/runs/preview/`.
+
+## Files
+
+```text
 examples/lcd-screen/
 ├── README.md
-├── example_config.jsxinc      Copy + adjust to taste
-├── presets.jsxinc             16 named presets, merged over the config
-├── setup.jsx                  Entry point (File > Scripts > Run Script File)
-├── render_preview.jsx         Saves preview PNGs to Scripts/runs/preview/
-├── lcd_screen_panel.jsx       Dockable panel: Build, Camera, Live Controls, Render
+├── example_config.jsxinc
+├── presets.jsxinc
+├── setup.jsx
+├── verify_m6.jsx
+├── render_states.jsx
+├── render_preview.jsx
+├── lcd_screen_panel.jsx
 └── lib/
-    ├── build.jsxinc           Shared orchestrator (used by setup.jsx and the panel)
-    ├── cleaner.jsxinc         Removes previous LCD_* comps
-    ├── content-comp.jsxinc    Wraps raw footage
-    ├── screen-comp.jsxinc     Panel treatment + bezel + spill
-    ├── camera-rig.jsxinc      Master comp, 3D camera, procedural motion
-    ├── autozoom.jsxinc        Auto Zoom projection + bake
-    ├── lens-stack.jsxinc      Distortion + chromatic aberration + grain
-    └── rig.jsxinc             LCD CONTROLS expression rig + linking
+    ├── autozoom.jsxinc
+    ├── build.jsxinc
+    ├── camera-rig.jsxinc
+    ├── cleaner.jsxinc
+    ├── content-comp.jsxinc
+    ├── lens-stack.jsxinc
+    ├── links.jsxinc
+    ├── probes.jsxinc
+    ├── quality.jsxinc
+    ├── rig.jsxinc
+    ├── screen-comp.jsxinc
+    └── states.jsxinc
 ```
 
-## Known limitations
+## Limitations
 
-- Chromatic aberration's "lens" mode (three tinted, scale-offset duplicates) **cannot be
-  used on this example's `LENS` adjustment layer**: an adjustment layer re-processes the
-  whole composite beneath it, so three duplicates would apply lens distortion and grain
-  four times over. `LENS_CA_MODE` is therefore `"subtle"` (Channel Blur) here, and
-  `addChromaticAberration` now throws if `"lens"` is aimed at an adjustment layer. Getting
-  the duplicate-based look would mean precomposing the camera render into a single 2D
-  layer first — not attempted in this build.
-- The subpixel grid's registration technique is a documented approximation, not a
-  photoreal render — see the `@note` tags in the relevant action files under
-  `Scripts/lib/actions/effects/`.
-- Auto Exposure is **not** implemented (it needs a `sampleImage` pass per frame). The
-  feature table below lists it as a Perfect Screen feature, not as one of this example's.
-- Effect enum values that couldn't be verified against `Scripts/verified/effects/` (a
-  couple of camera property match names) are set defensively and won't abort the build
-  if AE rejects them — see the inline comments in `lib/camera-rig.jsxinc` and
-  `lib/rig.jsxinc`.
-- Dust/smudge amounts on the glass layer are config-time only in this build (not rig-
-  linked); only the sweep/sheen "Glass Reflection" control is live.
+- This is an editable native-AE approximation, not ProductionCrate's GPU implementation.
+- Auto Exposure uses `sampleImage()` on the ungraded green scene pass and can be slower
+  than manual exposure on long or high-resolution comps.
+- Renaming `LCD Master`, `LCD_Scene`, or `LCD CONTROLS` after building breaks expressions
+  that intentionally reference those names.
+- The RGB stripe overlay is procedural and can alias differently across preview zoom
+  levels; judge it at 100% or in a render.
+- Glass extras use effects bundled with standard AE/Cycore installations. If an
+  installation omits those effects, leave `GLASS_ENABLED` off.
+- The reliability diff cannot see changes inside nested precomps; the acceptance PNGs
+  are the visual verification source.

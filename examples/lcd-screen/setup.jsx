@@ -1,16 +1,6 @@
 // LCD Screen -- Main Entry Point
 // Run in After Effects via File > Scripts > Run Script File
-//
-// Builds a complete LCD-monitor mockup from a screen-recording footage item:
-//   LCD_Content -> LCD_Panel (physical panel treatment) -> LCD_Screen (bezel + spill)
-//   -> <MASTER_COMP_NAME> (3D camera rig + lens stack + control rig)
-//
-// 1. Resolves the source footage item (config, or the selected Project panel item)
-// 2. Removes any previous LCD_* comps (safe for re-runs)
-// 3. Applies the configured preset over example_config.jsxinc
-// 4. Builds all four comps and wires the LCD CONTROLS expression rig
-//
-// After running, open <MASTER_COMP_NAME> and press spacebar to preview.
+// Builds the marker-owned five-comp v2 rig, plus the opt-in LCD_Screen wrapper.
 
 #include "../../Scripts/lib/helpers.jsxinc"
 #include "../../Scripts/lib/io.jsxinc"
@@ -51,9 +41,6 @@
 #include "lib/lens-stack.jsxinc"
 #include "lib/rig.jsxinc"
 #include "lib/links.jsxinc"
-#include "lib/quality.jsxinc"
-#include "lib/states.jsxinc"
-#include "lib/probes.jsxinc"
 #include "lib/build.jsxinc"
 
 /**
@@ -82,7 +69,6 @@ function _lcd_resolveSource(cfg) {
 
 (function () {
     var step = "init";
-    var entryFile = new File($.fileName);
     beginScript("setup.jsx", null);
 
     var source = _lcd_resolveSource(LcdScreenConfig);
@@ -98,25 +84,6 @@ function _lcd_resolveSource(cfg) {
         step = "build";
         var result = buildLcdScreen(source, LcdScreenConfig);
 
-        step = "run M1 probes";
-        runLcdM1Probes({
-            masterComp: result.master.comp,
-            rigNull: result.rig["null"],
-            scenePanelLayer: result.scene.panelLayer,
-            masterSceneLayer: result.master.sceneLayer,
-            exposureEffect: result.lens.exposure
-        });
-
-        step = "render M5 acceptance states";
-        var previewDir = getLcdPreviewFolder(entryFile);
-        var stateReport = renderLcdStates(
-            result.master.comp,
-            result.rig["null"],
-            "m5",
-            getLcdStateSet("m5"),
-            previewDir
-        );
-
         step = "open master comp";
         try { result.master.comp.openInViewer(); } catch (_) {}
 
@@ -127,8 +94,9 @@ function _lcd_resolveSource(cfg) {
             "Preset: " + (result.cfg.PRESET || "(none)") + "\n" +
             "Source: " + source.name + "\n" +
             (result.removedCount > 0 ? "Cleaned " + result.removedCount + " previous comp(s).\n" : "") +
-            "Rendered " + stateReport.stateCount + " M5 acceptance frames.\n\n" +
-            "Open \"" + result.cfg.MASTER_COMP_NAME + "\" and tweak LCD CONTROLS for live camera, focus, framing, pixel, and lens adjustments."
+            "Installed " + result.master.caLayers.length + " color channels and " +
+            result.rig.controls.length + " live controls.\n\n" +
+            "Open Window > LCD Screen v2 for presets, quality, and live adjustments."
         );
     } catch (e) {
         try { app.endUndoGroup(); } catch (_) {}

@@ -19,7 +19,7 @@ A first attempt exists at `examples/lcd-screen/`. An independent review judged i
 - [x] M3 — Exposure, Auto Exposure, tint
 - [x] M4 — Animate Movements under auto zoom
 - [x] M5 — 20 live presets + panel v2
-- [ ] M6 — Quality dropdown, opt-in extras path, docs, contact sheet
+- [x] M6 — Quality dropdown, opt-in extras path, docs, contact sheet
 
 ## The feedback loop (read this before writing any code)
 

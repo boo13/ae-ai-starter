@@ -33,6 +33,44 @@ function _lcdM4MotionOverrides() {
     };
 }
 
+function _lcdM6States() {
+    var states = [
+        {
+            name: "quality-full",
+            preset: "Static Default",
+            quality: "Full",
+            time: 0,
+            overrides: {}
+        },
+        {
+            name: "quality-draft",
+            preset: "Static Default",
+            quality: "Draft",
+            time: 0,
+            overrides: {}
+        }
+    ];
+    var motionPresets = {
+        "Reading Move": true,
+        "Side Focus Pull": true,
+        "Handheld Drift": true,
+        "Slow Push": true,
+        "Focus Hunt": true,
+        "Orbit Wide": true
+    };
+    var names = getLcdPresetNames();
+    for (var i = 0; i < names.length; i++) {
+        states.push({
+            name: "preset-" + _lcdStateSafeName(names[i].toLowerCase()),
+            preset: names[i],
+            quality: "Draft",
+            time: motionPresets[names[i]] ? 5 : 0,
+            overrides: {}
+        });
+    }
+    return states;
+}
+
 var LcdScreenStateSets = {
     m1: [
         {
@@ -432,7 +470,8 @@ var LcdScreenStateSets = {
             time: 0,
             overrides: {}
         }
-    ]
+    ],
+    m6: _lcdM6States()
 };
 
 function getLcdStateSet(milestone) {
@@ -666,9 +705,10 @@ function renderLcdStates(masterComp, rigNull, milestone, states, previewDir) {
                 presetReport = applyPreset(state.preset, rigNull);
                 presetApplications.push(presetReport);
             }
+            var qualityReport = null;
             if (state.quality && typeof applyLcdQuality === "function") {
                 setStep("apply quality " + state.quality);
-                applyLcdQuality(masterComp, state.quality);
+                qualityReport = applyLcdQuality(masterComp, state.quality);
             }
             for (key in overrides) {
                 if (!overrides.hasOwnProperty(key)) continue;
@@ -700,11 +740,13 @@ function renderLcdStates(masterComp, rigNull, milestone, states, previewDir) {
                 name: state.name,
                 time: renderTime,
                 preset: state.preset || null,
+                quality: state.quality || null,
                 intent: state.preset ? LcdScreenPresetIntents[state.preset] : null,
                 overrides: overrides,
                 output: outFile.fsName
             };
             if (presetReport) renderedState.presetApplication = presetReport;
+            if (qualityReport) renderedState.qualityApplication = qualityReport;
             if (state.motionDiagnostics) {
                 renderedState.motion = _lcdStateMotionDiagnostics(masterComp, renderTime);
             }

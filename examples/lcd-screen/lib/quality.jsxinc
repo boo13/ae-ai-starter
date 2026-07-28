@@ -17,6 +17,23 @@ function getLcdQualityName(level) {
     return "Full";
 }
 
+function _lcdQualityPanelComp(masterComp) {
+    var sceneLayer = masterComp.layer("CA GREEN");
+    var sceneComp = sceneLayer.source;
+    var scenePanelLayer = sceneComp.layer("LCD PANEL 3D");
+    var stageComp = scenePanelLayer.source;
+    try {
+        if (stageComp.layer("SCREEN CONTENT")) return stageComp;
+    } catch (_) {}
+    try {
+        var wrappedPanel = stageComp.layer("LCD PANEL");
+        if (wrappedPanel && wrappedPanel.source instanceof CompItem) {
+            return wrappedPanel.source;
+        }
+    } catch (_) {}
+    throw new Error("LCD_Panel could not be resolved from the scene.");
+}
+
 function applyLcdQuality(masterComp, quality) {
     if (!masterComp || !(masterComp instanceof CompItem)) {
         throw new Error("applyLcdQuality: masterComp must be a CompItem.");
@@ -33,9 +50,7 @@ function applyLcdQuality(masterComp, quality) {
     rigNull.property("ADBE Effect Parade").property("FOC Depth Of Field").property(1)
         .setValue(level === 0 ? 0 : 1);
 
-    var sceneLayer = masterComp.layer("CA GREEN");
-    var sceneComp = sceneLayer.source;
-    var panelComp = sceneComp.layer("LCD PANEL 3D").source;
+    var panelComp = _lcdQualityPanelComp(masterComp);
     var contentLayer = panelComp.layer("SCREEN CONTENT");
     var glow = contentLayer.property("ADBE Effect Parade").property("ADBE Glo2");
     if (glow) glow.enabled = level >= 1;

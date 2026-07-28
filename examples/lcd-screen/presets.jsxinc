@@ -81,8 +81,7 @@ var LcdScreenPresetBase = {
     "MOT Angle Speed": 0.1,
     "MOT Focus Amount": 0,
     "MOT Focus Speed": 0.2,
-    "MOT Seed": 1,
-    "QUAL Level": 2
+    "MOT Seed": 1
 };
 
 var LcdScreenPresets = {

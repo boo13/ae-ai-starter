@@ -115,6 +115,50 @@ function buildPanelComp(content, cfg, panelWidth, panelHeight) {
     tintLayer.name = "PANEL TINT";
     var tintEffect = tintLayer.property("ADBE Effect Parade").property("ADBE Photo Filter");
 
+    var extras = {
+        enabled: !!cfg.EXTRAS_ENABLED,
+        scanlines: null,
+        viewingAngle: null,
+        backlightBleed: null,
+        glass: null
+    };
+    if (cfg.EXTRAS_ENABLED) {
+        if (cfg.BACKLIGHT_BLEED_ENABLED) {
+            setStep("build optional backlight bleed");
+            extras.backlightBleed = addBacklightBleed(panelComp, {
+                corners: cfg.BACKLIGHT_BLEED_CORNERS,
+                intensity: cfg.BACKLIGHT_BLEED_INTENSITY,
+                muraAmount: cfg.BACKLIGHT_MURA
+            });
+        }
+        if (cfg.VIEWING_ANGLE_ENABLED) {
+            setStep("build optional viewing angle");
+            extras.viewingAngle = addViewingAngleFalloff(panelComp, {
+                targetLayer: contentLayer,
+                axis: cfg.VIEWING_ANGLE_AXIS,
+                amount: cfg.VIEWING_ANGLE_AMOUNT
+            });
+        }
+        if (cfg.SCANLINES_ENABLED) {
+            setStep("build optional scanlines");
+            extras.scanlines = addScanlines(panelComp, {
+                pitch: cfg.SCANLINE_PITCH,
+                amount: cfg.SCANLINE_AMOUNT,
+                rollBar: cfg.SCANLINE_ROLL_BAR
+            });
+        }
+        if (cfg.GLASS_ENABLED) {
+            setStep("build optional glass");
+            extras.glass = addGlassSurface(panelComp, {
+                dust: cfg.GLASS_DUST,
+                smudge: cfg.GLASS_SMUDGE,
+                sheen: cfg.GLASS_SHEEN,
+                sweep: cfg.GLASS_SWEEP,
+                sweepSpeed: cfg.GLASS_SWEEP_SPEED
+            });
+        }
+    }
+
     return {
         comp: panelComp,
         contentLayer: contentLayer,
@@ -124,7 +168,62 @@ function buildPanelComp(content, cfg, panelWidth, panelHeight) {
         patternLayers: patternLayers,
         tintLayer: tintLayer,
         tintEffect: tintEffect,
+        extras: extras,
         width: panelWidth,
         height: panelHeight
+    };
+}
+
+function buildScreenComp(panel, cfg) {
+    var bezelWidth = cfg.BEZEL_ENABLED ? cfg.BEZEL_WIDTH : 0;
+    var outerWidth = panel.width + bezelWidth * 2;
+    var outerHeight = panel.height + bezelWidth * 2;
+    var screenComp = markLcdComp(
+        app.project.items.addComp(
+            "LCD_Screen",
+            outerWidth,
+            outerHeight,
+            1,
+            cfg.DURATION,
+            cfg.FRAME_RATE
+        )
+    );
+    try { screenComp.bgColor = [0, 0, 0]; } catch (_) {}
+
+    var panelLayer = screenComp.layers.add(panel.comp);
+    panelLayer.name = "LCD PANEL";
+    panelLayer.property("Transform").property("Position")
+        .setValue([outerWidth / 2, outerHeight / 2]);
+
+    var bezel = null;
+    if (cfg.BEZEL_ENABLED) {
+        setStep("build optional bezel");
+        bezel = addBezel(screenComp, {
+            // Nested masked precomps can render transparent in AE; keep the screen intact.
+            screenLayer: null,
+            width: panel.width,
+            height: panel.height,
+            bezelWidth: bezelWidth,
+            cornerRadius: cfg.BEZEL_CORNER_RADIUS,
+            color: cfg.BEZEL_COLOR
+        });
+    }
+
+    var spillLayer = null;
+    if (cfg.AMBIENT_SPILL_ENABLED) {
+        setStep("build optional ambient spill");
+        spillLayer = addAmbientSpill(screenComp, {
+            targetLayer: panelLayer,
+            opacity: cfg.AMBIENT_SPILL_OPACITY
+        });
+    }
+
+    return {
+        comp: screenComp,
+        panelLayer: panelLayer,
+        bezel: bezel,
+        spillLayer: spillLayer,
+        width: outerWidth,
+        height: outerHeight
     };
 }

@@ -10,12 +10,12 @@ Each subfolder is a complete, standalone project that demonstrates what you can 
 |---------|------|---------------|
 | [social-card](social-card/) | ExtendScript | Combines all three recipes (repeating-elements, image-swap, data-timing) to automate a multi-card social media template |
 | [audio-spectrum](audio-spectrum/) | ExtendScript | Procedurally generated audio spectrum visualizer with log-frequency mapping, multiple display modes, and per-bar shape layers |
-| [lcd-screen](lcd-screen/) | ExtendScript | Physical LCD-monitor mockup from a screen recording — 3D camera rig, lens effects (distortion/CA/DoF/vignette), RGB subpixel grid, scanlines, bezel, glass reflections, all driven by a live expression control rig |
+| [lcd-screen](lcd-screen/) | ScriptUI + ExtendScript | Perfect Screen-style macro LCD camera with 20 live presets, Auto Zoom/Exposure, quality modes, and opt-in bezel/glass extras |
 | [ticker-data](ticker-data/) | CEP Panel | Fetches stock data via yahoo-finance2 and builds stock cards, sparklines, and comparison charts in After Effects; successor to the older `stock_ticker` demo |
 
 ## Installing an Example
 
-**ExtendScript examples** (`social-card`, `audio-spectrum`, `lcd-screen`) have no build step. Open After Effects and run the example's `setup.jsx` via File → Scripts → Run Script File, or follow the example's README.
+**ExtendScript examples** (`social-card`, `audio-spectrum`, `lcd-screen`) have no build step. Open After Effects and run the example's `setup.jsx` via File → Scripts → Run Script File, or follow the example's README. `lcd-screen` also includes a dockable ScriptUI panel; symlink it into AE's `Scripts/ScriptUI Panels/` folder, restart AE, and open **Window → LCD Screen v2**.
 
 **CEP panel examples** (`ticker-data`) require a build and symlink step:
 

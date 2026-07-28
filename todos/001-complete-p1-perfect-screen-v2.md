@@ -1,5 +1,5 @@
 ---
-status: ready
+status: complete
 priority: p1
 issue_id: "001"
 tags: [after-effects, lcd-screen, scriptui, visual-effects]
@@ -85,9 +85,9 @@ Execute `docs/plans/2026-07-25-feat-perfect-screen-v2.md` milestone by milestone
 - [x] M3 exposure, auto exposure, and tint accepted
 - [x] M4 animated movement under live auto zoom accepted
 - [x] M5 twenty live presets and panel v2 accepted
-- [ ] M6 quality modes, optional extras, docs, and contact sheet accepted
-- [ ] Static checks and After Effects validation pass
-- [ ] All plan checkboxes are complete
+- [x] M6 quality modes, optional extras, docs, and contact sheet accepted
+- [x] Static checks and After Effects validation pass
+- [x] All plan checkboxes are complete
 
 ## Work Log
 
@@ -411,6 +411,48 @@ Execute `docs/plans/2026-07-25-feat-perfect-screen-v2.md` milestone by milestone
 
 **Learnings:**
 - Dust strength 22 and density 45 preserve a clearly dusty variant without obscuring the source or producing a synthetic particle field.
+
+### 2026-07-27 - M6 Ready for After Effects Validation
+
+**By:** Codex
+
+**Actions:**
+- Added the opt-in glass, backlight, viewing-angle, and scanline path inside LCD_Panel.
+- Added the conditional LCD_Screen wrapper for bezel and ambient spill, with Auto Zoom solving against the wrapper.
+- Added a final acceptance harness covering consecutive rebuilds, optional-defaults-off, a Full/Draft pair, all 20 presets at Draft resolution, five-preset spam, a portrait source, and bezel/glass/spill.
+- Separated quality from the 35 visual preset controls so applying a preset preserves Draft, Normal, or Full.
+- Converted normal setup back to a fast build-only entry point and updated the panel, example documentation, examples index, and install-example guidance.
+- Passed syntax, ES3, ASCII entry-file, whitespace, preset/control, and 22-state contact-sheet checks.
+
+**Learnings:**
+- Quality must remain script-owned because its resolution and effect-enabled changes cannot be represented honestly as a preset slider map.
+- Structural extras can reuse the live camera and Auto Zoom system when the outer wrapper is the scene's single 3D source.
+
+### 2026-07-27 - M6 Extras Visual Fix
+
+**By:** Codex
+
+**Actions:**
+- Verified all M6 structural checks and inspected the complete 20-preset Draft contact sheet.
+- Confirmed Draft and Full preserve identical framing while changing only render fidelity.
+- Rejected the extras preview because the bezel action's even-odd shape filled the intended center opening and covered the screen.
+- Replaced the fragile hollow path with four explicit overlapping bezel rails while preserving the bevel.
+
+**Learnings:**
+- A successful layer/effect build report cannot prove a compound shape renders correctly; the optional structural path needs its own frame-level acceptance image.
+
+### 2026-07-28 - M6 Accepted
+
+**By:** Codex
+
+**Actions:**
+- Removed the nested screen mask/inner-shadow path after AE rendered the masked precomp transparent.
+- Verified `verify_m6.jsx` completed successfully with 41 live links, 20 presets, zero preset-created comps, distinct Draft/Full quality behavior, and clean five/six-comp rebuilds.
+- Inspected the corrected portrait bezel/glass/spill frame and the complete labeled 20-preset contact sheet.
+- Confirmed all 24 M6 PNGs have valid IEND trailers and passed syntax, ES3, ASCII, preset/control, and scoped whitespace checks.
+
+**Learnings:**
+- Nested masked precomps are not reliable in this AE path; an unmasked screen inside the four-rail bezel preserves the image and remains compatible with live Auto Zoom.
 
 ## Notes
 

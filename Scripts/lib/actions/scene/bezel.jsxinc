@@ -9,7 +9,7 @@
  * @example var bezel = addBezel(comp, { screenLayer: screen, bezelWidth: 30, cornerRadius: 16 });
  * @requires mask.jsxinc
  * @pluginDeps ADBE Bevel Alpha, ADBE PSL Inner Shadow
- * @note The frame is one shape group holding an outer AND an inner rounded-rect path with Fill Rule set to Even-Odd. A single path with the default Non-Zero Winding rule fills solid and hides the screen behind it.
+ * @note The frame uses four overlapping rails so AE cannot fill the intended center opening.
  */
 
 /**
@@ -68,17 +68,26 @@ function addBezel(comp, opts) {
     group.name = "Frame";
     var vectors = group.property("ADBE Vectors Group");
 
-    // Two concentric closed paths + an Even-Odd fill make the inner rect a hole, so the
-    // bezel renders as a FRAME. With the default Non-Zero Winding rule a single outer path
-    // fills solid and would opaquely cover the entire screen underneath it.
-    var outerPath = vectors.addProperty("ADBE Vector Shape - Group");
-    outerPath.property("ADBE Vector Shape").setValue(_bz_roundedRectShape([-outerW / 2, -outerH / 2, outerW, outerH], cornerRadius + bezelWidth));
-
-    var innerPath = vectors.addProperty("ADBE Vector Shape - Group");
-    innerPath.property("ADBE Vector Shape").setValue(_bz_roundedRectShape([-w / 2, -h / 2, w, h], cornerRadius));
+    var railSpecs = [
+        [outerW, bezelWidth, 0, -(h + bezelWidth) / 2],
+        [outerW, bezelWidth, 0, (h + bezelWidth) / 2],
+        [bezelWidth, h, -(w + bezelWidth) / 2, 0],
+        [bezelWidth, h, (w + bezelWidth) / 2, 0]
+    ];
+    for (var railIndex = 0; railIndex < railSpecs.length; railIndex++) {
+        var rail = vectors.addProperty("ADBE Vector Shape - Rect");
+        rail.property("ADBE Vector Rect Size")
+            .setValue([railSpecs[railIndex][0], railSpecs[railIndex][1]]);
+        rail.property("ADBE Vector Rect Position")
+            .setValue([railSpecs[railIndex][2], railSpecs[railIndex][3]]);
+        try {
+            rail.property("ADBE Vector Rect Roundness")
+                .setValue(Math.min(bezelWidth / 2, cornerRadius));
+        } catch (_) {}
+        vectors = contents.property("Frame").property("ADBE Vectors Group");
+    }
 
     var fill = vectors.addProperty("ADBE Vector Graphic - Fill");
-    fill.property("ADBE Vector Fill Rule").setValue(2); // 2 = Even-Odd, cuts the inner path out
     fill.property("ADBE Vector Fill Color").setValue([color[0], color[1], color[2], 1]);
 
     setStep("apply bevel alpha");

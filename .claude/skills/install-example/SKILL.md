@@ -72,7 +72,9 @@ No build step needed. Tell the user:
 2. Open the example's `README.md` to check prerequisites (e.g. an existing comp, an audio layer, imported footage).
 3. If the example has a `setup.jsx`: run it via **File → Scripts → Run Script File**.
 4. If the example is recipe-based (like social-card): follow the usage instructions in its README.
-5. If the example also ships a dockable panel (e.g. `lcd-screen/lcd_screen_panel.jsx`) and the user wants interactive controls, symlink it into AE's `Scripts/ScriptUI Panels/` folder the same way as `Scripts/panel/*.jsx` (see the `ae-add-ui-panel` / `install-actions-runner` skills), then reopen it from the Window menu.
+5. For `lcd-screen`, symlink `examples/lcd-screen/lcd_screen_panel.jsx` to
+   `<After Effects>/Scripts/ScriptUI Panels/LCD Screen v2.jsx`, restart AE, then open
+   **Window → LCD Screen v2**. It is a ScriptUI panel, not a compiled plugin.
 
 ---
 
