@@ -191,3 +191,26 @@ for i in {1..120}; do
   sleep 0.5
 done
 ```
+
+## setValueAtTime Uses Absolute Composition Time
+
+`setValueAtTime(time, value)` takes **absolute composition time in seconds**,
+not a time relative to the playhead. Using `comp.time` as the first argument
+anchors keyframes to the current playhead position -- running the script at
+frame 30 creates keyframes 30 seconds in, not at the start.
+
+**Wrong:**
+```jsx
+opacity.setValueAtTime(comp.time, 0);
+opacity.setValueAtTime(comp.time + 2, 100);
+```
+
+**Right:**
+```jsx
+opacity.setValueAtTime(0, 0);
+opacity.setValueAtTime(2, 100);
+```
+
+**Fix:** Use literal seconds (`0`, `1`, `2`, etc.) for keyframe times unless
+the user explicitly asks to start the animation at the current playhead
+position.
