@@ -36,7 +36,6 @@
     "@types/node": "^16.11.7",
     "@types/trusted-types": "^2.0.2",
     "babel-plugin-transform-scss": "^1.2.0",
-    "babel-preset-env": "^1.7.0",
     "core-js": "3",
     "cross-env": "^7.0.3",
     "fs-extra": "^10.0.0",
